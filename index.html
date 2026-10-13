@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro — Genişletilmiş Çoklu Piyasa Terminali</title>
+    <title>TradePilot Pro Max — Akıllı Sermaye & Otomatik Kâr Terminali</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">Tüm Kripto Piyasası • Genişletilmiş Çoklu İşlem Paneli</p>
+                <p class="text-xs text-gray-400">Akıllı %25 Rezerv • Otomatik Kâr Al & Devam Et</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -56,15 +56,12 @@
     </header>
 
     <main class="max-w-[96rem] mx-auto px-3 sm:px-6 py-4 space-y-4">
-        <!-- Kâr Uyarı Banner -->
-        <div id="profit-alert-banner" class="hidden bg-emerald-500/20 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between text-emerald-400 text-xs sm:text-sm animate-pulse">
-            <div class="flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span id="profit-alert-text"><strong>KÂR UYARISI:</strong> Pozisyonlar karda! Kontrol panelinden kapatabilirsiniz.</span>
-            </div>
-            <button onclick="closeAllPositions('Kâr uyarısı ile kapatma')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg transition">KÂRDA KAPAT</button>
+        <!-- Bilgi Banner -->
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-center space-x-3 text-blue-400 text-xs sm:text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span><strong>AKILLI KURAL:</strong> Bakiyenin %25'i nakit olarak rezerve edilir, asla harcanmaz. En ufak kârda işlemler otomatik kapatılır ve yeniden açılır. Stop: -$80</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -75,9 +72,9 @@
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
-                <div class="text-xs text-gray-400 font-medium mb-1">Toplam Öz Kaynak</div>
-                <div id="val-equity" class="text-xl sm:text-2xl font-bold font-mono">10.000,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Bakiye + açık işlemler</span></div>
+                <div class="text-xs text-gray-400 font-medium mb-1">Korumalı %25 Rezerv</div>
+                <div id="val-reserve" class="text-xl sm:text-2xl font-bold font-mono text-amber-400">2.500,00</div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Dokunulmaz Nakit</span></div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlemler K/Z</div>
@@ -91,7 +88,7 @@
             </div>
         </div>
 
-        <!-- Genişletilmiş Grid Yapısı: Sol Grafik & Piyasalar, Sağ İşlem ve Kontrol Panelleri -->
+        <!-- Genişletilmiş Grid Yapısı -->
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <!-- Sol 2 Kolon: Grafik ve Tüm Piyasa Tablosu -->
             <div class="xl:col-span-2 space-y-4">
@@ -156,11 +153,11 @@
                 </div>
             </div>
 
-            <!-- Sağ Kolon: Genişletilmiş İşlem Panelleri, Bot ve Açık Pozisyonlar -->
+            <!-- Sağ Kolon: İşlem Panelleri, Bot ve Açık Pozisyonlar -->
             <div class="space-y-4">
                 <!-- Çoklu İşlem Paneli -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Genişletilmiş İşlem Paneli</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Paneli (%75 Limitli)</h3>
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs text-gray-400 mb-1">Kademe / İşlem Başına Tutar (USDT)</label>
@@ -180,14 +177,14 @@
                                 <span>10'LU SELL / SHORT</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 text-center pt-1">Seçili coinde anında 10 kademe açar. Stop: -$80</p>
+                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 bakiye rezerve edilir. En ufak kârda kapanır.</p>
                     </div>
                 </div>
 
-                <!-- Sürekli Otomobil Bot Kontrolü -->
+                <!-- Sürekli Otomatik Bot Kontrolü -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Tüm Piyasa Sürekli Botu</h3>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Kâr Al & Devam Botu</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -201,7 +198,7 @@
                         <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                             <div class="text-gray-400 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                                <span id="bot-status-desc">Bot kapalı. Tüm borsayı tarar.</span>
+                                <span id="bot-status-desc">Bot kapalı. %25 rezerve sadık kalır.</span>
                             </div>
                         </div>
                     </div>
@@ -211,7 +208,7 @@
                 <div class="card-glass rounded-2xl p-4 space-y-4 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar Kontrolü</h3>
+                            <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar (Kârda Otomatik Kapanır)</h3>
                             <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0</span>
                         </div>
                         <div id="open-pos-list" class="space-y-2 text-xs max-h-56 overflow-y-auto">
@@ -289,7 +286,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v9');
+            const saved = localStorage.getItem('tradepilot_state_v10');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -302,7 +299,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v9', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v10', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -387,7 +384,6 @@
             fetchCandles();
         }
 
-        // Tüm Piyasa İçin Çoklu WebSockets Bağlantısı
         function connectAllWebSockets() {
             coins.forEach(coin => {
                 const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${coin.toLowerCase()}@ticker`);
@@ -446,9 +442,13 @@
 
             if (!currentPrice || currentPrice <= 0) return;
 
+            // %25 Korumalı Rezerv Kuralı: Bakiye üzerinden %25 ayrılır, kalan %75 harcanabilir.
+            const reserveLimit = state.balance * 0.25;
+            const availableForTrading = state.balance - reserveLimit;
             const neededTotal = amountPerTrade * 10;
-            if (neededTotal > state.balance) {
-                alert("Yetersiz bakiye!");
+
+            if (neededTotal > availableForTrading) {
+                alert(`İşlem reddedildi! Bakiye koruması (%25 rezerv) devrede. Kullanılabilir harcama limiti: ${availableForTrading.toFixed(2)} USDT`);
                 return;
             }
 
@@ -469,11 +469,7 @@
         }
 
         function checkPositionLimits() {
-            const banner = document.getElementById('profit-alert-banner');
-            if (state.openPositions.length === 0) {
-                if (banner) banner.classList.add('hidden');
-                return;
-            }
+            if (state.openPositions.length === 0) return;
 
             let totalOpenPnl = 0;
             state.openPositions.forEach(pos => {
@@ -485,17 +481,15 @@
                 }
             });
 
+            // Stop-Loss: Zarar -$80 sınırına ulaştığında kapat
             if (totalOpenPnl <= -80) {
                 closeAllPositions("Stop-Loss (-$80 zarar sınırı)");
-                if (banner) banner.classList.add('hidden');
                 return;
             }
 
-            if (totalOpenPnl > 0) {
-                if (banner) banner.classList.remove('hidden');
-                document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)!`;
-            } else {
-                if (banner) banner.classList.add('hidden');
+            // En ufak kârda (> 0) otomatik kapat ve kâra geçerek yeni işlem açmaya hazır hale gel
+            if (totalOpenPnl > 0.00) {
+                closeAllPositions("Otomatik Kâr Al (En ufak kâr yakalandı)");
             }
         }
 
@@ -540,7 +534,7 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Tüm piyasa tarayıcı bot aktif! Tüm coinleri tarayıp işlem açıyor.";
+                desc.innerText = "Otomatik Kâr Al & Devam Botu aktif! %25 rezerve uyarak sürekli işlem açar.";
                 
                 if (!scannerInterval) {
                     scannerInterval = setInterval(runBotScanner, 2500);
@@ -558,6 +552,8 @@
 
         function runBotScanner() {
             if (!state.autoBotActive) return;
+            // Eğer halihazırda açık pozisyon varsa kâra geçip kapanmasını bekler (böylece bakiye aşılmaz)
+            if (state.openPositions.length > 0) return;
 
             state.scannerIndex = (state.scannerIndex + 1) % coins.length;
             const targetCoin = coins[state.scannerIndex];
@@ -582,8 +578,6 @@
             pctEl.innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
             pctEl.className = `text-xs font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            document.getElementById('info-price') ? document.getElementById('info-price').innerText = price.toLocaleString('tr-TR') : null;
-
             let totalOpenPnl = 0;
             state.openPositions.forEach(pos => {
                 const activePrice = state.prices[pos.coin] || pos.entryPrice;
@@ -594,19 +588,23 @@
                 }
             });
 
+            const reserveAmount = state.balance * 0.25;
             const lockedMargin = state.openPositions.reduce((acc, p) => acc + p.amount, 0);
             const equity = state.balance + lockedMargin + totalOpenPnl;
 
             document.getElementById('val-balance').innerText = state.balance.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('val-reserve').innerText = reserveAmount.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('val-equity').innerText = equity.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
             const pnlEl = document.getElementById('val-open-pnl');
             if (state.openPositions.length > 0) {
                 pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Otomatik Kapanacak)" : "Zarda";
             } else {
                 pnlEl.innerText = "0,00";
                 pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
+                document.getElementById('pnl-status-text').innerText = "Pozisyon Yok (Yeni İşleme Hazır)";
             }
 
             const realEl = document.getElementById('val-realized-pnl');
