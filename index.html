@@ -70,33 +70,21 @@
                 <div class="text-xs text-gray-400 font-medium mb-1">Demo Bakiyesi</div>
                 <div id="val-balance" class="text-xl sm:text-2xl font-bold font-mono">10.000,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
-                <div class="absolute right-3 top-4 text-blue-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                </div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Toplam Öz Kaynak</div>
                 <div id="val-equity" class="text-xl sm:text-2xl font-bold font-mono">10.000,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT <span id="equity-sub" class="text-[10px] text-gray-500">Bakiye + açık işlem</span></div>
-                <div class="absolute right-3 top-4 text-emerald-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                </div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Bakiye + açık işlem</span></div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlem K/Z</div>
                 <div id="val-open-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT • <span id="pnl-status-text">Gerçekleşmemiş</span></div>
-                <div class="absolute right-3 top-4 text-purple-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-                </div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Gerçekleşen Toplam K/Z</div>
                 <div id="val-realized-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
-                <div class="absolute right-3 top-4 text-amber-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
             </div>
         </div>
 
@@ -140,25 +128,23 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Demo İşlem Tutarı (USDT)</label>
-                        <input type="number" id="trade-amount" value="100" min="10" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
+                        <input type="number" id="trade-amount" value="500" min="50" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
                     </div>
                     <div class="grid grid-cols-4 gap-2">
-                        <button onclick="setAmount(25)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">25</button>
-                        <button onclick="setAmount(50)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">50</button>
                         <button onclick="setAmount(100)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">100</button>
                         <button onclick="setAmount(250)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">250</button>
+                        <button onclick="setAmount(500)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">500</button>
+                        <button onclick="setAmount(1000)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">1000</button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 pt-2">
                         <button onclick="openManualPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
                             <span>AL / LONG</span>
                         </button>
                         <button onclick="openManualPosition('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
                             <span>SAT / SHORT</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400 text-center pt-1">Aynı anda yalnızca bir açık demo pozisyon tutulur.</p>
+                    <p class="text-[11px] text-gray-400 text-center pt-1">Risk Limitleri: Stop-Loss: -$100 | Take-Profit: +$95</p>
                 </div>
             </div>
 
@@ -196,7 +182,7 @@
                         <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık İşlem</h3>
                         <span id="open-pos-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">YOK</span>
                     </div>
-                    <div id="open-pos-details" class="space-y-2.5 text-sm">
+                    <div id="open-pos-details" class="space-y-2 text-xs">
                         <div class="text-center text-gray-500 py-6">Şu anda açık pozisyon bulunmuyor.</div>
                     </div>
                 </div>
@@ -210,8 +196,7 @@
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Demo İşlem</h3>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Demo İşlem (Bot)</h3>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
@@ -221,7 +206,7 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Sinyal Eşiği (%)</label>
-                        <input type="number" id="bot-threshold" value="0.05" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        <input type="number" id="bot-threshold" value="0.03" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
                     </div>
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
@@ -260,7 +245,6 @@
         <div class="card-glass rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     İşlem Geçmişi
                 </h3>
                 <button onclick="clearHistory()" class="text-xs text-gray-400 hover:text-white transition">Geçmişi Temizle</button>
@@ -289,12 +273,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center text-xs text-gray-500 py-6 space-y-1">
-        <p>TradePilot Mobile • Demo ortamı • Veriler herkese açık piyasa fiyatlarından alınır.</p>
-        <p>Sürüm 1.0</p>
-    </footer>
-
     <!-- JavaScript Uygulama Mantığı -->
     <script>
         let state = {
@@ -320,8 +298,6 @@
             loadState();
             initClock();
             setupEventListeners();
-            
-            // Kütüphanenin ve DOM boyutlarının tam oturması için kısa bir gecikme ile grafiği başlat
             setTimeout(() => {
                 initChart();
                 connectBinance();
@@ -329,7 +305,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v1');
+            const saved = localStorage.getItem('tradepilot_state_v2');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -342,7 +318,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v1', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v2', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPosition: state.openPosition,
@@ -370,41 +346,25 @@
         function initChart() {
             const container = document.getElementById('chart-container');
             if (!container) return;
-            
             container.innerHTML = '<div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/90 z-10 text-sm text-gray-400">Grafik verileri yükleniyor...</div>';
 
-            const width = container.clientWidth || 350;
-            const height = container.clientHeight || 380;
-
             chart = LightweightCharts.createChart(container, {
-                width: width,
-                height: height,
-                layout: {
-                    background: { type: 'solid', color: '#0b0f19' },
-                    textColor: '#9ca3af',
-                },
-                grid: {
-                    vertLines: { color: 'rgba(31, 41, 55, 0.4)' },
-                    horzLines: { color: 'rgba(31, 41, 55, 0.4)' },
-                },
-                crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                width: container.clientWidth || 350,
+                height: container.clientHeight || 380,
+                layout: { background: { type: 'solid', color: '#0b0f19' }, textColor: '#9ca3af' },
+                grid: { vertLines: { color: 'rgba(31, 41, 55, 0.4)' }, horzLines: { color: 'rgba(31, 41, 55, 0.4)' } },
                 rightPriceScale: { borderColor: 'rgba(75, 85, 99, 0.4)' },
                 timeScale: { borderColor: 'rgba(75, 85, 99, 0.4)', timeVisible: true },
             });
 
             candlestickSeries = chart.addCandlestickSeries({
-                upColor: '#10b981',
-                downColor: '#f43f5e',
-                borderDownColor: '#f43f5e',
-                borderUpColor: '#10b981',
-                wickDownColor: '#f43f5e',
-                wickUpColor: '#10b981',
+                upColor: '#10b981', downColor: '#f43f5e',
+                borderDownColor: '#f43f5e', borderUpColor: '#10b981',
+                wickDownColor: '#f43f5e', wickUpColor: '#10b981',
             });
 
             window.addEventListener('resize', () => {
-                if (container && chart) {
-                    chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-                }
+                if (container && chart) chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
             });
 
             fetchCandles();
@@ -429,8 +389,7 @@
                 }
                 if (loading) loading.style.display = 'none';
             } catch (err) {
-                console.error("Mum verisi alınamadı:", err);
-                if (loading) loading.innerText = "Grafik verisi yüklenemedi (Bağlantı hatası)";
+                if (loading) loading.innerText = "Grafik verisi yüklenemedi";
             }
         }
 
@@ -451,7 +410,6 @@
             const statusText = document.getElementById('connection-text');
 
             if (binanceSocket) binanceSocket.close();
-
             const wsSymbol = state.currentCoin.toLowerCase();
             binanceSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@ticker`);
 
@@ -464,27 +422,23 @@
                 const data = JSON.parse(event.data);
                 const price = parseFloat(data.c);
                 const priceChange = parseFloat(data.P);
-                const high = parseFloat(data.h);
-                const low = parseFloat(data.l);
-                const vol = parseFloat(data.v);
 
                 state.prices[state.currentCoin] = price;
                 state.priceChanges[state.currentCoin] = priceChange;
-                state.highs[state.currentCoin] = high;
-                state.lows[state.currentCoin] = low;
-                state.volumes[state.currentCoin] = vol;
+                state.highs[state.currentCoin] = parseFloat(data.h);
+                state.lows[state.currentCoin] = parseFloat(data.l);
+                state.volumes[state.currentCoin] = parseFloat(data.v);
 
                 updateUI();
+                checkPositionLimits(price);
                 checkAutoBotSignal(price, priceChange);
             };
 
             binanceSocket.onerror = () => {
-                statusEl.className = "flex items-center space-x-1.5 text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 rounded-full font-medium";
                 statusText.innerText = "Bağlantı Hatası";
             };
 
             binanceSocket.onclose = () => {
-                statusEl.className = "flex items-center space-x-1.5 text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-full font-medium";
                 statusText.innerText = "Yeniden Bağlanıyor...";
                 setTimeout(connectBinance, 3000);
             };
@@ -496,22 +450,18 @@
 
         function openManualPosition(type) {
             if (state.openPosition) {
-                alert("Zaten açık bir pozisyonunuz var. Yeni pozisyon açmak için önce mevcut pozisyonu kapatmalısınız.");
+                alert("Zaten açık bir pozisyonunuz var.");
                 return;
             }
             const amount = parseFloat(document.getElementById('trade-amount').value);
             const currentPrice = state.prices[state.currentCoin];
 
             if (!currentPrice || currentPrice <= 0) {
-                alert("Canlı fiyat henüz alınamadı. Lütfen birkaç saniye bekleyin.");
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                alert("Geçerli bir işlem tutarı girin.");
+                alert("Canlı fiyat bekleniyor...");
                 return;
             }
             if (amount > state.balance) {
-                alert("İşlem tutarı mevcut kullanılabilir bakiyenizi aşamaz!");
+                alert("Yetersiz bakiye!");
                 return;
             }
 
@@ -529,9 +479,30 @@
             updateUI();
         }
 
+        // Stop-Loss (-$100) ve Take-Profit (+$95) Otomatik Kontrolü
+        function checkPositionLimits(currentPrice) {
+            if (!state.openPosition) return;
+            const pos = state.openPosition;
+            let pnl = 0;
+
+            if (pos.type === 'LONG') {
+                pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+            } else {
+                pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
+            }
+
+            // Stop-Loss: -$100 olduğunda kapat
+            if (pnl <= -100) {
+                closePosition("Stop-Loss (-$100)");
+            }
+            // Take-Profit: +$95 olduğunda kapat
+            else if (pnl >= 95) {
+                closePosition("Take-Profit (+$95)");
+            }
+        }
+
         function closePosition(reason = "Manuel kapatma") {
             if (!state.openPosition) return;
-
             const pos = state.openPosition;
             const currentPrice = state.prices[pos.coin] || pos.entryPrice;
             
@@ -570,49 +541,28 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Otomatik mod aktif. Sinyal takibi yapılıyor...";
+                desc.innerText = "Otomatik mod aktif. Sinyal ve risk takibi yapılıyor...";
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
                 box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
-                desc.innerText = "Otomatik sistem kapalı. Başlatmak için anahtarı açın.";
+                desc.innerText = "Otomatik sistem kapalı.";
             }
         }
 
         function checkAutoBotSignal(price, change) {
             if (!state.autoBotActive) return;
-
-            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.05;
+            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.03;
             document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
             if (!state.openPosition) {
-                if (change >= threshold) {
-                    document.getElementById('ana-signal').innerText = "LONG / AL Sinyali";
-                    document.getElementById('ana-signal').className = "font-mono font-bold text-emerald-400";
-                    document.getElementById('ana-reason').innerText = `Fiyat değişimi (+%${change.toFixed(2)}) eşik değerini aştı.`;
-                    if (state.balance >= 100) {
-                        setAmount(100);
-                        openManualPosition('LONG');
-                    }
-                } else if (change <= -threshold) {
-                    document.getElementById('ana-signal').innerText = "SHORT / SAT Sinyali";
-                    document.getElementById('ana-signal').className = "font-mono font-bold text-rose-400";
-                    document.getElementById('ana-reason').innerText = `Fiyat değişimi (-%${Math.abs(change).toFixed(2)}) eşik değerini aştı.`;
-                    if (state.balance >= 100) {
-                        setAmount(100);
-                        openManualPosition('SHORT');
-                    }
-                } else {
-                    document.getElementById('ana-signal').innerText = "Nötr / Beklemede";
-                    document.getElementById('ana-signal').className = "font-mono font-bold text-gray-400";
-                    document.getElementById('ana-reason').innerText = "Değişim eşik sınırları içinde.";
-                }
-            } else {
-                if (state.openPosition.type === 'LONG' && change <= -threshold) {
-                    document.getElementById('ana-reason').innerText = "Ters sinyal (Düşüş) geldi, pozisyon kapatılıyor.";
-                    closePosition("Ters sinyal");
-                } else if (state.openPosition.type === 'SHORT' && change >= threshold) {
-                    document.getElementById('ana-reason').innerText = "Ters sinyal (Yükseliş) geldi, pozisyon kapatılıyor.";
-                    closePosition("Ters sinyal");
+                if (change >= threshold && state.balance >= 500) {
+                    document.getElementById('ana-signal').innerText = "LONG Sinyali";
+                    setAmount(500);
+                    openManualPosition('LONG');
+                } else if (change <= -threshold && state.balance >= 500) {
+                    document.getElementById('ana-signal').innerText = "SHORT Sinyali";
+                    setAmount(500);
+                    openManualPosition('SHORT');
                 }
             }
         }
@@ -621,9 +571,6 @@
             const coin = state.currentCoin;
             const price = state.prices[coin] || 0;
             const change = state.priceChanges[coin] || 0;
-            const high = state.highs[coin] || 0;
-            const low = state.lows[coin] || 0;
-            const vol = state.volumes[coin] || 0;
 
             document.getElementById('current-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2});
             const pctEl = document.getElementById('price-change-pct');
@@ -631,12 +578,10 @@
             pctEl.className = `text-xs font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
             document.getElementById('info-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' USDT';
-            const infoChange = document.getElementById('info-change');
-            infoChange.innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-            infoChange.className = `font-mono font-bold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            document.getElementById('info-high').innerText = high.toLocaleString('tr-TR', {minimumFractionDigits: 2});
-            document.getElementById('info-low').innerText = low.toLocaleString('tr-TR', {minimumFractionDigits: 2});
-            document.getElementById('info-vol').innerText = vol.toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' BTC';
+            document.getElementById('info-change').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            document.getElementById('info-high').innerText = (state.highs[coin] || 0).toLocaleString('tr-TR');
+            document.getElementById('info-low').innerText = (state.lows[coin] || 0).toLocaleString('tr-TR');
+            document.getElementById('info-vol').innerText = (state.volumes[coin] || 0).toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' BTC';
 
             let openPnl = 0;
             if (state.openPosition) {
@@ -658,7 +603,7 @@
             if (state.openPosition) {
                 pnlEl.innerText = (openPnl >= 0 ? '+' : '') + openPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                document.getElementById('pnl-status-text').innerText = "Gerçekleşmemiş";
+                document.getElementById('pnl-status-text').innerText = "Stop: -$100 | Take: +$95";
             } else {
                 pnlEl.innerText = "0,00";
                 pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
@@ -680,17 +625,15 @@
                 badge.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${pos.type === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
 
                 details.innerHTML = `
-                    <div class="flex justify-between border-b border-gray-800 pb-1.5"><span class="text-gray-400">Parite</span><span class="font-mono font-bold">${pos.coin.replace('USDT', ' / USDT')}</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1.5"><span class="text-gray-400">Giriş Fiyatı</span><span class="font-mono font-bold">${pos.entryPrice.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1.5"><span class="text-gray-400">Güncel Fiyat</span><span class="font-mono font-bold">${activePrice.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1.5"><span class="text-gray-400">İşlem Tutarı</span><span class="font-mono font-bold">${pos.amount.toLocaleString('tr-TR', {minimumFractionDigits: 2})} USDT</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1.5"><span class="text-gray-400">Anlık K/Z</span><span class="font-mono font-bold ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(openPnl >= 0 ? '+' : '') + openPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2})} USDT</span></div>
-                    <div class="flex justify-between"><span class="text-gray-400">Açılış Saati</span><span class="font-mono">${pos.entryTime}</span></div>
+                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Giriş Fiyatı</span><span class="font-mono font-bold">${pos.entryPrice.toLocaleString('tr-TR')}</span></div>
+                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Güncel Fiyat</span><span class="font-mono font-bold">${activePrice.toLocaleString('tr-TR')}</span></div>
+                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Tutar</span><span class="font-mono font-bold">${pos.amount} USDT</span></div>
+                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Anlık K/Z</span><span class="font-mono font-bold ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(openPnl >= 0 ? '+' : '') + openPnl.toFixed(2)} USDT</span></div>
+                    <div class="flex justify-between text-[11px] text-amber-400 pt-1"><span>Hedefler:</span><span>Stop: -$100 | TP: +$95</span></div>
                 `;
 
                 closeContainer.innerHTML = `
                     <button onclick="closePosition('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         <span>POZİSYONU KAPAT</span>
                     </button>
                 `;
@@ -710,10 +653,10 @@
                         <td class="py-2.5 px-2 font-mono text-gray-400">${item.date}</td>
                         <td class="py-2.5 px-2 font-semibold">${item.coin}</td>
                         <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.type === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${item.type}</span></td>
-                        <td class="py-2.5 px-2 font-mono">${item.entryPrice.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.exitPrice.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.amount.toFixed(2)}</td>
-                        <td class="py-2.5 px-2 font-mono font-bold ${item.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(item.pnl >= 0 ? '+' : '') + item.pnl.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
+                        <td class="py-2.5 px-2 font-mono">${item.entryPrice.toLocaleString('tr-TR')}</td>
+                        <td class="py-2.5 px-2 font-mono">${item.exitPrice.toLocaleString('tr-TR')}</td>
+                        <td class="py-2.5 px-2 font-mono">${item.amount}</td>
+                        <td class="py-2.5 px-2 font-mono font-bold ${item.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(item.pnl >= 0 ? '+' : '') + item.pnl.toFixed(2)}</td>
                         <td class="py-2.5 px-2 text-gray-400">${item.reason}</td>
                     </tr>
                 `).join('');
@@ -721,7 +664,7 @@
         }
 
         function clearHistory() {
-            if (confirm("İşlem geçmişini temizlemek istediğinize emin misiniz?")) {
+            if (confirm("Geçmişi temizlemek istiyor musunuz?")) {
                 state.history = [];
                 saveState();
                 updateUI();
