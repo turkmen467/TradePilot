@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Mobile</span>
                 </h1>
-                <p class="text-xs text-gray-400">Canlı piyasa verisi • Demo işlem sistemi</p>
+                <p class="text-xs text-gray-400">Canlı piyasa verisi • Çoklu işlem botu</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -56,12 +56,23 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-4">
+        <!-- Bildiri / Uyarı Kutusu -->
+        <div id="profit-alert-banner" class="hidden bg-emerald-500/20 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between text-emerald-400 text-xs sm:text-sm animate-pulse">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span id="profit-alert-text"><strong>KÂR UYARISI:</strong> Açık pozisyonlar karda! Pozisyonları kapatabilirsiniz.</span>
+            </div>
+            <button onclick="closeAllPositions('Kâr uyarısı ile kapatma')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg transition">KÂRDA KAPAT</button>
+        </div>
+
         <!-- Demo Banner -->
         <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-center space-x-3 text-amber-400 text-xs sm:text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>DEMO MODU AKTİF</strong> — İşlemler sanaldır. Gerçek para veya borsa emri kullanılmaz.</span>
+            <span><strong>RİSK KURALI:</strong> Bakiye $80 seviyesine düşerse stop-loss devreye girer, pozisyonlar kapanır. Karda uyarı verilir.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -74,12 +85,12 @@
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Toplam Öz Kaynak</div>
                 <div id="val-equity" class="text-xl sm:text-2xl font-bold font-mono">10.000,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Bakiye + açık işlem</span></div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Bakiye + açık işlemler</span></div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
-                <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlem K/Z</div>
+                <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlemler K/Z</div>
                 <div id="val-open-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT • <span id="pnl-status-text">Gerçekleşmemiş</span></div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT • <span id="pnl-status-text">Pozisyon Yok</span></div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Gerçekleşen Toplam K/Z</div>
@@ -120,31 +131,31 @@
             </div>
         </div>
 
-        <!-- İşlem Paneli, Piyasa Bilgileri ve Açık Pozisyon -->
+        <!-- İşlem Paneli, Piyasa Bilgileri ve Açık Pozisyonlar -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- İşlem Paneli -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Piyasası</h3>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Demo İşlem Tutarı (USDT)</label>
-                        <input type="number" id="trade-amount" value="500" min="50" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs text-gray-400 mb-1">İşlem Başına Tutar (USDT)</label>
+                        <input type="number" id="trade-amount" value="100" min="50" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
                     </div>
                     <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setAmount(50)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">50</button>
                         <button onclick="setAmount(100)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">100</button>
                         <button onclick="setAmount(250)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">250</button>
                         <button onclick="setAmount(500)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">500</button>
-                        <button onclick="setAmount(1000)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">1000</button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 pt-2">
                         <button onclick="openManualPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition">
-                            <span>AL / LONG</span>
+                            <span>AL / BUY (LONG)</span>
                         </button>
                         <button onclick="openManualPosition('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition">
-                            <span>SAT / SHORT</span>
+                            <span>SAT / SELL (SHORT)</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400 text-center pt-1">Risk Limitleri: Stop-Loss: -$100 | Take-Profit: +$95</p>
+                    <p class="text-[11px] text-gray-400 text-center pt-1">Stop: Bakiye $80 altına düşerse | Kâr: Uyarı ve Kapatma</p>
                 </div>
             </div>
 
@@ -175,29 +186,27 @@
                 </div>
             </div>
 
-            <!-- Açık İşlem Kartı -->
+            <!-- Açık İşlemler Listesi ve Kapatma Butonu -->
             <div class="card-glass rounded-2xl p-4 space-y-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık İşlem</h3>
-                        <span id="open-pos-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">YOK</span>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar</h3>
+                        <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0 / 10</span>
                     </div>
-                    <div id="open-pos-details" class="space-y-2 text-xs">
-                        <div class="text-center text-gray-500 py-6">Şu anda açık pozisyon bulunmuyor.</div>
+                    <div id="open-pos-list" class="space-y-2 text-xs max-h-40 overflow-y-auto">
+                        <div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>
                     </div>
                 </div>
                 <div id="close-btn-container"></div>
             </div>
         </div>
 
-        <!-- Otomatik Demo İşlem ve Analiz -->
+        <!-- Otomatik Çoklu İşlem Botu ve Analiz -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Otomatik Bot Kontrolü -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Demo İşlem (Bot)</h3>
-                    </div>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Çoklu Otomatik Bot (Max 10 İşlem)</h3>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -205,13 +214,13 @@
                 </div>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">Sinyal Eşiği (%)</label>
-                        <input type="number" id="bot-threshold" value="0.03" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs text-gray-400 mb-1">Trend Tetikleme Eşiği (%)</label>
+                        <input type="number" id="bot-threshold" value="0.02" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
                     </div>
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Otomatik sistem kapalı. Başlatmak için anahtarı açın.</span>
+                            <span id="bot-status-desc">Bot kapalı. Açıldığında buy/sell yönünde kademeli 10 pozisyon açar.</span>
                         </div>
                     </div>
                 </div>
@@ -219,23 +228,23 @@
 
             <!-- Canlı Analiz ve Sinyal Takibi -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Canlı Analiz ve Sinyal Takibi</h3>
+                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Canlı Trend Takibi</h3>
                 <div class="space-y-2.5 text-sm">
                     <div class="flex justify-between border-b border-gray-800 pb-2">
                         <span class="text-gray-400">Analiz Edilen Piyasa</span>
                         <span id="ana-coin" class="font-mono font-bold">BTC/USDT</span>
                     </div>
                     <div class="flex justify-between border-b border-gray-800 pb-2">
-                        <span class="text-gray-400">Son Sinyal Durumu</span>
-                        <span id="ana-signal" class="font-mono font-bold text-gray-400">Bekleniyor</span>
+                        <span class="text-gray-400">Trend Durumu</span>
+                        <span id="ana-signal" class="font-mono font-bold text-gray-400">İzleniyor</span>
                     </div>
                     <div class="flex justify-between border-b border-gray-800 pb-2">
-                        <span class="text-gray-400">Fiyat Değişimi (Anlık)</span>
+                        <span class="text-gray-400">Anlık Değişim</span>
                         <span id="ana-diff" class="font-mono font-bold">-%0.00</span>
                     </div>
                     <div class="flex justify-between pb-1">
-                        <span class="text-gray-400">Son Karar Açıklaması</span>
-                        <span id="ana-reason" class="font-mono text-xs text-right text-gray-400 max-w-[200px] truncate">Piyasa verileri izleniyor.</span>
+                        <span class="text-gray-400">Bot Açıklaması</span>
+                        <span id="ana-reason" class="font-mono text-xs text-right text-gray-400 max-w-[200px] truncate">Piyasa taranıyor.</span>
                     </div>
                 </div>
             </div>
@@ -244,9 +253,7 @@
         <!-- İşlem Geçmişi Tablosu -->
         <div class="card-glass rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                    İşlem Geçmişi
-                </h3>
+                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Geçmişi</h3>
                 <button onclick="clearHistory()" class="text-xs text-gray-400 hover:text-white transition">Geçmişi Temizle</button>
             </div>
             <div class="overflow-x-auto">
@@ -258,14 +265,14 @@
                             <th class="py-2.5 px-2">Yön</th>
                             <th class="py-2.5 px-2">Giriş Fiyatı</th>
                             <th class="py-2.5 px-2">Çıkış Fiyatı</th>
-                            <th class="py-2.5 px-2">Tutar (USDT)</th>
+                            <th class="py-2.5 px-2">Tutar</th>
                             <th class="py-2.5 px-2">K/Z</th>
-                            <th class="py-2.5 px-2">Kapanış Nedeni</th>
+                            <th class="py-2.5 px-2">Sebep</th>
                         </tr>
                     </thead>
                     <tbody id="history-tbody">
                         <tr>
-                            <td colspan="8" class="text-center py-6 text-gray-500">Henüz tamamlanmış işlem geçmişi bulunmuyor.</td>
+                            <td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -278,7 +285,7 @@
         let state = {
             balance: 10000.00,
             realizedPnl: 0.00,
-            openPosition: null,
+            openPositions: [],
             history: [],
             currentCoin: 'BTCUSDT',
             currentInterval: '15m',
@@ -287,7 +294,8 @@
             highs: { BTCUSDT: 0, ETHUSDT: 0 },
             lows: { BTCUSDT: 0, ETHUSDT: 0 },
             volumes: { BTCUSDT: 0, ETHUSDT: 0 },
-            autoBotActive: false
+            autoBotActive: false,
+            lastBotActionTime: 0
         };
 
         let chart = null;
@@ -305,23 +313,23 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v2');
+            const saved = localStorage.getItem('tradepilot_state_v5');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     state.balance = parsed.balance ?? 10000;
                     state.realizedPnl = parsed.realizedPnl ?? 0;
-                    state.openPosition = parsed.openPosition ?? null;
+                    state.openPositions = parsed.openPositions ?? [];
                     state.history = parsed.history ?? [];
                 } catch(e) { console.error(e); }
             }
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v2', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v5', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
-                openPosition: state.openPosition,
+                openPositions: state.openPositions,
                 history: state.history
             }));
         }
@@ -434,10 +442,7 @@
                 checkAutoBotSignal(price, priceChange);
             };
 
-            binanceSocket.onerror = () => {
-                statusText.innerText = "Bağlantı Hatası";
-            };
-
+            binanceSocket.onerror = () => { statusText.innerText = "Bağlantı Hatası"; };
             binanceSocket.onclose = () => {
                 statusText.innerText = "Yeniden Bağlanıyor...";
                 setTimeout(connectBinance, 3000);
@@ -449,8 +454,8 @@
         }
 
         function openManualPosition(type) {
-            if (state.openPosition) {
-                alert("Zaten açık bir pozisyonunuz var.");
+            if (state.openPositions.length >= 10) {
+                alert("Maksimum 10 açık pozisyon limitine ulaştınız!");
                 return;
             }
             const amount = parseFloat(document.getElementById('trade-amount').value);
@@ -466,68 +471,81 @@
             }
 
             state.balance -= amount;
-            state.openPosition = {
-                id: Date.now(),
+            state.openPositions.push({
+                id: Date.now() + Math.random(),
                 coin: state.currentCoin,
                 type: type,
                 amount: amount,
                 entryPrice: currentPrice,
                 entryTime: new Date().toLocaleTimeString('tr-TR')
-            };
+            });
 
             saveState();
             updateUI();
         }
 
-        // Stop-Loss (-$100) ve Take-Profit (+$95) Otomatik Kontrolü
+        // Risk Kontrolü: Bakiye $80 seviyesine düşerse stop-loss tetiklenir, pozisyonlar kapanır. Karda uyarı verilir.
         function checkPositionLimits(currentPrice) {
-            if (!state.openPosition) return;
-            const pos = state.openPosition;
-            let pnl = 0;
+            const banner = document.getElementById('profit-alert-banner');
+            if (state.openPositions.length === 0) {
+                if (banner) banner.classList.add('hidden');
+                return;
+            }
 
-            if (pos.type === 'LONG') {
-                pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+            let totalOpenPnl = 0;
+            state.openPositions.forEach(pos => {
+                const activePrice = state.prices[pos.coin] || pos.entryPrice;
+                if (pos.type === 'LONG') {
+                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+                } else {
+                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
+                }
+            });
+
+            // Stop-Loss: Bakiye $80 altına düşerse otomatik kapat
+            if (state.balance <= 80) {
+                closeAllPositions("Stop-Loss (Bakiye $80 seviyesine düştü)");
+                if (banner) banner.classList.add('hidden');
+                return;
+            }
+
+            // Kâr Uyarısı: Pozisyonlar karda ise uyarı banner'ını göster
+            if (totalOpenPnl > 0) {
+                if (banner) banner.classList.remove('hidden');
+                document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Açık pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)! Pozisyonları kapatabilirsiniz.`;
             } else {
-                pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
-            }
-
-            // Stop-Loss: -$100 olduğunda kapat
-            if (pnl <= -100) {
-                closePosition("Stop-Loss (-$100)");
-            }
-            // Take-Profit: +$95 olduğunda kapat
-            else if (pnl >= 95) {
-                closePosition("Take-Profit (+$95)");
+                if (banner) banner.classList.add('hidden');
             }
         }
 
-        function closePosition(reason = "Manuel kapatma") {
-            if (!state.openPosition) return;
-            const pos = state.openPosition;
-            const currentPrice = state.prices[pos.coin] || pos.entryPrice;
-            
-            let pnl = 0;
-            if (pos.type === 'LONG') {
-                pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-            } else {
-                pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
-            }
+        function closeAllPositions(reason = "Manuel kapatma") {
+            if (state.openPositions.length === 0) return;
 
-            state.balance += (pos.amount + pnl);
-            state.realizedPnl += pnl;
+            state.openPositions.forEach(pos => {
+                const currentPrice = state.prices[pos.coin] || pos.entryPrice;
+                let pnl = 0;
+                if (pos.type === 'LONG') {
+                    pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+                } else {
+                    pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
+                }
 
-            state.history.unshift({
-                date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                coin: pos.coin.replace('USDT', '/USDT'),
-                type: pos.type,
-                entryPrice: pos.entryPrice,
-                exitPrice: currentPrice,
-                amount: pos.amount,
-                pnl: pnl,
-                reason: reason
+                state.balance += (pos.amount + pnl);
+                state.realizedPnl += pnl;
+
+                state.history.unshift({
+                    date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
+                    coin: pos.coin.replace('USDT', '/USDT'),
+                    type: pos.type,
+                    entryPrice: pos.entryPrice,
+                    exitPrice: currentPrice,
+                    amount: pos.amount,
+                    pnl: pnl,
+                    reason: reason
+                });
             });
 
-            state.openPosition = null;
+            state.openPositions = [];
             saveState();
             updateUI();
         }
@@ -541,28 +559,38 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Otomatik mod aktif. Sinyal ve risk takibi yapılıyor...";
+                desc.innerText = "Çoklu bot aktif. Buy/Sell yönünde kademeli pozisyon açıyor.";
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
                 box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
-                desc.innerText = "Otomatik sistem kapalı.";
+                desc.innerText = "Bot kapalı.";
             }
         }
 
         function checkAutoBotSignal(price, change) {
             if (!state.autoBotActive) return;
-            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.03;
+            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.02;
             document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
-            if (!state.openPosition) {
-                if (change >= threshold && state.balance >= 500) {
-                    document.getElementById('ana-signal').innerText = "LONG Sinyali";
-                    setAmount(500);
+            const now = Date.now();
+            if (now - state.lastBotActionTime > 4000 && state.openPositions.length < 10) {
+                const tradeAmount = 100;
+
+                if (change >= threshold && state.balance >= tradeAmount) {
+                    document.getElementById('ana-signal').innerText = "BUY / LONG Kademesi (" + (state.openPositions.length + 1) + "/10)";
+                    document.getElementById('ana-reason').innerText = `Yükseliş (+%${change.toFixed(2)}) yakalandı, BUY açılıyor.`;
+                    setAmount(tradeAmount);
                     openManualPosition('LONG');
-                } else if (change <= -threshold && state.balance >= 500) {
-                    document.getElementById('ana-signal').innerText = "SHORT Sinyali";
-                    setAmount(500);
+                    state.lastBotActionTime = now;
+                } else if (change <= -threshold && state.balance >= tradeAmount) {
+                    document.getElementById('ana-signal').innerText = "SELL / SHORT Kademesi (" + (state.openPositions.length + 1) + "/10)";
+                    document.getElementById('ana-reason').innerText = `Düşüş (-%${Math.abs(change).toFixed(2)}) yakalandı, SELL açılıyor.`;
+                    setAmount(tradeAmount);
                     openManualPosition('SHORT');
+                    state.lastBotActionTime = now;
+                } else {
+                    document.getElementById('ana-signal').innerText = "Trend İzleniyor";
+                    document.getElementById('ana-reason').innerText = "Eşik değeri bekleniyor.";
                 }
             }
         }
@@ -583,27 +611,27 @@
             document.getElementById('info-low').innerText = (state.lows[coin] || 0).toLocaleString('tr-TR');
             document.getElementById('info-vol').innerText = (state.volumes[coin] || 0).toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' BTC';
 
-            let openPnl = 0;
-            if (state.openPosition) {
-                const pos = state.openPosition;
+            let totalOpenPnl = 0;
+            state.openPositions.forEach(pos => {
                 const activePrice = state.prices[pos.coin] || pos.entryPrice;
                 if (pos.type === 'LONG') {
-                    openPnl = ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
                 } else {
-                    openPnl = ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
+                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
                 }
-            }
+            });
 
-            const equity = state.balance + (state.openPosition ? state.openPosition.amount + openPnl : 0);
+            const lockedMargin = state.openPositions.reduce((acc, p) => acc + p.amount, 0);
+            const equity = state.balance + lockedMargin + totalOpenPnl;
 
             document.getElementById('val-balance').innerText = state.balance.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('val-equity').innerText = equity.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
             const pnlEl = document.getElementById('val-open-pnl');
-            if (state.openPosition) {
-                pnlEl.innerText = (openPnl >= 0 ? '+' : '') + openPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                document.getElementById('pnl-status-text').innerText = "Stop: -$100 | Take: +$95";
+            if (state.openPositions.length > 0) {
+                pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Uyarı Aktif)" : "Zarda";
             } else {
                 pnlEl.innerText = "0,00";
                 pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
@@ -614,41 +642,43 @@
             realEl.innerText = (state.realizedPnl >= 0 ? '+' : '') + state.realizedPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             realEl.className = `text-xl sm:text-2xl font-bold font-mono ${state.realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            const badge = document.getElementById('open-pos-badge');
-            const details = document.getElementById('open-pos-details');
+            document.getElementById('open-pos-count').innerText = state.openPositions.length + " / 10";
+            const posList = document.getElementById('open-pos-list');
             const closeContainer = document.getElementById('close-btn-container');
 
-            if (state.openPosition) {
-                const pos = state.openPosition;
-                const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                badge.innerText = pos.type;
-                badge.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${pos.type === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
-
-                details.innerHTML = `
-                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Giriş Fiyatı</span><span class="font-mono font-bold">${pos.entryPrice.toLocaleString('tr-TR')}</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Güncel Fiyat</span><span class="font-mono font-bold">${activePrice.toLocaleString('tr-TR')}</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Tutar</span><span class="font-mono font-bold">${pos.amount} USDT</span></div>
-                    <div class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-400">Anlık K/Z</span><span class="font-mono font-bold ${openPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(openPnl >= 0 ? '+' : '') + openPnl.toFixed(2)} USDT</span></div>
-                    <div class="flex justify-between text-[11px] text-amber-400 pt-1"><span>Hedefler:</span><span>Stop: -$100 | TP: +$95</span></div>
-                `;
+            if (state.openPositions.length > 0) {
+                posList.innerHTML = state.openPositions.map((pos, idx) => {
+                    const activePrice = state.prices[pos.coin] || pos.entryPrice;
+                    let pnl = pos.type === 'LONG' ? ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount : ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
+                    return `
+                        <div class="bg-dark-800 p-2 rounded-xl border border-gray-700 space-y-1">
+                            <div class="flex justify-between font-bold">
+                                <span class="${pos.type === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">#${idx+1} ${pos.type} (${pos.coin})</span>
+                                <span class="font-mono ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(pnl >= 0 ? '+' : '') + pnl.toFixed(2)} USDT</span>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-gray-400 font-mono">
+                                <span>Giriş: ${pos.entryPrice.toLocaleString('tr-TR')}</span>
+                                <span>Tutar: ${pos.amount}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
 
                 closeContainer.innerHTML = `
-                    <button onclick="closePosition('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <span>POZİSYONU KAPAT</span>
+                    <button onclick="closeAllPositions('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
+                        <span>TÜM POZİSYONLARI KAPAT</span>
                     </button>
                 `;
             } else {
-                badge.innerText = "YOK";
-                badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300";
-                details.innerHTML = `<div class="text-center text-gray-500 py-6">Şu anda açık pozisyon bulunmuyor.</div>`;
+                posList.innerHTML = `<div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>`;
                 closeContainer.innerHTML = "";
             }
 
             const tbody = document.getElementById('history-tbody');
             if (state.history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Henüz tamamlanmış işlem geçmişi bulunmuyor.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td></tr>`;
             } else {
-                tbody.innerHTML = state.history.map(item => `
+                tbody.innerHTML = state.history.slice(0, 15).map(item => `
                     <tr class="border-b border-gray-800/60 hover:bg-dark-800/40 transition">
                         <td class="py-2.5 px-2 font-mono text-gray-400">${item.date}</td>
                         <td class="py-2.5 px-2 font-semibold">${item.coin}</td>
