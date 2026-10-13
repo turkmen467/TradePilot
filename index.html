@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro Max — Akıllı Rezerv & 0.50$ Kâr / Stop Terminali</title>
+    <title>TradePilot Pro Max — Akıllı Rezerv & Otomatik Terminal</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">%25 Rezerv • 0.50$ Kâr Al & 0.50% Stop</p>
+                <p class="text-xs text-gray-400">Tüm Piyasa • %25 Rezerv • 0.50$ Kâr / %0.50 Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -61,7 +61,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>KURAL GÜNCELLENDİ:</strong> Bakiyenin %25'i rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca otomatik kapanır veya <strong>%0.50</strong> ters harekette stop olur.</span>
+            <span><strong>SİSTEM AKTİF:</strong> Bakiyenin %25'i nakit rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca kapanır veya **%0.50** ters yönde stop olur. Bot hiç durmadan tarama yapar.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -177,7 +177,7 @@
                                 <span>10'LU SELL / SHORT</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 rezerve sadık kalır. 0.50$ kârda / %0.50 stop olur.</p>
+                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 bakiye rezerve edilir. 0.50$ kârda / %0.50 stop olur.</p>
                     </div>
                 </div>
 
@@ -192,13 +192,13 @@
                     </div>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs text-gray-400 mb-1">Trend Eşiği (%)</label>
-                            <input type="number" id="bot-threshold" value="0.01" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs text-gray-400 mb-1">Bot Tarama Hassasiyeti (Eşik %)</label>
+                            <input type="number" id="bot-threshold" value="0.001" step="0.001" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
                         </div>
                         <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                             <div class="text-gray-400 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                                <span id="bot-status-desc">Bot kapalı. 0.50$ kâr hedefliyor.</span>
+                                <span id="bot-status-desc">Bot kapalı. Açıldığında anında işleme girer.</span>
                             </div>
                         </div>
                     </div>
@@ -286,7 +286,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v11');
+            const saved = localStorage.getItem('tradepilot_state_v12');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -299,7 +299,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v11', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v12', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -495,13 +495,12 @@
                 }
             });
 
-            // Genel zarar -$80 sınırına ulaştığında veya %0.50 stop tetiklendiğinde kapat
             if (totalOpenPnl <= -80 || hasReachedStop) {
                 closeAllPositions(hasReachedStop ? "Otomatik Stop (%0.50 zarar sınırı)" : "Stop-Loss (-$80 zarar sınırı)");
                 return;
             }
 
-            // Toplam kâr 0.50$ ve üzerine ulaştığında otomatik kâr al ve kapat
+            // 0.50$ ve üzeri kârda otomatik kapat
             if (totalOpenPnl >= 0.50) {
                 closeAllPositions("Otomatik Kâr Al (0.50$ kâr hedefine ulaşıldı)");
             }
@@ -548,10 +547,10 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "0.50$ Kâr & Stop Botu aktif! %25 rezerve uyarak sürekli işlem açar.";
+                desc.innerText = "Otomatik Bot aktif! Tüm piyasayı tarayıp kesintisiz işlem açıyor.";
                 
                 if (!scannerInterval) {
-                    scannerInterval = setInterval(runBotScanner, 2500);
+                    scannerInterval = setInterval(runBotScanner, 1500);
                 }
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
@@ -566,18 +565,21 @@
 
         function runBotScanner() {
             if (!state.autoBotActive) return;
-            if (state.openPositions.length > 0) return;
+            if (state.openPositions.length > 0) return; // Açık pozisyon yoksa hemen yeni işlem açar
 
             state.scannerIndex = (state.scannerIndex + 1) % coins.length;
             const targetCoin = coins[state.scannerIndex];
             
             const change = state.priceChanges[targetCoin] || 0;
-            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.01;
+            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.001;
 
-            if (change >= threshold) {
-                openBatchPositions('LONG', targetCoin);
-            } else if (change <= -threshold) {
-                openBatchPositions('SHORT', targetCoin);
+            // En ufak hareket veya trend yakalandığında direkt işleme girer
+            if (Math.abs(change) >= threshold) {
+                if (change >= 0) {
+                    openBatchPositions('LONG', targetCoin);
+                } else {
+                    openBatchPositions('SHORT', targetCoin);
+                }
             }
         }
 
