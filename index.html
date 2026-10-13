@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Mobile</span>
                 </h1>
-                <p class="text-xs text-gray-400">Canlı piyasa verisi • Sürekli Çalışan 10'lu Bot</p>
+                <p class="text-xs text-gray-400">Canlı piyasa verisi • Bağımsız Sürekli Bot</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -62,7 +62,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                <span id="profit-alert-text"><strong>KÂR UYARISI:</strong> Açık pozisyonlar karda! Pozisyonları kapatabilirsiniz.</span>
+                <span id="profit-alert-text"><strong>KÂR UYARISI:</strong> Pozisyonlar karda! Kontrol panelinden kapatabilirsiniz.</span>
             </div>
             <button onclick="closeAllPositions('Kâr uyarısı ile kapatma')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-lg transition">KÂRDA KAPAT</button>
         </div>
@@ -72,7 +72,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>SÜREKLİ BOT AKTİF:</strong> Bot durmaksızın tüm pariteleri tarar, kural sağlandığında 10'lu pozisyonlar açar. Stop: -$80</span>
+            <span><strong>BAĞIMSIZ BOT:</strong> Bot sizden bağımsız olarak sürekli tarama yapar ve 10'lu işlemler açar. Stop: -$80</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -135,7 +135,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- İşlem Paneli -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Piyasası (10'lu Kademeli)</h3>
+                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Paneli</h3>
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Her İşlem / Kademe Tutarı (USDT)</label>
@@ -186,12 +186,12 @@
                 </div>
             </div>
 
-            <!-- Açık İşlemler Listesi ve Kapatma Butonu -->
+            <!-- Açık İşlemler Kontrol Paneli -->
             <div class="card-glass rounded-2xl p-4 space-y-4 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar</h3>
-                        <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0 / 10</span>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Kontrol Paneli (Açık Pozisyonlar)</h3>
+                        <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0</span>
                     </div>
                     <div id="open-pos-list" class="space-y-2 text-xs max-h-40 overflow-y-auto">
                         <div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>
@@ -206,7 +206,7 @@
             <!-- Otomatik Bot Kontrolü -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Sürekli 10'lu Trend Botu</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Bağımsız Sürekli Bot</h3>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -220,7 +220,7 @@
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Bot kapalı. Açıldığında durmaksızın tüm pariteleri tarayıp 10'lu işlemler açar.</span>
+                            <span id="bot-status-desc">Bot kapalı. Açıldığında arka planda sürekli işlem açar.</span>
                         </div>
                     </div>
                 </div>
@@ -262,455 +262,4 @@
                         <tr class="border-b border-gray-800 text-gray-400">
                             <th class="py-2.5 px-2">Tarih</th>
                             <th class="py-2.5 px-2">Piyasa</th>
-                            <th class="py-2.5 px-2">Yön</th>
-                            <th class="py-2.5 px-2">Giriş Fiyatı</th>
-                            <th class="py-2.5 px-2">Çıkış Fiyatı</th>
-                            <th class="py-2.5 px-2">Tutar</th>
-                            <th class="py-2.5 px-2">K/Z</th>
-                            <th class="py-2.5 px-2">Sebep</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-tbody">
-                        <tr>
-                            <td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- JavaScript Uygulama Mantığı -->
-    <script>
-        let state = {
-            balance: 10000.00,
-            realizedPnl: 0.00,
-            openPositions: [],
-            history: [],
-            currentCoin: 'BTCUSDT',
-            currentInterval: '15m',
-            prices: { BTCUSDT: 0, ETHUSDT: 0 },
-            priceChanges: { BTCUSDT: 0, ETHUSDT: 0 },
-            highs: { BTCUSDT: 0, ETHUSDT: 0 },
-            lows: { BTCUSDT: 0, ETHUSDT: 0 },
-            volumes: { BTCUSDT: 0, ETHUSDT: 0 },
-            autoBotActive: false,
-            scannerIndex: 0,
-            coinsList: ['BTCUSDT', 'ETHUSDT']
-        };
-
-        let chart = null;
-        let candlestickSeries = null;
-        let binanceSocket = null;
-        let scannerInterval = null;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadState();
-            initClock();
-            setupEventListeners();
-            setTimeout(() => {
-                initChart();
-                connectBinance();
-            }, 200);
-        });
-
-        function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v7');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    state.balance = parsed.balance ?? 10000;
-                    state.realizedPnl = parsed.realizedPnl ?? 0;
-                    state.openPositions = parsed.openPositions ?? [];
-                    state.history = parsed.history ?? [];
-                } catch(e) { console.error(e); }
-            }
-        }
-
-        function saveState() {
-            localStorage.setItem('tradepilot_state_v7', JSON.stringify({
-                balance: state.balance,
-                realizedPnl: state.realizedPnl,
-                openPositions: state.openPositions,
-                history: state.history
-            }));
-        }
-
-        function initClock() {
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('live-clock').innerText = now.toLocaleTimeString('tr-TR');
-            }, 1000);
-        }
-
-        function setupEventListeners() {
-            document.getElementById('coin-select').addEventListener('change', (e) => {
-                state.currentCoin = e.target.value;
-                document.getElementById('ana-coin').innerText = state.currentCoin.replace('USDT', '/USDT');
-                fetchCandles();
-                connectBinance();
-                updateUI();
-            });
-        }
-
-        function initChart() {
-            const container = document.getElementById('chart-container');
-            if (!container) return;
-            container.innerHTML = '<div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/90 z-10 text-sm text-gray-400">Grafik verileri yükleniyor...</div>';
-
-            chart = LightweightCharts.createChart(container, {
-                width: container.clientWidth || 350,
-                height: container.clientHeight || 380,
-                layout: { background: { type: 'solid', color: '#0b0f19' }, textColor: '#9ca3af' },
-                grid: { vertLines: { color: 'rgba(31, 41, 55, 0.4)' }, horzLines: { color: 'rgba(31, 41, 55, 0.4)' } },
-                rightPriceScale: { borderColor: 'rgba(75, 85, 99, 0.4)' },
-                timeScale: { borderColor: 'rgba(75, 85, 99, 0.4)', timeVisible: true },
-            });
-
-            candlestickSeries = chart.addCandlestickSeries({
-                upColor: '#10b981', downColor: '#f43f5e',
-                borderDownColor: '#f43f5e', borderUpColor: '#10b981',
-                wickDownColor: '#f43f5e', wickUpColor: '#10b981',
-            });
-
-            window.addEventListener('resize', () => {
-                if (container && chart) chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-            });
-
-            fetchCandles();
-        }
-
-        async function fetchCandles() {
-            const loading = document.getElementById('chart-loading');
-            if (loading) loading.style.display = 'flex';
-            try {
-                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${state.currentCoin}&interval=${state.currentInterval}&limit=100`);
-                const data = await res.json();
-                const formatted = data.map(item => ({
-                    time: item[0] / 1000,
-                    open: parseFloat(item[1]),
-                    high: parseFloat(item[2]),
-                    low: parseFloat(item[3]),
-                    close: parseFloat(item[4]),
-                }));
-                if (candlestickSeries) {
-                    candlestickSeries.setData(formatted);
-                    chart.timeScale().fitContent();
-                }
-                if (loading) loading.style.display = 'none';
-            } catch (err) {
-                if (loading) loading.innerText = "Grafik verisi yüklenemedi";
-            }
-        }
-
-        function changeInterval(tf) {
-            state.currentInterval = tf;
-            document.querySelectorAll('.tf-btn').forEach(btn => {
-                if (btn.dataset.tf === tf) {
-                    btn.className = "tf-btn px-3 py-1 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow";
-                } else {
-                    btn.className = "tf-btn px-3 py-1 text-xs font-semibold rounded-lg text-gray-400 hover:text-white transition";
-                }
-            });
-            fetchCandles();
-        }
-
-        function connectBinance() {
-            const statusEl = document.getElementById('connection-status');
-            const statusText = document.getElementById('connection-text');
-
-            if (binanceSocket) binanceSocket.close();
-            const wsSymbol = state.currentCoin.toLowerCase();
-            binanceSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@ticker`);
-
-            binanceSocket.onopen = () => {
-                statusEl.className = "flex items-center space-x-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium";
-                statusText.innerText = "Canlı Veri Bağlı";
-            };
-
-            binanceSocket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                const price = parseFloat(data.c);
-                const priceChange = parseFloat(data.P);
-
-                state.prices[state.currentCoin] = price;
-                state.priceChanges[state.currentCoin] = priceChange;
-                state.highs[state.currentCoin] = parseFloat(data.h);
-                state.lows[state.currentCoin] = parseFloat(data.l);
-                state.volumes[state.currentCoin] = parseFloat(data.v);
-
-                updateUI();
-                checkPositionLimits(price);
-            };
-
-            binanceSocket.onerror = () => { statusText.innerText = "Bağlantı Hatası"; };
-            binanceSocket.onclose = () => {
-                statusText.innerText = "Yeniden Bağlanıyor...";
-                setTimeout(connectBinance, 3000);
-            };
-        }
-
-        function setAmount(val) {
-            document.getElementById('trade-amount').value = val;
-        }
-
-        function openBatchPositions(type, targetCoin = state.currentCoin) {
-            if (state.openPositions.length > 0) return; // Zaten açık pozisyon varken yeni 10'lu açma
-
-            const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
-            const currentPrice = state.prices[targetCoin];
-
-            if (!currentPrice || currentPrice <= 0) return;
-
-            const neededTotal = amountPerTrade * 10;
-            if (neededTotal > state.balance) return;
-
-            for (let i = 0; i < 10; i++) {
-                state.balance -= amountPerTrade;
-                state.openPositions.push({
-                    id: Date.now() + Math.random() + i,
-                    coin: targetCoin,
-                    type: type,
-                    amount: amountPerTrade,
-                    entryPrice: currentPrice,
-                    entryTime: new Date().toLocaleTimeString('tr-TR')
-                });
-            }
-
-            saveState();
-            updateUI();
-        }
-
-        // Stop-Loss (-$80) ve Kâr Uyarısı Kontrolü
-        function checkPositionLimits(currentPrice) {
-            const banner = document.getElementById('profit-alert-banner');
-            if (state.openPositions.length === 0) {
-                if (banner) banner.classList.add('hidden');
-                return;
-            }
-
-            let totalOpenPnl = 0;
-            state.openPositions.forEach(pos => {
-                const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                if (pos.type === 'LONG') {
-                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-                } else {
-                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                }
-            });
-
-            if (totalOpenPnl <= -80) {
-                closeAllPositions("Stop-Loss (-$80 zarar sınırı)");
-                if (banner) banner.classList.add('hidden');
-                return;
-            }
-
-            if (totalOpenPnl > 0) {
-                if (banner) banner.classList.remove('hidden');
-                document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)!`;
-            } else {
-                if (banner) banner.classList.add('hidden');
-            }
-        }
-
-        function closeAllPositions(reason = "Manuel kapatma") {
-            if (state.openPositions.length === 0) return;
-
-            state.openPositions.forEach(pos => {
-                const currentPrice = state.prices[pos.coin] || pos.entryPrice;
-                let pnl = 0;
-                if (pos.type === 'LONG') {
-                    pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-                } else {
-                    pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
-                }
-
-                state.balance += (pos.amount + pnl);
-                state.realizedPnl += pnl;
-
-                state.history.unshift({
-                    date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                    coin: pos.coin.replace('USDT', '/USDT'),
-                    type: pos.type,
-                    entryPrice: pos.entryPrice,
-                    exitPrice: currentPrice,
-                    amount: pos.amount,
-                    pnl: pnl,
-                    reason: reason
-                });
-            });
-
-            state.openPositions = [];
-            saveState();
-            updateUI();
-        }
-
-        function toggleAutoBot() {
-            state.autoBotActive = document.getElementById('auto-bot-toggle').checked;
-            const dot = document.getElementById('bot-dot');
-            const desc = document.getElementById('bot-status-desc');
-            const box = document.getElementById('bot-status-box');
-
-            if (state.autoBotActive) {
-                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Sürekli Bot aktif! Durmaksızın pariteleri tarıyor ve işlem açıyor.";
-                
-                // Bot açıkken sürekli çalışan tarama döngüsünü başlat
-                if (!scannerInterval) {
-                    scannerInterval = setInterval(runBotScanner, 4000);
-                }
-            } else {
-                dot.className = "w-2 h-2 rounded-full bg-gray-500";
-                box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
-                desc.innerText = "Bot kapalı.";
-                if (scannerInterval) {
-                    clearInterval(scannerInterval);
-                    scannerInterval = null;
-                }
-            }
-        }
-
-        // Sürekli Çalışan Bot Tarayıcısı (Diğer borsaları/pariteleri sırayla tarar ve işlem açar)
-        function runBotScanner() {
-            if (!state.autoBotActive) return;
-
-            // Eğer halihazırda açık pozisyon varsa yeni açma, önce kapansın
-            if (state.openPositions.length > 0) {
-                document.getElementById('ana-signal').innerText = "Pozisyon Var (Bekleniyor)";
-                document.getElementById('ana-reason').innerText = "Açık işlemlerin sonuçlanması bekleniyor.";
-                return;
-            }
-
-            // Pariteler arasında sırayla dolaş (BTCUSDT -> ETHUSDT -> ...)
-            state.scannerIndex = (state.scannerIndex + 1) % state.coinsList.length;
-            const targetCoin = state.coinsList[state.scannerIndex];
-            
-            const change = state.priceChanges[targetCoin] || 0;
-            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.01;
-
-            document.getElementById('ana-coin').innerText = targetCoin.replace('USDT', '/USDT');
-            document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-
-            if (change >= threshold) {
-                document.getElementById('ana-signal').innerText = "Sürekli LONG Sinyali";
-                document.getElementById('ana-reason', `${targetCoin} üzerinde +%${change.toFixed(2)} trend yakalandı, 10'lu BUY açılıyor.`);
-                openBatchPositions('LONG', targetCoin);
-            } else if (change <= -threshold) {
-                document.getElementById('ana-signal').innerText = "Sürekli SHORT Sinyali";
-                document.getElementById('ana-reason', `${targetCoin} üzerinde -%${Math.abs(change).toFixed(2)} düşüş yakalandı, 10'lu SELL açılıyor.`);
-                openBatchPositions('SHORT', targetCoin);
-            } else {
-                document.getElementById('ana-signal').innerText = "Piyasa Taranıyor";
-                document.getElementById('ana-reason').innerText = `${targetCoin} inceleniyor, eşik bekleniyor.`;
-            }
-        }
-
-        function updateUI() {
-            const coin = state.currentCoin;
-            const price = state.prices[coin] || 0;
-            const change = state.priceChanges[coin] || 0;
-
-            document.getElementById('current-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2});
-            const pctEl = document.getElementById('price-change-pct');
-            pctEl.innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-            pctEl.className = `text-xs font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
-            document.getElementById('info-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' USDT';
-            document.getElementById('info-change').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-            document.getElementById('info-high').innerText = (state.highs[coin] || 0).toLocaleString('tr-TR');
-            document.getElementById('info-low').innerText = (state.lows[coin] || 0).toLocaleString('tr-TR');
-            document.getElementById('info-vol').innerText = (state.volumes[coin] || 0).toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' BTC';
-
-            let totalOpenPnl = 0;
-            state.openPositions.forEach(pos => {
-                const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                if (pos.type === 'LONG') {
-                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-                } else {
-                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                }
-            });
-
-            const lockedMargin = state.openPositions.reduce((acc, p) => acc + p.amount, 0);
-            const equity = state.balance + lockedMargin + totalOpenPnl;
-
-            document.getElementById('val-balance').innerText = state.balance.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('val-equity').innerText = equity.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            
-            const pnlEl = document.getElementById('val-open-pnl');
-            if (state.openPositions.length > 0) {
-                pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Uyarı Aktif)" : "Zarda (Stop: -$80)";
-            } else {
-                pnlEl.innerText = "0,00";
-                pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
-                document.getElementById('pnl-status-text').innerText = "Pozisyon Yok";
-            }
-
-            const realEl = document.getElementById('val-realized-pnl');
-            realEl.innerText = (state.realizedPnl >= 0 ? '+' : '') + state.realizedPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            realEl.className = `text-xl sm:text-2xl font-bold font-mono ${state.realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
-            document.getElementById('open-pos-count').innerText = state.openPositions.length + " / 10";
-            const posList = document.getElementById('open-pos-list');
-            const closeContainer = document.getElementById('close-btn-container');
-
-            if (state.openPositions.length > 0) {
-                posList.innerHTML = state.openPositions.map((pos, idx) => {
-                    const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                    let pnl = pos.type === 'LONG' ? ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount : ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                    return `
-                        <div class="bg-dark-800 p-2 rounded-xl border border-gray-700 space-y-1">
-                            <div class="flex justify-between font-bold">
-                                <span class="${pos.type === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">#${idx+1} ${pos.type} (${pos.coin})</span>
-                                <span class="font-mono ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(pnl >= 0 ? '+' : '') + pnl.toFixed(2)} USDT</span>
-                            </div>
-                            <div class="flex justify-between text-[11px] text-gray-400 font-mono">
-                                <span>Giriş: ${pos.entryPrice.toLocaleString('tr-TR')}</span>
-                                <span>Tutar: ${pos.amount}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                closeContainer.innerHTML = `
-                    <button onclick="closeAllPositions('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <span>TÜMÜNÜ KAPAT (${state.openPositions.length} Pozisyon)</span>
-                    </button>
-                `;
-            } else {
-                posList.innerHTML = `<div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>`;
-                closeContainer.innerHTML = "";
-            }
-
-            const tbody = document.getElementById('history-tbody');
-            if (state.history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td></tr>`;
-            } else {
-                tbody.innerHTML = state.history.slice(0, 15).map(item => `
-                    <tr class="border-b border-gray-800/60 hover:bg-dark-800/40 transition">
-                        <td class="py-2.5 px-2 font-mono text-gray-400">${item.date}</td>
-                        <td class="py-2.5 px-2 font-semibold">${item.coin}</td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.type === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${item.type}</span></td>
-                        <td class="py-2.5 px-2 font-mono">${item.entryPrice.toLocaleString('tr-TR')}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.exitPrice.toLocaleString('tr-TR')}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.amount}</td>
-                        <td class="py-2.5 px-2 font-mono font-bold ${item.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(item.pnl >= 0 ? '+' : '') + item.pnl.toFixed(2)}</td>
-                        <td class="py-2.5 px-2 text-gray-400">${item.reason}</td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        function clearHistory() {
-            if (confirm("Geçmişi temizlemek istiyor musunuz?")) {
-                state.history = [];
-                saveState();
-                updateUI();
-            }
-        }
-    </script>
-</body>
-</html>
+                            <th class="py-2.5 px-2">
