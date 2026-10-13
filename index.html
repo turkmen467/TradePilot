@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Mobile</span>
                 </h1>
-                <p class="text-xs text-gray-400">Canlı piyasa verisi • Çoklu işlem botu</p>
+                <p class="text-xs text-gray-400">Canlı piyasa verisi • 10'lu Çoklu İşlem Sistemi</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -56,7 +56,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-3 sm:px-6 py-4 space-y-4">
-        <!-- Bildiri / Uyarı Kutusu -->
+        <!-- Kâr Uyarı Banner -->
         <div id="profit-alert-banner" class="hidden bg-emerald-500/20 border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between text-emerald-400 text-xs sm:text-sm animate-pulse">
             <div class="flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,7 +72,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>RİSK KURALI:</strong> Bakiye $80 seviyesine düşerse stop-loss devreye girer, pozisyonlar kapanır. Karda uyarı verilir.</span>
+            <span><strong>RİSK KURALI:</strong> Toplam zarar -$80 olduğunda stop-loss tetiklenir, pozisyonlar kapanır. Karda uyarı verilir.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -135,27 +135,27 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <!-- İşlem Paneli -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Piyasası</h3>
+                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Piyasası (10'lu Kademeli)</h3>
                 <div class="space-y-3">
                     <div>
-                        <label class="block text-xs text-gray-400 mb-1">İşlem Başına Tutar (USDT)</label>
-                        <input type="number" id="trade-amount" value="100" min="50" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
+                        <label class="block text-xs text-gray-400 mb-1">Her İşlem / Kademe Tutarı (USDT)</label>
+                        <input type="number" id="trade-amount" value="50" min="10" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
                     </div>
                     <div class="grid grid-cols-4 gap-2">
+                        <button onclick="setAmount(25)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">25</button>
                         <button onclick="setAmount(50)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">50</button>
                         <button onclick="setAmount(100)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">100</button>
                         <button onclick="setAmount(250)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">250</button>
-                        <button onclick="setAmount(500)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">500</button>
                     </div>
                     <div class="grid grid-cols-2 gap-3 pt-2">
-                        <button onclick="openManualPosition('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition">
-                            <span>AL / BUY (LONG)</span>
+                        <button onclick="openBatchPositions('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition">
+                            <span>10'LU BUY / LONG</span>
                         </button>
-                        <button onclick="openManualPosition('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition">
-                            <span>SAT / SELL (SHORT)</span>
+                        <button onclick="openBatchPositions('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition">
+                            <span>10'LU SELL / SHORT</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400 text-center pt-1">Stop: Bakiye $80 altına düşerse | Kâr: Uyarı ve Kapatma</p>
+                    <p class="text-[11px] text-gray-400 text-center pt-1">Butona basıldığında aynı anda 10 işlem açılır. Stop: -$80</p>
                 </div>
             </div>
 
@@ -206,7 +206,7 @@
             <!-- Otomatik Bot Kontrolü -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Çoklu Otomatik Bot (Max 10 İşlem)</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik 10'lu Trend Botu</h3>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -220,7 +220,7 @@
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Bot kapalı. Açıldığında buy/sell yönünde kademeli 10 pozisyon açar.</span>
+                            <span id="bot-status-desc">Bot kapalı. Açıldığında trendi yakalayıp direkt 10 pozisyon açar.</span>
                         </div>
                     </div>
                 </div>
@@ -313,7 +313,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v5');
+            const saved = localStorage.getItem('tradepilot_state_v6');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -326,7 +326,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v5', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v6', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -453,38 +453,44 @@
             document.getElementById('trade-amount').value = val;
         }
 
-        function openManualPosition(type) {
+        // Aynı anda doğrudan 10 pozisyon (BUY/SELL) açma fonksiyonu
+        function openBatchPositions(type) {
             if (state.openPositions.length >= 10) {
-                alert("Maksimum 10 açık pozisyon limitine ulaştınız!");
+                alert("Zaten maksimum 10 açık pozisyonunuz var!");
                 return;
             }
-            const amount = parseFloat(document.getElementById('trade-amount').value);
+            const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
             const currentPrice = state.prices[state.currentCoin];
 
             if (!currentPrice || currentPrice <= 0) {
                 alert("Canlı fiyat bekleniyor...");
                 return;
             }
-            if (amount > state.balance) {
-                alert("Yetersiz bakiye!");
+
+            const neededTotal = amountPerTrade * 10;
+            if (neededTotal > state.balance) {
+                alert(`10 pozisyon için yeterli bakiyeniz yok! Gerekli: ${neededTotal} USDT`);
                 return;
             }
 
-            state.balance -= amount;
-            state.openPositions.push({
-                id: Date.now() + Math.random(),
-                coin: state.currentCoin,
-                type: type,
-                amount: amount,
-                entryPrice: currentPrice,
-                entryTime: new Date().toLocaleTimeString('tr-TR')
-            });
+            // Aynı anda 10 adet işlem aç
+            for (let i = 0; i < 10; i++) {
+                state.balance -= amountPerTrade;
+                state.openPositions.push({
+                    id: Date.now() + Math.random() + i,
+                    coin: state.currentCoin,
+                    type: type,
+                    amount: amountPerTrade,
+                    entryPrice: currentPrice,
+                    entryTime: new Date().toLocaleTimeString('tr-TR')
+                });
+            }
 
             saveState();
             updateUI();
         }
 
-        // Risk Kontrolü: Bakiye $80 seviyesine düşerse stop-loss tetiklenir, pozisyonlar kapanır. Karda uyarı verilir.
+        // Güncellenen Stop-Loss (-$80) ve Kâr Uyarısı Kontrolü
         function checkPositionLimits(currentPrice) {
             const banner = document.getElementById('profit-alert-banner');
             if (state.openPositions.length === 0) {
@@ -502,14 +508,14 @@
                 }
             });
 
-            // Stop-Loss: Bakiye $80 altına düşerse otomatik kapat
-            if (state.balance <= 80) {
-                closeAllPositions("Stop-Loss (Bakiye $80 seviyesine düştü)");
+            // Stop-Loss: Toplam zarar -$80 olduğunda pozisyonları otomatik kapat
+            if (totalOpenPnl <= -80) {
+                closeAllPositions("Stop-Loss (-$80 zarar sınırı aşıldı)");
                 if (banner) banner.classList.add('hidden');
                 return;
             }
 
-            // Kâr Uyarısı: Pozisyonlar karda ise uyarı banner'ını göster
+            // Kâr Uyarısı: Pozisyonlar karda ise ekranda uyarı göster
             if (totalOpenPnl > 0) {
                 if (banner) banner.classList.remove('hidden');
                 document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Açık pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)! Pozisyonları kapatabilirsiniz.`;
@@ -559,7 +565,7 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Çoklu bot aktif. Buy/Sell yönünde kademeli pozisyon açıyor.";
+                desc.innerText = "10'lu Trend Botu aktif. Eşiği aşınca direkt 10 pozisyon açar.";
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
                 box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
@@ -573,20 +579,16 @@
             document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
             const now = Date.now();
-            if (now - state.lastBotActionTime > 4000 && state.openPositions.length < 10) {
-                const tradeAmount = 100;
-
-                if (change >= threshold && state.balance >= tradeAmount) {
-                    document.getElementById('ana-signal').innerText = "BUY / LONG Kademesi (" + (state.openPositions.length + 1) + "/10)";
-                    document.getElementById('ana-reason').innerText = `Yükseliş (+%${change.toFixed(2)}) yakalandı, BUY açılıyor.`;
-                    setAmount(tradeAmount);
-                    openManualPosition('LONG');
+            if (now - state.lastBotActionTime > 10000 && state.openPositions.length === 0) {
+                if (change >= threshold) {
+                    document.getElementById('ana-signal').innerText = "10'lu BUY / LONG Sinyali";
+                    document.getElementById('ana-reason').innerText = `Yükseliş (+%${change.toFixed(2)}) yakalandı, 10 pozisyon açılıyor.`;
+                    openBatchPositions('LONG');
                     state.lastBotActionTime = now;
-                } else if (change <= -threshold && state.balance >= tradeAmount) {
-                    document.getElementById('ana-signal').innerText = "SELL / SHORT Kademesi (" + (state.openPositions.length + 1) + "/10)";
-                    document.getElementById('ana-reason').innerText = `Düşüş (-%${Math.abs(change).toFixed(2)}) yakalandı, SELL açılıyor.`;
-                    setAmount(tradeAmount);
-                    openManualPosition('SHORT');
+                } else if (change <= -threshold) {
+                    document.getElementById('ana-signal').innerText = "10'lu SELL / SHORT Sinyali";
+                    document.getElementById('ana-reason').innerText = `Düşüş (-%${Math.abs(change).toFixed(2)}) yakalandı, 10 pozisyon açılıyor.`;
+                    openBatchPositions('SHORT');
                     state.lastBotActionTime = now;
                 } else {
                     document.getElementById('ana-signal').innerText = "Trend İzleniyor";
@@ -631,7 +633,7 @@
             if (state.openPositions.length > 0) {
                 pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Uyarı Aktif)" : "Zarda";
+                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Uyarı Aktif)" : "Zarda (Stop: -$80)";
             } else {
                 pnlEl.innerText = "0,00";
                 pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
@@ -666,7 +668,7 @@
 
                 closeContainer.innerHTML = `
                     <button onclick="closeAllPositions('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <span>TÜM POZİSYONLARI KAPAT</span>
+                        <span>TÜMÜNÜ KAPAT (${state.openPositions.length} Pozisyon)</span>
                     </button>
                 `;
             } else {
