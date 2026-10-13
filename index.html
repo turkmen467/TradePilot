@@ -126,7 +126,7 @@
 
             <!-- TradingView Grafik Container -->
             <div id="chart-container" class="w-full h-[360px] sm:h-[420px] rounded-xl overflow-hidden bg-dark-900 relative">
-                <div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/80 z-10 text-sm text-gray-400">
+                <div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/90 z-10 text-sm text-gray-400">
                     Grafik verileri yükleniyor...
                 </div>
             </div>
@@ -297,11 +297,10 @@
 
     <!-- JavaScript Uygulama Mantığı -->
     <script>
-        // Global Durum Değişkenleri
         let state = {
             balance: 10000.00,
             realizedPnl: 0.00,
-            openPosition: null, // {id, coin, type, amount, entryPrice, entryTime}
+            openPosition: null,
             history: [],
             currentCoin: 'BTCUSDT',
             currentInterval: '15m',
@@ -313,17 +312,20 @@
             autoBotActive: false
         };
 
-        let chart, candlestickSeries, priceLine;
+        let chart = null;
+        let candlestickSeries = null;
         let binanceSocket = null;
-        let restInterval = null;
 
-        // Sayfa Yükleme
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
-            initChart();
             initClock();
             setupEventListeners();
-            connectBinance();
+            
+            // Kütüphanenin ve DOM boyutlarının tam oturması için kısa bir gecikme ile grafiği başlat
+            setTimeout(() => {
+                initChart();
+                connectBinance();
+            }, 200);
         });
 
         function loadState() {
@@ -360,17 +362,23 @@
                 state.currentCoin = e.target.value;
                 document.getElementById('ana-coin').innerText = state.currentCoin.replace('USDT', '/USDT');
                 fetchCandles();
+                connectBinance();
                 updateUI();
             });
         }
 
-        // TradingView Grafik Kurulumu
         function initChart() {
             const container = document.getElementById('chart-container');
-            container.innerHTML = '';
+            if (!container) return;
+            
+            container.innerHTML = '<div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/90 z-10 text-sm text-gray-400">Grafik verileri yükleniyor...</div>';
+
+            const width = container.clientWidth || 350;
+            const height = container.clientHeight || 380;
+
             chart = LightweightCharts.createChart(container, {
-                width: container.clientWidth,
-                height: container.clientHeight,
+                width: width,
+                height: height,
                 layout: {
                     background: { type: 'solid', color: '#0b0f19' },
                     textColor: '#9ca3af',
@@ -394,7 +402,7 @@
             });
 
             window.addEventListener('resize', () => {
-                if (container) {
+                if (container && chart) {
                     chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
                 }
             });
@@ -402,7 +410,6 @@
             fetchCandles();
         }
 
-        // Binance REST API Mum Verileri
         async function fetchCandles() {
             const loading = document.getElementById('chart-loading');
             if (loading) loading.style.display = 'flex';
@@ -416,7 +423,10 @@
                     low: parseFloat(item[3]),
                     close: parseFloat(item[4]),
                 }));
-                candlestickSeries.setData(formatted);
+                if (candlestickSeries) {
+                    candlestickSeries.setData(formatted);
+                    chart.timeScale().fitContent();
+                }
                 if (loading) loading.style.display = 'none';
             } catch (err) {
                 console.error("Mum verisi alınamadı:", err);
@@ -436,7 +446,6 @@
             fetchCandles();
         }
 
-        // Binance WebSocket ve Canlı Fiyat Akışı
         function connectBinance() {
             const statusEl = document.getElementById('connection-status');
             const statusText = document.getElementById('connection-text');
@@ -481,16 +490,10 @@
             };
         }
 
-        // Parite değiştiğinde WS yenile
-        document.getElementById('coin-select').addEventListener('change', () => {
-            connectBinance();
-        });
-
         function setAmount(val) {
             document.getElementById('trade-amount').value = val;
         }
 
-        // Manuel Pozisyon Açma
         function openManualPosition(type) {
             if (state.openPosition) {
                 alert("Zaten açık bir pozisyonunuz var. Yeni pozisyon açmak için önce mevcut pozisyonu kapatmalısınız.");
@@ -512,9 +515,7 @@
                 return;
             }
 
-            // Bakiyeden düş
             state.balance -= amount;
-
             state.openPosition = {
                 id: Date.now(),
                 coin: state.currentCoin,
@@ -528,14 +529,12 @@
             updateUI();
         }
 
-        // Pozisyon Kapatma (Hangi coin ekranında olunursa olsun kapanabilir)
         function closePosition(reason = "Manuel kapatma") {
             if (!state.openPosition) return;
 
             const pos = state.openPosition;
             const currentPrice = state.prices[pos.coin] || pos.entryPrice;
             
-            // K/Z Hesaplama
             let pnl = 0;
             if (pos.type === 'LONG') {
                 pnl = ((currentPrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
@@ -543,11 +542,9 @@
                 pnl = ((pos.entryPrice - currentPrice) / pos.entryPrice) * pos.amount;
             }
 
-            // Bakiyeye anapara + k/z iadesi
             state.balance += (pos.amount + pnl);
             state.realizedPnl += pnl;
 
-            // Geçmişe ekle
             state.history.unshift({
                 date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
                 coin: pos.coin.replace('USDT', '/USDT'),
@@ -564,7 +561,6 @@
             updateUI();
         }
 
-        // Otomatik Bot Mantığı
         function toggleAutoBot() {
             state.autoBotActive = document.getElementById('auto-bot-toggle').checked;
             const dot = document.getElementById('bot-dot');
@@ -589,12 +585,10 @@
             document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
             if (!state.openPosition) {
-                // Pozisyon yoksa sinyal ara
                 if (change >= threshold) {
                     document.getElementById('ana-signal').innerText = "LONG / AL Sinyali";
                     document.getElementById('ana-signal').className = "font-mono font-bold text-emerald-400";
                     document.getElementById('ana-reason').innerText = `Fiyat değişimi (+%${change.toFixed(2)}) eşik değerini aştı.`;
-                    
                     if (state.balance >= 100) {
                         setAmount(100);
                         openManualPosition('LONG');
@@ -603,7 +597,6 @@
                     document.getElementById('ana-signal').innerText = "SHORT / SAT Sinyali";
                     document.getElementById('ana-signal').className = "font-mono font-bold text-rose-400";
                     document.getElementById('ana-reason').innerText = `Fiyat değişimi (-%${Math.abs(change).toFixed(2)}) eşik değerini aştı.`;
-                    
                     if (state.balance >= 100) {
                         setAmount(100);
                         openManualPosition('SHORT');
@@ -614,7 +607,6 @@
                     document.getElementById('ana-reason').innerText = "Değişim eşik sınırları içinde.";
                 }
             } else {
-                // Açık pozisyon varsa ters sinyal veya stop kontrolü
                 if (state.openPosition.type === 'LONG' && change <= -threshold) {
                     document.getElementById('ana-reason').innerText = "Ters sinyal (Düşüş) geldi, pozisyon kapatılıyor.";
                     closePosition("Ters sinyal");
@@ -625,7 +617,6 @@
             }
         }
 
-        // Arayüz Güncelleme
         function updateUI() {
             const coin = state.currentCoin;
             const price = state.prices[coin] || 0;
@@ -634,13 +625,11 @@
             const low = state.lows[coin] || 0;
             const vol = state.volumes[coin] || 0;
 
-            // Üst Fiyat Göstergeleri
             document.getElementById('current-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2});
             const pctEl = document.getElementById('price-change-pct');
             pctEl.innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
             pctEl.className = `text-xs font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            // Piyasa Bilgileri Kartı
             document.getElementById('info-price').innerText = price.toLocaleString('tr-TR', {minimumFractionDigits: 2}) + ' USDT';
             const infoChange = document.getElementById('info-change');
             infoChange.innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
@@ -649,7 +638,6 @@
             document.getElementById('info-low').innerText = low.toLocaleString('tr-TR', {minimumFractionDigits: 2});
             document.getElementById('info-vol').innerText = vol.toLocaleString('tr-TR', {maximumFractionDigits: 2}) + ' BTC';
 
-            // Açık Pozisyon K/Z ve Öz Kaynak Hesaplama
             let openPnl = 0;
             if (state.openPosition) {
                 const pos = state.openPosition;
@@ -681,7 +669,6 @@
             realEl.innerText = (state.realizedPnl >= 0 ? '+' : '') + state.realizedPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             realEl.className = `text-xl sm:text-2xl font-bold font-mono ${state.realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            // Açık Pozisyon Detay Kartı
             const badge = document.getElementById('open-pos-badge');
             const details = document.getElementById('open-pos-details');
             const closeContainer = document.getElementById('close-btn-container');
@@ -703,7 +690,7 @@
 
                 closeContainer.innerHTML = `
                     <button onclick="closePosition('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         <span>POZİSYONU KAPAT</span>
                     </button>
                 `;
@@ -714,7 +701,6 @@
                 closeContainer.innerHTML = "";
             }
 
-            // İşlem Geçmişi Tablosu
             const tbody = document.getElementById('history-tbody');
             if (state.history.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Henüz tamamlanmış işlem geçmişi bulunmuyor.</td></tr>`;
