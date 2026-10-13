@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro Max — Akıllı Rezerv & Otomatik Terminal</title>
+    <title>TradePilot Pro Max — Kararlı REST API Terminali</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,13 +43,13 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">Tüm Piyasa • %25 Rezerv • 0.50$ Kâr / %0.50 Stop</p>
+                <p class="text-xs text-gray-400">Kararlı REST API • %25 Rezerv • 0.50$ Kâr & Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <div id="connection-status" class="flex items-center space-x-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="connection-text">Tüm Piyasa Bağlı</span>
+                <span id="connection-text">Canlı Piyasalar Aktif</span>
             </div>
             <span id="live-clock" class="text-xs text-gray-400 font-mono hidden sm:inline">--:--:--</span>
         </div>
@@ -61,7 +61,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>SİSTEM AKTİF:</strong> Bakiyenin %25'i nakit rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca kapanır veya **%0.50** ters yönde stop olur. Bot hiç durmadan tarama yapar.</span>
+            <span><strong>SİSTEM ÇALIŞIYOR:</strong> Bakiyenin %25'i nakit rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca kapanır veya **%0.50** ters yönde stop olur. Bot hiç durmadan işlem açar.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -177,7 +177,7 @@
                                 <span>10'LU SELL / SHORT</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 bakiye rezerve edilir. 0.50$ kârda / %0.50 stop olur.</p>
+                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 rezerve sadık kalır. 0.50$ kârda / %0.50 stop olur.</p>
                     </div>
                 </div>
 
@@ -272,7 +272,7 @@
 
         let chart = null;
         let candlestickSeries = null;
-        let sockets = {};
+        let priceInterval = null;
         let scannerInterval = null;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -281,12 +281,13 @@
             setupEventListeners();
             setTimeout(() => {
                 initChart();
-                connectAllWebSockets();
+                fetchAllPrices();
+                priceInterval = setInterval(fetchAllPrices, 1500); // Her 1.5 saniyede bir REST API üzerinden canlı fiyatları çeker
             }, 200);
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v12');
+            const saved = localStorage.getItem('tradepilot_state_v13');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -299,7 +300,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v12', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v13', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -384,26 +385,28 @@
             fetchCandles();
         }
 
-        function connectAllWebSockets() {
-            coins.forEach(coin => {
-                const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${coin.toLowerCase()}@ticker`);
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    const price = parseFloat(data.c);
-                    const change = parseFloat(data.P);
+        // Kararlı REST API ile Tüm Fiyatları Güncelleme
+        async function fetchAllPrices() {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                const data = await res.json();
+                
+                data.forEach(item => {
+                    if (coins.includes(item.symbol)) {
+                        state.prices[item.symbol] = parseFloat(item.lastPrice);
+                        state.priceChanges[item.symbol] = parseFloat(item.priceChangePercent);
+                        state.highs[item.symbol] = parseFloat(item.highPrice);
+                        state.lows[item.symbol] = parseFloat(item.lowPrice);
+                        state.volumes[item.symbol] = parseFloat(item.volume);
+                    }
+                });
 
-                    state.prices[coin] = price;
-                    state.priceChanges[coin] = change;
-                    state.highs[coin] = parseFloat(data.h);
-                    state.lows[coin] = parseFloat(data.l);
-                    state.volumes[coin] = parseFloat(data.v);
-
-                    updateUI();
-                    checkPositionLimits();
-                    updateMarketTable();
-                };
-                sockets[coin] = ws;
-            });
+                updateUI();
+                checkPositionLimits();
+                updateMarketTable();
+            } catch(e) {
+                console.error("Fiyat çekme hatası:", e);
+            }
         }
 
         function updateMarketTable() {
@@ -489,7 +492,6 @@
 
                 totalOpenPnl += posPnl;
 
-                // %0.50 ters yön hareketi durumunda oto stop
                 if (pricePctChange <= -0.50) {
                     hasReachedStop = true;
                 }
@@ -500,7 +502,6 @@
                 return;
             }
 
-            // 0.50$ ve üzeri kârda otomatik kapat
             if (totalOpenPnl >= 0.50) {
                 closeAllPositions("Otomatik Kâr Al (0.50$ kâr hedefine ulaşıldı)");
             }
@@ -550,7 +551,7 @@
                 desc.innerText = "Otomatik Bot aktif! Tüm piyasayı tarayıp kesintisiz işlem açıyor.";
                 
                 if (!scannerInterval) {
-                    scannerInterval = setInterval(runBotScanner, 1500);
+                    scannerInterval = setInterval(runBotScanner, 2000);
                 }
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
@@ -573,7 +574,6 @@
             const change = state.priceChanges[targetCoin] || 0;
             const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.001;
 
-            // En ufak hareket veya trend yakalandığında direkt işleme girer
             if (Math.abs(change) >= threshold) {
                 if (change >= 0) {
                     openBatchPositions('LONG', targetCoin);
