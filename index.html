@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Mobile</span>
                 </h1>
-                <p class="text-xs text-gray-400">Canlı piyasa verisi • 10'lu Çoklu İşlem Sistemi</p>
+                <p class="text-xs text-gray-400">Canlı piyasa verisi • Sürekli Çalışan 10'lu Bot</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -72,7 +72,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>RİSK KURALI:</strong> Toplam zarar -$80 olduğunda stop-loss tetiklenir, pozisyonlar kapanır. Karda uyarı verilir.</span>
+            <span><strong>SÜREKLİ BOT AKTİF:</strong> Bot durmaksızın tüm pariteleri tarar, kural sağlandığında 10'lu pozisyonlar açar. Stop: -$80</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -155,7 +155,7 @@
                             <span>10'LU SELL / SHORT</span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-gray-400 text-center pt-1">Butona basıldığında aynı anda 10 işlem açılır. Stop: -$80</p>
+                    <p class="text-[11px] text-gray-400 text-center pt-1">Manuel 10'lu işlem açma tuşu. Stop: -$80</p>
                 </div>
             </div>
 
@@ -206,7 +206,7 @@
             <!-- Otomatik Bot Kontrolü -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik 10'lu Trend Botu</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Sürekli 10'lu Trend Botu</h3>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                         <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -215,12 +215,12 @@
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Trend Tetikleme Eşiği (%)</label>
-                        <input type="number" id="bot-threshold" value="0.02" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
+                        <input type="number" id="bot-threshold" value="0.01" step="0.01" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-blue-500">
                     </div>
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Bot kapalı. Açıldığında trendi yakalayıp direkt 10 pozisyon açar.</span>
+                            <span id="bot-status-desc">Bot kapalı. Açıldığında durmaksızın tüm pariteleri tarayıp 10'lu işlemler açar.</span>
                         </div>
                     </div>
                 </div>
@@ -228,23 +228,23 @@
 
             <!-- Canlı Analiz ve Sinyal Takibi -->
             <div class="card-glass rounded-2xl p-4 space-y-4">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Canlı Trend Takibi</h3>
+                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Çoklu Piyasa Tarayıcısı</h3>
                 <div class="space-y-2.5 text-sm">
                     <div class="flex justify-between border-b border-gray-800 pb-2">
-                        <span class="text-gray-400">Analiz Edilen Piyasa</span>
+                        <span class="text-gray-400">Aktif Taranan Parite</span>
                         <span id="ana-coin" class="font-mono font-bold">BTC/USDT</span>
                     </div>
                     <div class="flex justify-between border-b border-gray-800 pb-2">
-                        <span class="text-gray-400">Trend Durumu</span>
-                        <span id="ana-signal" class="font-mono font-bold text-gray-400">İzleniyor</span>
+                        <span class="text-gray-400">Tarama Durumu</span>
+                        <span id="ana-signal" class="font-mono font-bold text-gray-400">Sürekli Tarıyor</span>
                     </div>
                     <div class="flex justify-between border-b border-gray-800 pb-2">
                         <span class="text-gray-400">Anlık Değişim</span>
                         <span id="ana-diff" class="font-mono font-bold">-%0.00</span>
                     </div>
                     <div class="flex justify-between pb-1">
-                        <span class="text-gray-400">Bot Açıklaması</span>
-                        <span id="ana-reason" class="font-mono text-xs text-right text-gray-400 max-w-[200px] truncate">Piyasa taranıyor.</span>
+                        <span class="text-gray-400">Bot Çalışma Durumu</span>
+                        <span id="ana-reason" class="font-mono text-xs text-right text-gray-400 max-w-[200px] truncate">Pariteler arasında döngüde.</span>
                     </div>
                 </div>
             </div>
@@ -295,12 +295,14 @@
             lows: { BTCUSDT: 0, ETHUSDT: 0 },
             volumes: { BTCUSDT: 0, ETHUSDT: 0 },
             autoBotActive: false,
-            lastBotActionTime: 0
+            scannerIndex: 0,
+            coinsList: ['BTCUSDT', 'ETHUSDT']
         };
 
         let chart = null;
         let candlestickSeries = null;
         let binanceSocket = null;
+        let scannerInterval = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
@@ -313,7 +315,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v6');
+            const saved = localStorage.getItem('tradepilot_state_v7');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -326,7 +328,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v6', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v7', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -439,7 +441,6 @@
 
                 updateUI();
                 checkPositionLimits(price);
-                checkAutoBotSignal(price, priceChange);
             };
 
             binanceSocket.onerror = () => { statusText.innerText = "Bağlantı Hatası"; };
@@ -453,32 +454,22 @@
             document.getElementById('trade-amount').value = val;
         }
 
-        // Aynı anda doğrudan 10 pozisyon (BUY/SELL) açma fonksiyonu
-        function openBatchPositions(type) {
-            if (state.openPositions.length >= 10) {
-                alert("Zaten maksimum 10 açık pozisyonunuz var!");
-                return;
-            }
-            const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
-            const currentPrice = state.prices[state.currentCoin];
+        function openBatchPositions(type, targetCoin = state.currentCoin) {
+            if (state.openPositions.length > 0) return; // Zaten açık pozisyon varken yeni 10'lu açma
 
-            if (!currentPrice || currentPrice <= 0) {
-                alert("Canlı fiyat bekleniyor...");
-                return;
-            }
+            const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
+            const currentPrice = state.prices[targetCoin];
+
+            if (!currentPrice || currentPrice <= 0) return;
 
             const neededTotal = amountPerTrade * 10;
-            if (neededTotal > state.balance) {
-                alert(`10 pozisyon için yeterli bakiyeniz yok! Gerekli: ${neededTotal} USDT`);
-                return;
-            }
+            if (neededTotal > state.balance) return;
 
-            // Aynı anda 10 adet işlem aç
             for (let i = 0; i < 10; i++) {
                 state.balance -= amountPerTrade;
                 state.openPositions.push({
                     id: Date.now() + Math.random() + i,
-                    coin: state.currentCoin,
+                    coin: targetCoin,
                     type: type,
                     amount: amountPerTrade,
                     entryPrice: currentPrice,
@@ -490,7 +481,7 @@
             updateUI();
         }
 
-        // Güncellenen Stop-Loss (-$80) ve Kâr Uyarısı Kontrolü
+        // Stop-Loss (-$80) ve Kâr Uyarısı Kontrolü
         function checkPositionLimits(currentPrice) {
             const banner = document.getElementById('profit-alert-banner');
             if (state.openPositions.length === 0) {
@@ -508,17 +499,15 @@
                 }
             });
 
-            // Stop-Loss: Toplam zarar -$80 olduğunda pozisyonları otomatik kapat
             if (totalOpenPnl <= -80) {
-                closeAllPositions("Stop-Loss (-$80 zarar sınırı aşıldı)");
+                closeAllPositions("Stop-Loss (-$80 zarar sınırı)");
                 if (banner) banner.classList.add('hidden');
                 return;
             }
 
-            // Kâr Uyarısı: Pozisyonlar karda ise ekranda uyarı göster
             if (totalOpenPnl > 0) {
                 if (banner) banner.classList.remove('hidden');
-                document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Açık pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)! Pozisyonları kapatabilirsiniz.`;
+                document.getElementById('profit-alert-text').innerHTML = `<strong>KÂR UYARISI:</strong> Pozisyonlar karda (+${totalOpenPnl.toFixed(2)} USDT)!`;
             } else {
                 if (banner) banner.classList.add('hidden');
             }
@@ -565,35 +554,55 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "10'lu Trend Botu aktif. Eşiği aşınca direkt 10 pozisyon açar.";
+                desc.innerText = "Sürekli Bot aktif! Durmaksızın pariteleri tarıyor ve işlem açıyor.";
+                
+                // Bot açıkken sürekli çalışan tarama döngüsünü başlat
+                if (!scannerInterval) {
+                    scannerInterval = setInterval(runBotScanner, 4000);
+                }
             } else {
                 dot.className = "w-2 h-2 rounded-full bg-gray-500";
                 box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
                 desc.innerText = "Bot kapalı.";
+                if (scannerInterval) {
+                    clearInterval(scannerInterval);
+                    scannerInterval = null;
+                }
             }
         }
 
-        function checkAutoBotSignal(price, change) {
+        // Sürekli Çalışan Bot Tarayıcısı (Diğer borsaları/pariteleri sırayla tarar ve işlem açar)
+        function runBotScanner() {
             if (!state.autoBotActive) return;
-            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.02;
+
+            // Eğer halihazırda açık pozisyon varsa yeni açma, önce kapansın
+            if (state.openPositions.length > 0) {
+                document.getElementById('ana-signal').innerText = "Pozisyon Var (Bekleniyor)";
+                document.getElementById('ana-reason').innerText = "Açık işlemlerin sonuçlanması bekleniyor.";
+                return;
+            }
+
+            // Pariteler arasında sırayla dolaş (BTCUSDT -> ETHUSDT -> ...)
+            state.scannerIndex = (state.scannerIndex + 1) % state.coinsList.length;
+            const targetCoin = state.coinsList[state.scannerIndex];
+            
+            const change = state.priceChanges[targetCoin] || 0;
+            const threshold = parseFloat(document.getElementById('bot-threshold').value) || 0.01;
+
+            document.getElementById('ana-coin').innerText = targetCoin.replace('USDT', '/USDT');
             document.getElementById('ana-diff').innerText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
-            const now = Date.now();
-            if (now - state.lastBotActionTime > 10000 && state.openPositions.length === 0) {
-                if (change >= threshold) {
-                    document.getElementById('ana-signal').innerText = "10'lu BUY / LONG Sinyali";
-                    document.getElementById('ana-reason').innerText = `Yükseliş (+%${change.toFixed(2)}) yakalandı, 10 pozisyon açılıyor.`;
-                    openBatchPositions('LONG');
-                    state.lastBotActionTime = now;
-                } else if (change <= -threshold) {
-                    document.getElementById('ana-signal').innerText = "10'lu SELL / SHORT Sinyali";
-                    document.getElementById('ana-reason').innerText = `Düşüş (-%${Math.abs(change).toFixed(2)}) yakalandı, 10 pozisyon açılıyor.`;
-                    openBatchPositions('SHORT');
-                    state.lastBotActionTime = now;
-                } else {
-                    document.getElementById('ana-signal').innerText = "Trend İzleniyor";
-                    document.getElementById('ana-reason').innerText = "Eşik değeri bekleniyor.";
-                }
+            if (change >= threshold) {
+                document.getElementById('ana-signal').innerText = "Sürekli LONG Sinyali";
+                document.getElementById('ana-reason', `${targetCoin} üzerinde +%${change.toFixed(2)} trend yakalandı, 10'lu BUY açılıyor.`);
+                openBatchPositions('LONG', targetCoin);
+            } else if (change <= -threshold) {
+                document.getElementById('ana-signal').innerText = "Sürekli SHORT Sinyali";
+                document.getElementById('ana-reason', `${targetCoin} üzerinde -%${Math.abs(change).toFixed(2)} düşüş yakalandı, 10'lu SELL açılıyor.`);
+                openBatchPositions('SHORT', targetCoin);
+            } else {
+                document.getElementById('ana-signal').innerText = "Piyasa Taranıyor";
+                document.getElementById('ana-reason').innerText = `${targetCoin} inceleniyor, eşik bekleniyor.`;
             }
         }
 
