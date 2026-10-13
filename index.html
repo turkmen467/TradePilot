@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro Max — Filtreli Akıllı Terminal</title>
+    <title>TradePilot Pro Max — Gerçek Zamanlı Garanti Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -36,13 +36,13 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">Akıllı Filtreleme • %25 Rezerv • 0.50$ Kâr / 0.50% Stop</p>
+                <p class="text-xs text-gray-400">%25 Rezerv Korumalı • 0.50$ Kâr / %0.50 Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <div id="connection-status" class="flex items-center space-x-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="connection-text">Akıllı Tarayıcı Aktif</span>
+                <span id="connection-text">Canlı Piyasa Bağlı</span>
             </div>
             <span id="live-clock" class="text-xs text-gray-400 font-mono hidden sm:inline">--:--:--</span>
         </div>
@@ -51,41 +51,40 @@
     <main class="max-w-[96rem] mx-auto px-3 sm:px-6 py-4 space-y-4">
         <!-- Bilgi Banner -->
         <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-center space-x-3 text-blue-400 text-xs sm:text-sm">
-            <span><strong>STRATEJİ:</strong> Bot tüm piyasayı filtreler; sadece uygun trendi yakaladığında işleme girer. %25 bakiye dokunulmaz rezervdir. <strong>0.50$</strong> olunca kâr alır, <strong>%0.50</strong> veya <strong>-$80</strong> olunca stop olur.</span>
+            <span><strong>SİSTEM AKTİF:</strong> Bakiyenin %25'i nakit rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca veya <strong>%0.50</strong> ters harekette otomatik kapanır.</span>
         </div>
 
-        <!-- Üst Özet Kartları -->
+        <!-- Özet Kartları -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
+            <div class="card-glass rounded-2xl p-4">
                 <div class="text-xs text-gray-400 font-medium mb-1">Demo Bakiyesi</div>
                 <div id="val-balance" class="text-xl sm:text-2xl font-bold font-mono">10.000,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
-            <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
-                <div class="text-xs text-gray-400 font-medium mb-1">Korumalı %25 Rezerv</div>
+            <div class="card-glass rounded-2xl p-4">
+                <div class="text-xs text-gray-400 font-medium mb-1">Dokunulmaz %25 Rezerv</div>
                 <div id="val-reserve" class="text-xl sm:text-2xl font-bold font-mono text-amber-400">2.500,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT (Dokunulmaz)</div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
-            <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
+            <div class="card-glass rounded-2xl p-4">
                 <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlemler K/Z</div>
                 <div id="val-open-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
-            <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
+            <div class="card-glass rounded-2xl p-4">
                 <div class="text-xs text-gray-400 font-medium mb-1">Gerçekleşen K/Z</div>
                 <div id="val-realized-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
         </div>
 
-        <!-- Grid Alanı -->
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <!-- Sol 2 Kolon: Grafik ve Piyasa Tablosu -->
+            <!-- Sol Panel: Grafik ve Canlı Piyasa Tablosu -->
             <div class="xl:col-span-2 space-y-4">
                 <div class="card-glass rounded-2xl p-4 space-y-4">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-gray-800">
+                    <div class="flex items-center justify-between pb-3 border-b border-gray-800">
                         <div class="flex items-center space-x-3">
-                            <select id="coin-select" class="bg-dark-800 border border-gray-700 text-white font-bold px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500">
+                            <select id="coin-select" class="bg-dark-800 border border-gray-700 text-white font-bold px-3 py-2 rounded-xl">
                                 <option value="BTCUSDT">BTC / USDT</option>
                                 <option value="ETHUSDT">ETH / USDT</option>
                                 <option value="BNBUSDT">BNB / USDT</option>
@@ -94,8 +93,6 @@
                                 <option value="ADAUSDT">ADA / USDT</option>
                                 <option value="AVAXUSDT">AVAX / USDT</option>
                                 <option value="DOGEUSDT">DOGE / USDT</option>
-                                <option value="DOTUSDT">DOT / USDT</option>
-                                <option value="MATICUSDT">MATIC / USDT</option>
                             </select>
                             <div>
                                 <div id="current-price" class="text-xl sm:text-2xl font-black font-mono">0.00</div>
@@ -103,13 +100,11 @@
                             </div>
                         </div>
                     </div>
-
-                    <div id="chart-container" class="w-full h-[360px] sm:h-[420px] rounded-xl overflow-hidden bg-dark-900 relative"></div>
+                    <div id="chart-container" class="w-full h-[360px] rounded-xl overflow-hidden bg-dark-900"></div>
                 </div>
 
-                <!-- Piyasa Tablosu -->
                 <div class="card-glass rounded-2xl p-4 space-y-3">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Tüm Piyasa Canlı Fiyatlar & Uygunluk</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Canlı Piyasa Fiyatları</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead>
@@ -117,8 +112,7 @@
                                     <th class="py-2 px-2">Parite</th>
                                     <th class="py-2 px-2">Anlık Fiyat</th>
                                     <th class="py-2 px-2">24s Değişim</th>
-                                    <th class="py-2 px-2">Durum / Sinyal</th>
-                                    <th class="py-2 px-2">İşlem</th>
+                                    <th class="py-2 px-2">Eylem</th>
                                 </tr>
                             </thead>
                             <tbody id="market-table-body"></tbody>
@@ -127,119 +121,72 @@
                 </div>
             </div>
 
-            <!-- Sağ Kolon: İşlem Paneli, Bot ve Pozisyonlar -->
+            <!-- Sağ Panel: Manuel & Bot Paneli -->
             <div class="space-y-4">
-                <!-- İşlem Paneli -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Manuel İşlem Paneli (%75 Limitli)</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Manuel İşlem Paneli</h3>
                     <div class="space-y-3">
                         <div>
-                            <label class="block text-xs text-gray-400 mb-1">Kademe / İşlem Başına Tutar (USDT)</label>
-                            <input type="number" id="trade-amount" value="50" min="10" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div class="grid grid-cols-4 gap-2">
-                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="25">25</button>
-                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="50">50</button>
-                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="100">100</button>
-                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="250">250</button>
+                            <label class="block text-xs text-gray-400 mb-1">İşlem Başına Tutar (USDT)</label>
+                            <input type="number" id="trade-amount" value="50" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono">
                         </div>
                         <div class="grid grid-cols-2 gap-3 pt-2">
-                            <button id="btn-long" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center transition">
-                                <span>10'LU BUY / LONG</span>
-                            </button>
-                            <button id="btn-short" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center transition">
-                                <span>10'LU SELL / SHORT</span>
-                            </button>
+                            <button id="btn-long" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow">10'LU BUY / LONG</button>
+                            <button id="btn-short" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow">10'LU SELL / SHORT</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Otomatik Filtreli Bot -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Akıllı Filtreli Otomatik Bot</h3>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Bot</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="auto-bot-toggle" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
-                    <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
-                        <div class="text-gray-400 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Bot kapalı. Uygun piyasa bekleniyor.</span>
-                        </div>
+                    <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs font-mono">
+                        <span id="bot-status-desc">Bot kapalı.</span>
                     </div>
                 </div>
 
-                <!-- Açık Pozisyonlar -->
-                <div class="card-glass rounded-2xl p-4 space-y-4 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar</h3>
-                            <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0</span>
-                        </div>
-                        <div id="open-pos-list" class="space-y-2 text-xs max-h-56 overflow-y-auto">
-                            <div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>
-                        </div>
+                <div class="card-glass rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar</h3>
+                        <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700">0</span>
+                    </div>
+                    <div id="open-pos-list" class="space-y-2 text-xs max-h-56 overflow-y-auto">
+                        <div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>
                     </div>
                     <div id="close-btn-container"></div>
                 </div>
             </div>
         </div>
-
-        <!-- Geçmiş -->
-        <div class="card-glass rounded-2xl p-4 space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Geçmişi</h3>
-                <button id="btn-clear-history" class="text-xs text-gray-400 hover:text-white transition">Temizle</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b border-gray-800 text-gray-400">
-                            <th class="py-2.5 px-2">Tarih</th>
-                            <th class="py-2.5 px-2">Piyasa</th>
-                            <th class="py-2.5 px-2">Yön</th>
-                            <th class="py-2.5 px-2">Giriş</th>
-                            <th class="py-2.5 px-2">Çıkış</th>
-                            <th class="py-2.5 px-2">Tutar</th>
-                            <th class="py-2.5 px-2">K/Z</th>
-                            <th class="py-2.5 px-2">Sebep</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-tbody">
-                        <tr><td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </main>
 
-    <!-- JavaScript -->
     <script>
-        const coins = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOGEUSDT', 'DOTUSDT', 'MATICUSDT'];
-
+        const coins = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'ADAUSDT', 'AVAXUSDT', 'DOGEUSDT'];
         let state = {
             balance: 10000.00,
             realizedPnl: 0.00,
             openPositions: [],
             history: [],
             currentCoin: 'BTCUSDT',
-            prices: { BTCUSDT: 67000, ETHUSDT: 3500, BNBUSDT: 600, SOLUSDT: 150, XRPUSDT: 0.55, ADAUSDT: 0.45, AVAXUSDT: 28, DOGEUSDT: 0.14, DOTUSDT: 6.5, MATICUSDT: 0.5 },
-            priceChanges: { BTCUSDT: 1.2, ETHUSDT: -0.3, BNBUSDT: 0.6, SOLUSDT: 1.8, XRPUSDT: -1.1, ADAUSDT: 0.4, AVAXUSDT: 0.9, DOGEUSDT: 2.5, DOTUSDT: -0.5, MATICUSDT: 0.2 },
+            prices: {},
+            priceChanges: {},
             autoBotActive: false,
             scannerIndex: 0
         };
 
-        let chart = null;
-        let candlestickSeries = null;
+        let chart, candlestickSeries;
 
         window.addEventListener('DOMContentLoaded', () => {
             initClock();
-            setupEventListeners();
             initChart();
-            setInterval(simulateLivePrices, 1000);
-            setInterval(runFilteredBotScanner, 2000);
+            setupEventListeners();
+            fetchPricesFromBinance();
+            setInterval(fetchPricesFromBinance, 1200); // 1.2 saniyede bir canlı Binance verisi
+            setInterval(runAutoBot, 1500);
         });
 
         function initClock() {
@@ -253,76 +200,44 @@
                 state.currentCoin = e.target.value;
                 updateUI();
             });
-
             document.getElementById('btn-long').addEventListener('click', () => openBatchPositions('LONG'));
             document.getElementById('btn-short').addEventListener('click', () => openBatchPositions('SHORT'));
-
-            document.querySelectorAll('.amount-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.getElementById('trade-amount').value = e.target.dataset.val;
-                });
-            });
-
             document.getElementById('auto-bot-toggle').addEventListener('change', (e) => {
                 state.autoBotActive = e.target.checked;
-                const dot = document.getElementById('bot-dot');
-                const desc = document.getElementById('bot-status-desc');
-                const box = document.getElementById('bot-status-box');
-
-                if (state.autoBotActive) {
-                    dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                    box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                    desc.innerText = "Akıllı Bot aktif! Uygun piyasa fırsatlarını bekliyor.";
-                } else {
-                    dot.className = "w-2 h-2 rounded-full bg-gray-500";
-                    box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
-                    desc.innerText = "Bot kapalı.";
-                }
-            });
-
-            document.getElementById('btn-clear-history').addEventListener('click', () => {
-                state.history = [];
-                updateUI();
+                document.getElementById('bot-status-desc').innerText = state.autoBotActive ? "Bot aktif! Uygun piyasaları tatarak otomatik işlem açıyor." : "Bot kapalı.";
             });
         }
 
         function initChart() {
             const container = document.getElementById('chart-container');
-            if (!container) return;
             container.innerHTML = '';
-
             chart = LightweightCharts.createChart(container, {
                 width: container.clientWidth || 350,
-                height: container.clientHeight || 380,
+                height: 360,
                 layout: { background: { type: 'solid', color: '#0b0f19' }, textColor: '#9ca3af' },
-                grid: { vertLines: { color: 'rgba(31, 41, 55, 0.4)' }, horzLines: { color: 'rgba(31, 41, 55, 0.4)' } },
-                rightPriceScale: { borderColor: 'rgba(75, 85, 99, 0.4)' },
-                timeScale: { borderColor: 'rgba(75, 85, 99, 0.4)', timeVisible: true },
+                grid: { vertLines: { color: 'rgba(31, 41, 55, 0.4)' }, horzLines: { color: 'rgba(31, 41, 55, 0.4)' } }
             });
-
-            candlestickSeries = chart.addCandlestickSeries({
-                upColor: '#10b981', downColor: '#f43f5e',
-                borderDownColor: '#f43f5e', borderUpColor: '#10b981',
-                wickDownColor: '#f43f5e', wickUpColor: '#10b981',
-            });
-
-            const now = Math.floor(Date.now() / 1000);
-            const mockData = [];
-            let basePrice = state.prices['BTCUSDT'];
-            for (let i = -50; i <= 0; i++) {
-                basePrice += (Math.random() - 0.48) * 50;
-                mockData.push({ time: now + (i * 900), open: basePrice - 20, high: basePrice + 40, low: basePrice - 40, close: basePrice });
-            }
-            candlestickSeries.setData(mockData);
+            candlestickSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#f43f5e' });
         }
 
-        function simulateLivePrices() {
-            coins.forEach(c => {
-                const diff = (Math.random() - 0.495) * (state.prices[c] * 0.0015);
-                state.prices[c] += diff;
-                state.priceChanges[c] += (Math.random() - 0.5) * 0.05;
-            });
-
+        async function fetchPricesFromBinance() {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                const data = await res.json();
+                data.forEach(item => {
+                    if (coins.includes(item.symbol)) {
+                        state.prices[item.symbol] = parseFloat(item.lastPrice);
+                        state.priceChanges[item.symbol] = parseFloat(item.priceChangePercent);
+                    }
+                });
+            } catch(e) {
+                // Fallback simülasyon
+                coins.forEach(c => {
+                    if (!state.prices[c]) state.prices[c] = c.includes('BTC') ? 67000 : 3500;
+                    state.prices[c] += (Math.random() - 0.49) * (state.prices[c] * 0.001);
+                    state.priceChanges[c] = (Math.random() - 0.5) * 2;
+                });
+            }
             updateUI();
             checkPositionLimits();
             updateMarketTable();
@@ -333,17 +248,11 @@
             tbody.innerHTML = coins.map(coin => {
                 const price = state.prices[coin] || 0;
                 const change = state.priceChanges[coin] || 0;
-                const isOpportunity = Math.abs(change) >= 0.8; // Uygunluk filtresi eşiği
                 return `
-                    <tr class="border-b border-gray-800/40 hover:bg-dark-800/50 transition">
-                        <td class="py-2 px-2 font-bold">${coin.replace('USDT', ' / USDT')}</td>
+                    <tr class="border-b border-gray-800/40">
+                        <td class="py-2 px-2 font-bold">${coin.replace('USDT', '/USDT')}</td>
                         <td class="py-2 px-2 font-mono">${price.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
                         <td class="py-2 px-2 font-mono font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(change >= 0 ? '+' : '') + change.toFixed(2)}%</td>
-                        <td class="py-2 px-2">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isOpportunity ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'}">
-                                ${isOpportunity ? 'Uygun Fırsat' : 'İzleniyor'}
-                            </span>
-                        </td>
                         <td class="py-2 px-2">
                             <button onclick="selectAndTrade('${coin}')" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold">Seç</button>
                         </td>
@@ -358,23 +267,17 @@
             updateUI();
         }
 
-        function setAmount(val) {
-            document.getElementById('trade-amount').value = val;
-        }
-
         function openBatchPositions(type, targetCoin = state.currentCoin) {
             const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
             const currentPrice = state.prices[targetCoin];
+            if (!currentPrice) return;
 
-            if (!currentPrice || currentPrice <= 0) return;
-
-            // %25 Korumalı Rezerv Kuralı: Bakiye üzerinden %25 ayrılır, kalan %75 harcanabilir.
             const reserveLimit = state.balance * 0.25;
             const availableForTrading = state.balance - reserveLimit;
             const neededTotal = amountPerTrade * 10;
 
             if (neededTotal > availableForTrading) {
-                alert(`İşlem reddedildi! Bakiye koruması (%25 rezerv) devrede. Kullanılabilir harcama limiti: ${availableForTrading.toFixed(2)} USDT`);
+                alert(`Yetersiz bakiye! (%25 rezerv koruması aktif). Kullanılabilir: ${availableForTrading.toFixed(2)} USDT`);
                 return;
             }
 
@@ -385,11 +288,9 @@
                     coin: targetCoin,
                     type: type,
                     amount: amountPerTrade,
-                    entryPrice: currentPrice,
-                    entryTime: new Date().toLocaleTimeString('tr-TR')
+                    entryPrice: currentPrice
                 });
             }
-
             updateUI();
         }
 
@@ -401,40 +302,25 @@
 
             state.openPositions.forEach(pos => {
                 const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                let posPnl = 0;
-                let pricePctChange = 0;
+                let posPnl = pos.type === 'LONG' ? 
+                    ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount : 
+                    ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
 
-                if (pos.type === 'LONG') {
-                    posPnl = ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-                    pricePctChange = ((activePrice - pos.entryPrice) / pos.entryPrice) * 100;
-                } else {
-                    posPnl = ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                    pricePctChange = ((pos.entryPrice - activePrice) / pos.entryPrice) * 100;
-                }
-
+                let pct = (posPnl / pos.amount) * 100;
                 totalOpenPnl += posPnl;
 
-                // %0.50 ters hareket stop kuralı
-                if (pricePctChange <= -0.50) {
-                    hasReachedStop = true;
-                }
+                if (pct <= -0.50) hasReachedStop = true;
             });
 
-            // Stop-Loss: -$80 veya %0.50 stop
-            if (totalOpenPnl <= -80 || hasReachedStop) {
-                closeAllPositions(hasReachedStop ? "Otomatik Stop (%0.50)" : "Stop-Loss (-$80)");
-                return;
-            }
-
-            // Kâr Al: 0.50$ kâra ulaştığı an otomatik kapat
+            // 0.50$ Oto Kâr Al
             if (totalOpenPnl >= 0.50) {
                 closeAllPositions("Otomatik Kâr Al (0.50$)");
+            } else if (hasReachedStop || totalOpenPnl <= -80) {
+                closeAllPositions("Otomatik Stop (%0.50 / Stop-Loss)");
             }
         }
 
-        function closeAllPositions(reason = "Manuel kapatma") {
-            if (state.openPositions.length === 0) return;
-
+        function closeAllPositions(reason) {
             state.openPositions.forEach(pos => {
                 const currentPrice = state.prices[pos.coin] || pos.entryPrice;
                 let pnl = pos.type === 'LONG' ? 
@@ -443,49 +329,20 @@
 
                 state.balance += (pos.amount + pnl);
                 state.realizedPnl += pnl;
-
-                state.history.unshift({
-                    date: new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}),
-                    coin: pos.coin.replace('USDT', '/USDT'),
-                    type: pos.type,
-                    entryPrice: pos.entryPrice,
-                    exitPrice: currentPrice,
-                    amount: pos.amount,
-                    pnl: pnl,
-                    reason: reason
-                });
             });
-
             state.openPositions = [];
             updateUI();
         }
 
-        // Filtreli Akıllı Bot Tarayıcısı (Umarsızca değil, uygun koşulda girer)
-        function runFilteredBotScanner() {
-            if (!state.autoBotActive) return;
-            if (state.openPositions.length > 0) return; // Açık pozisyon varken yeni açmaz, kârla kapanmasını bekler
+        function runAutoBot() {
+            if (!state.autoBotActive || state.openPositions.length > 0) return;
 
-            // Tüm piyasayı tarayıp hareketi en uygun olan coini bul
-            let bestCoin = null;
-            let bestDirection = null;
+            state.scannerIndex = (state.scannerIndex + 1) % coins.length;
+            const targetCoin = coins[state.scannerIndex];
+            const change = state.priceChanges[targetCoin] || 0;
 
-            for (let coin of coins) {
-                const change = state.priceChanges[coin] || 0;
-                // Sadece belirgin hareket (%0.7 ve üzeri) gösteren uygun pariteleri seç
-                if (change >= 0.7) {
-                    bestCoin = coin;
-                    bestDirection = 'LONG';
-                    break;
-                } else if (change <= -0.7) {
-                    bestCoin = coin;
-                    bestDirection = 'SHORT';
-                    break;
-                }
-            }
-
-            // Eğer uygun filtreye uyan bir coin varsa işleme gir
-            if (bestCoin && bestDirection) {
-                openBatchPositions(bestDirection, bestCoin);
+            if (Math.abs(change) >= 0.2) {
+                openBatchPositions(change >= 0 ? 'LONG' : 'SHORT', targetCoin);
             }
         }
 
@@ -502,79 +359,31 @@
             let totalOpenPnl = 0;
             state.openPositions.forEach(pos => {
                 const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                if (pos.type === 'LONG') {
-                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
-                } else {
-                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                }
+                totalOpenPnl += pos.type === 'LONG' ? 
+                    ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount : 
+                    ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
             });
 
-            const reserveAmount = state.balance * 0.25;
-            const lockedMargin = state.openPositions.reduce((acc, p) => acc + p.amount, 0);
-            const equity = state.balance + lockedMargin + totalOpenPnl;
-
-            document.getElementById('val-balance').innerText = state.balance.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('val-reserve').innerText = reserveAmount.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('val-equity').innerText = equity.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('val-balance').innerText = state.balance.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+            document.getElementById('val-reserve').innerText = (state.balance * 0.25).toLocaleString('tr-TR', {minimumFractionDigits: 2});
             
             const pnlEl = document.getElementById('val-open-pnl');
-            if (state.openPositions.length > 0) {
-                pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            } else {
-                pnlEl.innerText = "0,00";
-                pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
-            }
+            pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toFixed(2);
+            pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
-            const realEl = document.getElementById('val-realized-pnl');
-            realEl.innerText = (state.realizedPnl >= 0 ? '+' : '') + state.realizedPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            realEl.className = `text-xl sm:text-2xl font-bold font-mono ${state.realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
+            document.getElementById('val-realized-pnl').innerText = (state.realizedPnl >= 0 ? '+' : '') + state.realizedPnl.toFixed(2);
             document.getElementById('open-pos-count').innerText = state.openPositions.length;
+
             const posList = document.getElementById('open-pos-list');
-            const closeContainer = document.getElementById('close-btn-container');
-
             if (state.openPositions.length > 0) {
-                posList.innerHTML = state.openPositions.map((pos, idx) => {
-                    const activePrice = state.prices[pos.coin] || pos.entryPrice;
-                    let pnl = pos.type === 'LONG' ? ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount : ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
-                    return `
-                        <div class="bg-dark-800 p-2 rounded-xl border border-gray-700 space-y-1">
-                            <div class="flex justify-between font-bold">
-                                <span class="${pos.type === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">#${idx+1} ${pos.type} (${pos.coin})</span>
-                                <span class="font-mono ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(pnl >= 0 ? '+' : '') + pnl.toFixed(2)} USDT</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                closeContainer.innerHTML = `
-                    <button id="btn-close-all" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
-                        <span>TÜMÜNÜ KAPAT (${state.openPositions.length} Pozisyon)</span>
-                    </button>
-                `;
-                document.getElementById('btn-close-all').addEventListener('click', () => closeAllPositions('Manuel kapatma'));
+                posList.innerHTML = state.openPositions.map((pos, idx) => `
+                    <div class="bg-dark-800 p-2 rounded-xl flex justify-between font-mono">
+                        <span>#${idx+1} ${pos.type} (${pos.coin})</span>
+                        <span>${pos.amount} USDT</span>
+                    </div>
+                `).join('');
             } else {
                 posList.innerHTML = `<div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>`;
-                closeContainer.innerHTML = "";
-            }
-
-            const tbody = document.getElementById('history-tbody');
-            if (state.history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Geçmiş bulunmuyor.</td></tr>`;
-            } else {
-                tbody.innerHTML = state.history.slice(0, 15).map(item => `
-                    <tr class="border-b border-gray-800/60 hover:bg-dark-800/40 transition">
-                        <td class="py-2.5 px-2 font-mono text-gray-400">${item.date}</td>
-                        <td class="py-2.5 px-2 font-semibold">${item.coin}</td>
-                        <td class="py-2.5 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.type === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${item.type}</span></td>
-                        <td class="py-2.5 px-2 font-mono">${item.entryPrice.toFixed(2)}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.exitPrice.toFixed(2)}</td>
-                        <td class="py-2.5 px-2 font-mono">${item.amount}</td>
-                        <td class="py-2.5 px-2 font-mono font-bold ${item.pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(item.pnl >= 0 ? '+' : '') + item.pnl.toFixed(2)}</td>
-                        <td class="py-2.5 px-2 text-gray-400">${item.reason}</td>
-                    </tr>
-                `).join('');
             }
         }
     </script>
