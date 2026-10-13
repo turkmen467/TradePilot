@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro — Kesin Çözüm Terminali</title>
+    <title>TradePilot Pro Max — Filtreli Akıllı Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -34,15 +34,15 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                    TradePilot <span class="text-blue-500 font-extrabold">Pro</span>
+                    TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">Garanti Terminal • %25 Rezerv • 0.50$ Kâr & Stop</p>
+                <p class="text-xs text-gray-400">Akıllı Filtreleme • %25 Rezerv • 0.50$ Kâr / 0.50% Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <div id="connection-status" class="flex items-center space-x-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="connection-text">Aktif</span>
+                <span id="connection-text">Akıllı Tarayıcı Aktif</span>
             </div>
             <span id="live-clock" class="text-xs text-gray-400 font-mono hidden sm:inline">--:--:--</span>
         </div>
@@ -51,7 +51,7 @@
     <main class="max-w-[96rem] mx-auto px-3 sm:px-6 py-4 space-y-4">
         <!-- Bilgi Banner -->
         <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-center space-x-3 text-blue-400 text-xs sm:text-sm">
-            <span><strong>KURAL:</strong> Bakiyenin %25'i rezerv tutulur. İşlemler <strong>0.50$</strong> kâra ulaşınca veya <strong>%0.50</strong> ters harekette stop olur.</span>
+            <span><strong>STRATEJİ:</strong> Bot tüm piyasayı filtreler; sadece uygun trendi yakaladığında işleme girer. %25 bakiye dokunulmaz rezervdir. <strong>0.50$</strong> olunca kâr alır, <strong>%0.50</strong> veya <strong>-$80</strong> olunca stop olur.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -109,7 +109,7 @@
 
                 <!-- Piyasa Tablosu -->
                 <div class="card-glass rounded-2xl p-4 space-y-3">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Tüm Piyasa Canlı Fiyatlar</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Tüm Piyasa Canlı Fiyatlar & Uygunluk</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead>
@@ -117,6 +117,7 @@
                                     <th class="py-2 px-2">Parite</th>
                                     <th class="py-2 px-2">Anlık Fiyat</th>
                                     <th class="py-2 px-2">24s Değişim</th>
+                                    <th class="py-2 px-2">Durum / Sinyal</th>
                                     <th class="py-2 px-2">İşlem</th>
                                 </tr>
                             </thead>
@@ -130,7 +131,7 @@
             <div class="space-y-4">
                 <!-- İşlem Paneli -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
-                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Manuel İşlem Paneli</h3>
+                    <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Manuel İşlem Paneli (%75 Limitli)</h3>
                     <div class="space-y-3">
                         <div>
                             <label class="block text-xs text-gray-400 mb-1">Kademe / İşlem Başına Tutar (USDT)</label>
@@ -153,10 +154,10 @@
                     </div>
                 </div>
 
-                <!-- Otomatik Bot -->
+                <!-- Otomatik Filtreli Bot -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik 0.50$ Kâr & Stop Botu</h3>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Akıllı Filtreli Otomatik Bot</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="auto-bot-toggle" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -165,7 +166,7 @@
                     <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                         <div class="text-gray-400 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                            <span id="bot-status-desc">Bot kapalı.</span>
+                            <span id="bot-status-desc">Bot kapalı. Uygun piyasa bekleniyor.</span>
                         </div>
                     </div>
                 </div>
@@ -225,7 +226,7 @@
             history: [],
             currentCoin: 'BTCUSDT',
             prices: { BTCUSDT: 67000, ETHUSDT: 3500, BNBUSDT: 600, SOLUSDT: 150, XRPUSDT: 0.55, ADAUSDT: 0.45, AVAXUSDT: 28, DOGEUSDT: 0.14, DOTUSDT: 6.5, MATICUSDT: 0.5 },
-            priceChanges: { BTCUSDT: 1.5, ETHUSDT: 0.8, BNBUSDT: 1.1, SOLUSDT: 2.3, XRPUSDT: -0.4, ADAUSDT: 0.9, AVAXUSDT: 1.8, DOGEUSDT: 4.2, DOTUSDT: -0.8, MATICUSDT: 0.5 },
+            priceChanges: { BTCUSDT: 1.2, ETHUSDT: -0.3, BNBUSDT: 0.6, SOLUSDT: 1.8, XRPUSDT: -1.1, ADAUSDT: 0.4, AVAXUSDT: 0.9, DOGEUSDT: 2.5, DOTUSDT: -0.5, MATICUSDT: 0.2 },
             autoBotActive: false,
             scannerIndex: 0
         };
@@ -238,7 +239,7 @@
             setupEventListeners();
             initChart();
             setInterval(simulateLivePrices, 1000);
-            setInterval(runBotScanner, 1500);
+            setInterval(runFilteredBotScanner, 2000);
         });
 
         function initClock() {
@@ -271,7 +272,7 @@
                 if (state.autoBotActive) {
                     dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                     box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                    desc.innerText = "Bot aktif! Sürekli işlem açıyor.";
+                    desc.innerText = "Akıllı Bot aktif! Uygun piyasa fırsatlarını bekliyor.";
                 } else {
                     dot.className = "w-2 h-2 rounded-full bg-gray-500";
                     box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
@@ -317,9 +318,9 @@
 
         function simulateLivePrices() {
             coins.forEach(c => {
-                const diff = (Math.random() - 0.49) * (state.prices[c] * 0.002);
+                const diff = (Math.random() - 0.495) * (state.prices[c] * 0.0015);
                 state.prices[c] += diff;
-                state.priceChanges[c] += (Math.random() - 0.5) * 0.1;
+                state.priceChanges[c] += (Math.random() - 0.5) * 0.05;
             });
 
             updateUI();
@@ -332,11 +333,17 @@
             tbody.innerHTML = coins.map(coin => {
                 const price = state.prices[coin] || 0;
                 const change = state.priceChanges[coin] || 0;
+                const isOpportunity = Math.abs(change) >= 0.8; // Uygunluk filtresi eşiği
                 return `
                     <tr class="border-b border-gray-800/40 hover:bg-dark-800/50 transition">
                         <td class="py-2 px-2 font-bold">${coin.replace('USDT', ' / USDT')}</td>
                         <td class="py-2 px-2 font-mono">${price.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
                         <td class="py-2 px-2 font-mono font-semibold ${change >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${(change >= 0 ? '+' : '') + change.toFixed(2)}%</td>
+                        <td class="py-2 px-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isOpportunity ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-400'}">
+                                ${isOpportunity ? 'Uygun Fırsat' : 'İzleniyor'}
+                            </span>
+                        </td>
                         <td class="py-2 px-2">
                             <button onclick="selectAndTrade('${coin}')" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[10px] font-bold">Seç</button>
                         </td>
@@ -351,18 +358,23 @@
             updateUI();
         }
 
+        function setAmount(val) {
+            document.getElementById('trade-amount').value = val;
+        }
+
         function openBatchPositions(type, targetCoin = state.currentCoin) {
             const amountPerTrade = parseFloat(document.getElementById('trade-amount').value) || 50;
             const currentPrice = state.prices[targetCoin];
 
             if (!currentPrice || currentPrice <= 0) return;
 
+            // %25 Korumalı Rezerv Kuralı: Bakiye üzerinden %25 ayrılır, kalan %75 harcanabilir.
             const reserveLimit = state.balance * 0.25;
             const availableForTrading = state.balance - reserveLimit;
             const neededTotal = amountPerTrade * 10;
 
             if (neededTotal > availableForTrading) {
-                alert(`Yetersiz bakiye! (%25 rezerve takıldı). Kullanılabilir: ${availableForTrading.toFixed(2)} USDT`);
+                alert(`İşlem reddedildi! Bakiye koruması (%25 rezerv) devrede. Kullanılabilir harcama limiti: ${availableForTrading.toFixed(2)} USDT`);
                 return;
             }
 
@@ -402,16 +414,19 @@
 
                 totalOpenPnl += posPnl;
 
+                // %0.50 ters hareket stop kuralı
                 if (pricePctChange <= -0.50) {
                     hasReachedStop = true;
                 }
             });
 
+            // Stop-Loss: -$80 veya %0.50 stop
             if (totalOpenPnl <= -80 || hasReachedStop) {
                 closeAllPositions(hasReachedStop ? "Otomatik Stop (%0.50)" : "Stop-Loss (-$80)");
                 return;
             }
 
+            // Kâr Al: 0.50$ kâra ulaştığı an otomatik kapat
             if (totalOpenPnl >= 0.50) {
                 closeAllPositions("Otomatik Kâr Al (0.50$)");
             }
@@ -445,15 +460,33 @@
             updateUI();
         }
 
-        function runBotScanner() {
+        // Filtreli Akıllı Bot Tarayıcısı (Umarsızca değil, uygun koşulda girer)
+        function runFilteredBotScanner() {
             if (!state.autoBotActive) return;
-            if (state.openPositions.length > 0) return;
+            if (state.openPositions.length > 0) return; // Açık pozisyon varken yeni açmaz, kârla kapanmasını bekler
 
-            state.scannerIndex = (state.scannerIndex + 1) % coins.length;
-            const targetCoin = coins[state.scannerIndex];
-            const direction = Math.random() > 0.5 ? 'LONG' : 'SHORT';
-            
-            openBatchPositions(direction, targetCoin);
+            // Tüm piyasayı tarayıp hareketi en uygun olan coini bul
+            let bestCoin = null;
+            let bestDirection = null;
+
+            for (let coin of coins) {
+                const change = state.priceChanges[coin] || 0;
+                // Sadece belirgin hareket (%0.7 ve üzeri) gösteren uygun pariteleri seç
+                if (change >= 0.7) {
+                    bestCoin = coin;
+                    bestDirection = 'LONG';
+                    break;
+                } else if (change <= -0.7) {
+                    bestCoin = coin;
+                    bestDirection = 'SHORT';
+                    break;
+                }
+            }
+
+            // Eğer uygun filtreye uyan bir coin varsa işleme gir
+            if (bestCoin && bestDirection) {
+                openBatchPositions(bestDirection, bestCoin);
+            }
         }
 
         function updateUI() {
