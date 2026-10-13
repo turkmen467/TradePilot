@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro Max — Kesintisiz Terminal</title>
+    <title>TradePilot Pro — Kesin Çözüm Terminali</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -34,15 +34,15 @@
             </div>
             <div>
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
-                    TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
+                    TradePilot <span class="text-blue-500 font-extrabold">Pro</span>
                 </h1>
-                <p class="text-xs text-gray-400">Aktif Terminal • %25 Rezerv • 0.50$ Kâr & Stop</p>
+                <p class="text-xs text-gray-400">Garanti Terminal • %25 Rezerv • 0.50$ Kâr & Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
             <div id="connection-status" class="flex items-center space-x-1.5 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span id="connection-text">Sistem Hazır</span>
+                <span id="connection-text">Aktif</span>
             </div>
             <span id="live-clock" class="text-xs text-gray-400 font-mono hidden sm:inline">--:--:--</span>
         </div>
@@ -51,9 +51,6 @@
     <main class="max-w-[96rem] mx-auto px-3 sm:px-6 py-4 space-y-4">
         <!-- Bilgi Banner -->
         <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 flex items-center space-x-3 text-blue-400 text-xs sm:text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
             <span><strong>KURAL:</strong> Bakiyenin %25'i rezerv tutulur. İşlemler <strong>0.50$</strong> kâra ulaşınca veya <strong>%0.50</strong> ters harekette stop olur.</span>
         </div>
 
@@ -67,15 +64,15 @@
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Korumalı %25 Rezerv</div>
                 <div id="val-reserve" class="text-xl sm:text-2xl font-bold font-mono text-amber-400">2.500,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT <span class="text-[10px] text-gray-500">Dokunulmaz Nakit</span></div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT (Dokunulmaz)</div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
                 <div class="text-xs text-gray-400 font-medium mb-1">Açık İşlemler K/Z</div>
                 <div id="val-open-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
-                <div class="text-xs text-gray-400 mt-0.5">USDT • <span id="pnl-status-text">Pozisyon Yok</span></div>
+                <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
             <div class="card-glass rounded-2xl p-4 relative overflow-hidden">
-                <div class="text-xs text-gray-400 font-medium mb-1">Gerçekleşen Toplam K/Z</div>
+                <div class="text-xs text-gray-400 font-medium mb-1">Gerçekleşen K/Z</div>
                 <div id="val-realized-pnl" class="text-xl sm:text-2xl font-bold font-mono text-gray-400">0,00</div>
                 <div class="text-xs text-gray-400 mt-0.5">USDT</div>
             </div>
@@ -107,11 +104,7 @@
                         </div>
                     </div>
 
-                    <div id="chart-container" class="w-full h-[360px] sm:h-[420px] rounded-xl overflow-hidden bg-dark-900 relative">
-                        <div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-dark-900/90 z-10 text-sm text-gray-400">
-                            Grafik yükleniyor...
-                        </div>
-                    </div>
+                    <div id="chart-container" class="w-full h-[360px] sm:h-[420px] rounded-xl overflow-hidden bg-dark-900 relative"></div>
                 </div>
 
                 <!-- Piyasa Tablosu -->
@@ -144,16 +137,16 @@
                             <input type="number" id="trade-amount" value="50" min="10" class="w-full bg-dark-800 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-blue-500">
                         </div>
                         <div class="grid grid-cols-4 gap-2">
-                            <button onclick="setAmount(25)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">25</button>
-                            <button onclick="setAmount(50)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">50</button>
-                            <button onclick="setAmount(100)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">100</button>
-                            <button onclick="setAmount(250)" class="bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium">250</button>
+                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="25">25</button>
+                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="50">50</button>
+                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="100">100</button>
+                            <button class="amount-btn bg-dark-800 hover:bg-dark-700 text-xs py-1.5 rounded-lg border border-gray-700 font-medium" data-val="250">250</button>
                         </div>
                         <div class="grid grid-cols-2 gap-3 pt-2">
-                            <button onclick="openBatchPositions('LONG')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition">
+                            <button id="btn-long" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center transition">
                                 <span>10'LU BUY / LONG</span>
                             </button>
-                            <button onclick="openBatchPositions('SHORT')" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition">
+                            <button id="btn-short" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center transition">
                                 <span>10'LU SELL / SHORT</span>
                             </button>
                         </div>
@@ -165,7 +158,7 @@
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik 0.50$ Kâr & Stop Botu</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
+                            <input type="checkbox" id="auto-bot-toggle" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
@@ -197,7 +190,7 @@
         <div class="card-glass rounded-2xl p-4 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">İşlem Geçmişi</h3>
-                <button onclick="clearHistory()" class="text-xs text-gray-400 hover:text-white transition">Temizle</button>
+                <button id="btn-clear-history" class="text-xs text-gray-400 hover:text-white transition">Temizle</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
@@ -244,8 +237,8 @@
             initClock();
             setupEventListeners();
             initChart();
-            setInterval(simulateLivePrices, 1000); // Garanti canlı fiyat motoru
-            setInterval(runBotScanner, 1500);     // Bot tetikleyicisi
+            setInterval(simulateLivePrices, 1000);
+            setInterval(runBotScanner, 1500);
         });
 
         function initClock() {
@@ -257,6 +250,37 @@
         function setupEventListeners() {
             document.getElementById('coin-select').addEventListener('change', (e) => {
                 state.currentCoin = e.target.value;
+                updateUI();
+            });
+
+            document.getElementById('btn-long').addEventListener('click', () => openBatchPositions('LONG'));
+            document.getElementById('btn-short').addEventListener('click', () => openBatchPositions('SHORT'));
+
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.getElementById('trade-amount').value = e.target.dataset.val;
+                });
+            });
+
+            document.getElementById('auto-bot-toggle').addEventListener('change', (e) => {
+                state.autoBotActive = e.target.checked;
+                const dot = document.getElementById('bot-dot');
+                const desc = document.getElementById('bot-status-desc');
+                const box = document.getElementById('bot-status-box');
+
+                if (state.autoBotActive) {
+                    dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                    box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
+                    desc.innerText = "Bot aktif! Sürekli işlem açıyor.";
+                } else {
+                    dot.className = "w-2 h-2 rounded-full bg-gray-500";
+                    box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
+                    desc.innerText = "Bot kapalı.";
+                }
+            });
+
+            document.getElementById('btn-clear-history').addEventListener('click', () => {
+                state.history = [];
                 updateUI();
             });
         }
@@ -281,7 +305,6 @@
                 wickDownColor: '#f43f5e', wickUpColor: '#10b981',
             });
 
-            // Başlangıç mock mum verisi
             const now = Math.floor(Date.now() / 1000);
             const mockData = [];
             let basePrice = state.prices['BTCUSDT'];
@@ -294,7 +317,7 @@
 
         function simulateLivePrices() {
             coins.forEach(c => {
-                const diff = (Math.random() - 0.49) * (state.prices[c] * 0.001);
+                const diff = (Math.random() - 0.49) * (state.prices[c] * 0.002);
                 state.prices[c] += diff;
                 state.priceChanges[c] += (Math.random() - 0.5) * 0.1;
             });
@@ -326,10 +349,6 @@
             state.currentCoin = coin;
             document.getElementById('coin-select').value = coin;
             updateUI();
-        }
-
-        function setAmount(val) {
-            document.getElementById('trade-amount').value = val;
         }
 
         function openBatchPositions(type, targetCoin = state.currentCoin) {
@@ -426,23 +445,6 @@
             updateUI();
         }
 
-        function toggleAutoBot() {
-            state.autoBotActive = document.getElementById('auto-bot-toggle').checked;
-            const dot = document.getElementById('bot-dot');
-            const desc = document.getElementById('bot-status-desc');
-            const box = document.getElementById('bot-status-box');
-
-            if (state.autoBotActive) {
-                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
-                box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Bot aktif! Sürekli işlem açıyor.";
-            } else {
-                dot.className = "w-2 h-2 rounded-full bg-gray-500";
-                box.className = "bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono text-gray-400";
-                desc.innerText = "Bot kapalı.";
-            }
-        }
-
         function runBotScanner() {
             if (!state.autoBotActive) return;
             if (state.openPositions.length > 0) return;
@@ -514,10 +516,11 @@
                 }).join('');
 
                 closeContainer.innerHTML = `
-                    <button onclick="closeAllPositions('Manuel kapatma')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
+                    <button id="btn-close-all" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-rose-600/30 flex items-center justify-center space-x-2 transition mt-3">
                         <span>TÜMÜNÜ KAPAT (${state.openPositions.length} Pozisyon)</span>
                     </button>
                 `;
+                document.getElementById('btn-close-all').addEventListener('click', () => closeAllPositions('Manuel kapatma'));
             } else {
                 posList.innerHTML = `<div class="text-center text-gray-500 py-6">Açık pozisyon bulunmuyor.</div>`;
                 closeContainer.innerHTML = "";
@@ -540,11 +543,6 @@
                     </tr>
                 `).join('');
             }
-        }
-
-        function clearHistory() {
-            state.history = [];
-            updateUI();
         }
     </script>
 </body>
