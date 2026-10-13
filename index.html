@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradePilot Pro Max — Akıllı Sermaye & Otomatik Kâr Terminali</title>
+    <title>TradePilot Pro Max — Akıllı Rezerv & 0.50$ Kâr / Stop Terminali</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -43,7 +43,7 @@
                 <h1 class="font-bold text-lg tracking-tight flex items-center gap-2">
                     TradePilot <span class="text-blue-500 font-extrabold">Pro Max</span>
                 </h1>
-                <p class="text-xs text-gray-400">Akıllı %25 Rezerv • Otomatik Kâr Al & Devam Et</p>
+                <p class="text-xs text-gray-400">%25 Rezerv • 0.50$ Kâr Al & 0.50% Stop</p>
             </div>
         </div>
         <div class="flex items-center space-x-3">
@@ -61,7 +61,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span><strong>AKILLI KURAL:</strong> Bakiyenin %25'i nakit olarak rezerve edilir, asla harcanmaz. En ufak kârda işlemler otomatik kapatılır ve yeniden açılır. Stop: -$80</span>
+            <span><strong>KURAL GÜNCELLENDİ:</strong> Bakiyenin %25'i rezerve edilir. İşlemler <strong>0.50$</strong> kâra ulaşınca otomatik kapanır veya <strong>%0.50</strong> ters harekette stop olur.</span>
         </div>
 
         <!-- Üst Özet Kartları -->
@@ -177,14 +177,14 @@
                                 <span>10'LU SELL / SHORT</span>
                             </button>
                         </div>
-                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 bakiye rezerve edilir. En ufak kârda kapanır.</p>
+                        <p class="text-[11px] text-gray-400 text-center pt-1">%25 rezerve sadık kalır. 0.50$ kârda / %0.50 stop olur.</p>
                     </div>
                 </div>
 
                 <!-- Sürekli Otomatik Bot Kontrolü -->
                 <div class="card-glass rounded-2xl p-4 space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik Kâr Al & Devam Botu</h3>
+                        <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Otomatik 0.50$ Kâr & Stop Botu</h3>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="auto-bot-toggle" onchange="toggleAutoBot()" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
@@ -198,7 +198,7 @@
                         <div id="bot-status-box" class="bg-dark-900 border border-gray-800 rounded-xl p-3 text-xs space-y-1.5 font-mono">
                             <div class="text-gray-400 flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-gray-500" id="bot-dot"></span>
-                                <span id="bot-status-desc">Bot kapalı. %25 rezerve sadık kalır.</span>
+                                <span id="bot-status-desc">Bot kapalı. 0.50$ kâr hedefliyor.</span>
                             </div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@
                 <div class="card-glass rounded-2xl p-4 space-y-4 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar (Kârda Otomatik Kapanır)</h3>
+                            <h3 class="font-bold text-sm text-gray-300 uppercase tracking-wider">Açık Pozisyonlar (0.50$ Kâr / %0.50 Stop)</h3>
                             <span id="open-pos-count" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-700 text-gray-300">0</span>
                         </div>
                         <div id="open-pos-list" class="space-y-2 text-xs max-h-56 overflow-y-auto">
@@ -286,7 +286,7 @@
         });
 
         function loadState() {
-            const saved = localStorage.getItem('tradepilot_state_v10');
+            const saved = localStorage.getItem('tradepilot_state_v11');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -299,7 +299,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('tradepilot_state_v10', JSON.stringify({
+            localStorage.setItem('tradepilot_state_v11', JSON.stringify({
                 balance: state.balance,
                 realizedPnl: state.realizedPnl,
                 openPositions: state.openPositions,
@@ -442,7 +442,7 @@
 
             if (!currentPrice || currentPrice <= 0) return;
 
-            // %25 Korumalı Rezerv Kuralı: Bakiye üzerinden %25 ayrılır, kalan %75 harcanabilir.
+            // %25 Korumalı Rezerv Kuralı
             const reserveLimit = state.balance * 0.25;
             const availableForTrading = state.balance - reserveLimit;
             const neededTotal = amountPerTrade * 10;
@@ -472,24 +472,38 @@
             if (state.openPositions.length === 0) return;
 
             let totalOpenPnl = 0;
+            let hasReachedStop = false;
+
             state.openPositions.forEach(pos => {
                 const activePrice = state.prices[pos.coin] || pos.entryPrice;
+                let posPnl = 0;
+                let pricePctChange = 0;
+
                 if (pos.type === 'LONG') {
-                    totalOpenPnl += ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+                    posPnl = ((activePrice - pos.entryPrice) / pos.entryPrice) * pos.amount;
+                    pricePctChange = ((activePrice - pos.entryPrice) / pos.entryPrice) * 100;
                 } else {
-                    totalOpenPnl += ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
+                    posPnl = ((pos.entryPrice - activePrice) / pos.entryPrice) * pos.amount;
+                    pricePctChange = ((pos.entryPrice - activePrice) / pos.entryPrice) * 100;
+                }
+
+                totalOpenPnl += posPnl;
+
+                // %0.50 ters yön hareketi durumunda oto stop
+                if (pricePctChange <= -0.50) {
+                    hasReachedStop = true;
                 }
             });
 
-            // Stop-Loss: Zarar -$80 sınırına ulaştığında kapat
-            if (totalOpenPnl <= -80) {
-                closeAllPositions("Stop-Loss (-$80 zarar sınırı)");
+            // Genel zarar -$80 sınırına ulaştığında veya %0.50 stop tetiklendiğinde kapat
+            if (totalOpenPnl <= -80 || hasReachedStop) {
+                closeAllPositions(hasReachedStop ? "Otomatik Stop (%0.50 zarar sınırı)" : "Stop-Loss (-$80 zarar sınırı)");
                 return;
             }
 
-            // En ufak kârda (> 0) otomatik kapat ve kâra geçerek yeni işlem açmaya hazır hale gel
-            if (totalOpenPnl > 0.00) {
-                closeAllPositions("Otomatik Kâr Al (En ufak kâr yakalandı)");
+            // Toplam kâr 0.50$ ve üzerine ulaştığında otomatik kâr al ve kapat
+            if (totalOpenPnl >= 0.50) {
+                closeAllPositions("Otomatik Kâr Al (0.50$ kâr hedefine ulaşıldı)");
             }
         }
 
@@ -534,7 +548,7 @@
             if (state.autoBotActive) {
                 dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
                 box.className = "bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 text-xs space-y-1.5 font-mono text-emerald-300";
-                desc.innerText = "Otomatik Kâr Al & Devam Botu aktif! %25 rezerve uyarak sürekli işlem açar.";
+                desc.innerText = "0.50$ Kâr & Stop Botu aktif! %25 rezerve uyarak sürekli işlem açar.";
                 
                 if (!scannerInterval) {
                     scannerInterval = setInterval(runBotScanner, 2500);
@@ -552,7 +566,6 @@
 
         function runBotScanner() {
             if (!state.autoBotActive) return;
-            // Eğer halihazırda açık pozisyon varsa kâra geçip kapanmasını bekler (böylece bakiye aşılmaz)
             if (state.openPositions.length > 0) return;
 
             state.scannerIndex = (state.scannerIndex + 1) % coins.length;
@@ -600,7 +613,7 @@
             if (state.openPositions.length > 0) {
                 pnlEl.innerText = (totalOpenPnl >= 0 ? '+' : '') + totalOpenPnl.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 pnlEl.className = `text-xl sm:text-2xl font-bold font-mono ${totalOpenPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (Otomatik Kapanacak)" : "Zarda";
+                document.getElementById('pnl-status-text').innerText = totalOpenPnl > 0 ? "Karda (0.50$'a Hedefleniyor)" : "Zarda (Stop Bekleniyor)";
             } else {
                 pnlEl.innerText = "0,00";
                 pnlEl.className = "text-xl sm:text-2xl font-bold font-mono text-gray-400";
