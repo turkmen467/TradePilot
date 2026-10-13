@@ -23,21 +23,21 @@ footer{color:var(--muted);font-size:11px;line-height:1.5;margin:16px 3px}
 <body><main>
 <header>
   <div class="brand">TRADEPILOT</div>
-  <div class="sub">Mobil trading paneli · Demo MVP 0.1</div>
-  <span class="pill">DEMO MODU · CANLI VERİ DEĞİL</span>
+  <div class="sub">Mobil trading paneli · Mobil prototip · Canlı kripto verisi</div>
+  <span class="pill">SANAL İŞLEM · FİYAT VERİSİ BAĞLANIYOR</span>
 </header>
 <section class="card">
   <div class="label">Sanal bakiye</div><div class="balance" id="balance">$10,000.00</div>
   <div class="small muted">Bu yalnızca cihazında çalışan deneme bakiyesidir.</div>
 </section>
 <section class="card">
-  <div class="row"><strong>Piyasalar</strong><span class="small muted">Örnek fiyatlar</span></div>
+  <div class="row"><strong>Piyasalar</strong><span class="small muted" id="dataStatus">Canlı veri bekleniyor…</span></div>
   <div class="grid" id="markets" style="margin-top:10px"></div>
 </section>
 <section class="card">
   <div class="row"><strong id="asset">BTC / USDT</strong><span class="small muted" id="change">+1.42%</span></div>
   <div class="price" id="price">$67,250.0000</div>
-  <div class="row"><span class="label">Örnek analiz sinyali</span><span class="signal" id="signal">BEKLE</span></div>
+  <div class="row"><span class="label">Demo analiz sinyali</span><span class="signal" id="signal">BEKLE</span></div>
   <hr>
   <div class="small" id="reason">Sinyal açıklaması</div>
   <div class="grid" style="margin-top:13px">
@@ -55,24 +55,33 @@ footer{color:var(--muted);font-size:11px;line-height:1.5;margin:16px 3px}
   <div class="row"><strong>İşlem geçmişi</strong><span id="count" class="small muted">0 kayıt</span></div>
   <div id="history" class="small muted" style="margin-top:8px">Henüz işlem yok.</div>
 </section>
-<footer>Güvenlik: Bu demo gerçek piyasa verisi kullanmaz ve hiçbir borsaya emir göndermez. Gerçek otomatik işlem için API bağlantısı, sunucu tarafında anahtar güvenliği, risk limitleri ve test gerekir. Sinyaller kâr garantisi veya yatırım tavsiyesi değildir.</footer>
+<footer>Veri kaynağı: Binance herkese açık piyasa verisi (BTC/USDT ve ETH/USDT). XAU/USD ve EUR/USD henüz canlı bağlı değil, örnek olarak gösterilir. Bu uygulama yalnızca sanal işlem kaydı tutar; borsaya emir göndermez. Sinyaller kâr garantisi veya yatırım tavsiyesi değildir.</footer>
 </main>
 <script>
 const data=[
- {name:"BTC / USDT",price:67250,change:1.42,rsi:34,fast:67180,slow:67210,dec:2},
- {name:"ETH / USDT",price:2542.8,change:-0.76,rsi:67,fast:2540,slow:2538,dec:2},
- {name:"XAU / USD",price:4028.4,change:0.31,rsi:48,fast:4027,slow:4025,dec:2},
- {name:"EUR / USD",price:1.1632,change:-0.12,rsi:58,fast:1.1630,slow:1.1634,dec:4}
+ {name:"BTC / USDT",symbol:"BTCUSDT",price:67250,change:1.42,rsi:50,fast:0,slow:0,dec:2,live:false},
+ {name:"ETH / USDT",symbol:"ETHUSDT",price:2542.8,change:-0.76,rsi:50,fast:0,slow:0,dec:2,live:false},
+ {name:"XAU / USD",price:4028.4,change:0.31,rsi:48,fast:4027,slow:4025,dec:2,live:false},
+ {name:"EUR / USD",price:1.1632,change:-0.12,rsi:58,fast:1.1630,slow:1.1634,dec:4,live:false}
 ];
-let selected=0,balance=10000,trades=[],lastAutoKey="";
+let selected=0,balance=10000,trades=[],lastAutoKey="",previousPrices={};
 const $=id=>document.getElementById(id);
 const money=n=>n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 function signal(m){if(m.rsi<=35&&m.fast>m.slow)return "BUY";if(m.rsi>=70&&m.fast<m.slow)return "SELL";return "BEKLE"}
-function reason(m){let s=signal(m);return s==="BUY"?"RSI örnek veride düşük ve hızlı EMA, yavaş EMA üzerinde. Demo kuralı.":s==="SELL"?"RSI örnek veride yüksek ve hızlı EMA, yavaş EMA altında. Demo kuralı.":"Koşullar aynı yönde güçlü örnek sinyal üretmiyor; bekle."}
-function renderMarkets(){ $("markets").innerHTML=data.map((m,i)=>`<button class="market ${i===selected?'active':''}" data-i="${i}"><b>${m.name}</b><br><span class="small ${m.change>=0?'green':'red'}">${m.change>=0?'+':''}${m.change.toFixed(2)}%</span></button>`).join("");document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{selected=+b.dataset.i;render()})}
+function reason(m){if(!m.live)return "Bu piyasa henüz canlı bağlı değil; gösterilen fiyat örnektir.";let s=signal(m);return s==="BUY"?"Canlı fiyat verisi güncellendi; RSI/EMA kuralı demo amaçlıdır.":s==="SELL"?"Canlı fiyat verisi güncellendi; RSI/EMA kuralı demo amaçlıdır.":"Canlı fiyat mevcut. Bu basit demo henüz güvenilir işlem sinyali üretmiyor."}
+function renderMarkets(){ $("markets").innerHTML=data.map((m,i)=>`<button class="market ${i===selected?'active':''}" data-i="${i}"><b>${m.name}</b><br><span class="small ${m.change>=0?'green':'red'}">${m.live?'CANLI · ':''}${m.change>=0?'+':''}${m.change.toFixed(2)}%</span></button>`).join("");document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{selected=+b.dataset.i;render()})}
 function render(){let m=data[selected],s=signal(m);renderMarkets();$("asset").textContent=m.name;$("change").textContent=(m.change>=0?"+":"")+m.change.toFixed(2)+"%";$("change").className="small "+(m.change>=0?"green":"red");$("price").textContent="$"+m.price.toLocaleString("en-US",{minimumFractionDigits:m.dec,maximumFractionDigits:m.dec});$("signal").textContent=s;$("signal").className="signal "+(s==="BUY"?"green":s==="SELL"?"red":"");$("reason").textContent=reason(m);$("balance").textContent="$"+money(balance);$("count").textContent=trades.length+" kayıt";$("history").innerHTML=trades.length?trades.map(t=>`<div class="trade"><div class="row"><b class="${t.side==='BUY'?'green':'red'}">${t.side} · ${t.market}</b><span>${t.time}</span></div><div>Demo fiyat: ${t.price}</div><div class="muted">${t.note}</div></div>`).join(""):"Henüz işlem yok."}
-function addTrade(side){let m=data[selected];trades.unshift({side,market:m.name,price:m.price,time:new Date().toLocaleTimeString("tr-TR"),note:"Sanal kayıt — gerçek emir gönderilmedi"});render()}
+function addTrade(side){let m=data[selected];trades.unshift({side,market:m.name,price:m.price.toLocaleString("en-US",{maximumFractionDigits:m.dec}),time:new Date().toLocaleTimeString("tr-TR"),note:"Sanal kayıt — gerçek emir gönderilmedi"});render()}
+async function updateLivePrices(){
+ try{
+  const symbols=["BTCUSDT","ETHUSDT"];
+  const results=await Promise.all(symbols.map(async symbol=>{const r=await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol="+symbol,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json()}));
+  for(const t of results){const m=data.find(x=>x.symbol===t.symbol);if(!m)continue;const old=m.price;m.price=Number(t.lastPrice);m.change=Number(t.priceChangePercent);m.live=true;if(old>0&&previousPrices[t.symbol]!==undefined){const delta=(m.price-previousPrices[t.symbol])/previousPrices[t.symbol]*100;m.rsi=delta<0?Math.min(70,50+delta*8):Math.max(30,50+delta*8);m.fast=m.price;m.slow=m.price*(delta>=0?0.9995:1.0005)}previousPrices[t.symbol]=m.price;}
+  $("dataStatus").textContent="Kripto canlı · "+new Date().toLocaleTimeString("tr-TR");$("dataStatus").className="small green";
+ }catch(e){$("dataStatus").textContent="Canlı bağlantı başarısız";$("dataStatus").className="small red";}
+ render();
+}
 $("buyBtn").onclick=()=>addTrade("BUY");$("sellBtn").onclick=()=>addTrade("SELL");$("clearBtn").onclick=()=>{trades=[];render()};
 $("auto").onchange=e=>{if(e.target.checked){let s=signal(data[selected]);if(s!=="BEKLE"){lastAutoKey=selected+s;addTrade(s)}}};
-render();
+render();updateLivePrices();setInterval(updateLivePrices,15000);
 </script></body></html>
