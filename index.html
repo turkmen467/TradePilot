@@ -1,5 +1,5 @@
 
-<!
+
 <!doctype html>
 <html lang="tr">
 <head>
@@ -21,342 +21,397 @@ main{max-width:760px;margin:auto;padding:18px 14px 40px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .label,.small{font-size:12px}
 .balance{font-size:29px;font-weight:800;margin:5px 0}
-button{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#192740;color:var(--text);font:inherit;font-weight:700}
+button{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#192740;color:var(--text);font:inherit;font-weight:700;cursor:pointer}
 .market{margin-top:10px;text-align:left}.market.active{border-color:var(--blue)}
 .buy{background:#123c31;border-color:#247e5b}.sell{background:#401d2a;border-color:#8d334b}
-.price{font-size:27px;font-weight:800;margin:9px 0}
+.price{font-size:27px;font-weight:800;margin:9px 0;overflow-wrap:anywhere}
 .signal{font-size:24px;font-weight:900}.green{color:var(--green)}.red{color:var(--red)}
 .toggle{display:flex;align-items:center;gap:8px}.toggle input{width:20px;height:20px}
 hr{border:0;border-top:1px solid var(--line);margin:14px 0}
-.trade{padding:11px 0;border-bottom:1px solid var(--line)}
+.trade{padding:11px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
 footer{margin-top:16px;font-size:11px;line-height:1.6;color:var(--muted)}
 </style>
 </head>
 <body>
 <main>
 <header>
-<div class="brand">TRADEPILOT</div>
-<div class="sub">Canlı fiyatlar · Sanal işlem paneli</div>
-<span class="pill" id="connection">BAĞLANTI KONTROL EDİLİYOR</span>
+  <div class="brand">TRADEPILOT</div>
+  <div class="sub">Canlı fiyatlar · Sanal işlem paneli</div>
+  <span class="pill" id="connection">BAĞLANTI KONTROL EDİLİYOR</span>
 </header>
 
 <section class="card">
-<div class="label">Sanal bakiye</div>
-<div class="balance" id="balance">$10,000.00</div>
-<div class="small muted">Demo bakiyesidir; gerçek para içermez.</div>
+  <div class="label">Sanal bakiye</div>
+  <div class="balance" id="balance">$10,000.00</div>
+  <div class="small muted">Demo bakiyesidir; gerçek para içermez.</div>
 </section>
 
 <section class="card">
-<div class="row"><b>Piyasalar</b><span id="status" class="small muted">Bağlanıyor...</span></div>
-<div id="markets" class="grid"></div>
+  <div class="row"><b>Piyasalar</b><span id="status" class="small muted">Bağlanıyor...</span></div>
+  <div id="markets" class="grid"></div>
 </section>
 
 <section class="card">
-<div class="row"><b id="asset">BTC / USDT</b><span id="change" class="small">--</span></div>
-<div class="price" id="price">Veri bekleniyor...</div>
-<div class="row"><span class="label">Demo sinyali</span><span id="signal" class="signal">BEKLE</span></div>
-<hr>
-<div id="reason" class="small muted">Fiyat verisi bekleniyor.</div>
-<div class="grid" style="margin-top:13px">
-<button class="buy" id="buyBtn">Sanal BUY</button>
-<button class="sell" id="sellBtn">Sanal SELL</button>
-</div>
+  <div class="row"><b id="asset">BTC / USDT</b><span id="change" class="small">--</span></div>
+  <div class="price" id="price">Veri bekleniyor...</div>
+  <div class="row"><span class="label">Demo sinyali</span><span id="signal" class="signal">BEKLE</span></div>
+  <hr>
+  <div id="reason" class="small muted">Fiyat verisi bekleniyor.</div>
+  <div class="grid" style="margin-top:13px">
+    <button class="buy" id="buyBtn">Sanal BUY</button>
+    <button class="sell" id="sellBtn">Sanal SELL</button>
+  </div>
 </section>
 
 <section class="card">
-<div class="row"><b>Otomatik sanal işlem</b>
-<label class="toggle small"><input id="auto" type="checkbox"> Açık</label></div>
-<p class="small muted">Yeni sinyalde sanal işlem kaydı oluşturur. Gerçek emir göndermez.</p>
-<div class="small" id="autoStatus">Otomatik mod kapalı.</div>
+  <div class="row">
+    <b>Otomatik sanal işlem</b>
+    <label class="toggle small"><input id="auto" type="checkbox"> Açık</label>
+  </div>
+  <p class="small muted">Yeni sinyalde sanal işlem kaydı oluşturur. Gerçek emir göndermez.</p>
+  <div class="small" id="autoStatus">Otomatik mod kapalı.</div>
 </section>
 
 <section class="card">
-<div class="row"><b>İşlem geçmişi</b><span id="count" class="small muted">0 kayıt</span></div>
-<div id="history" class="small muted" style="margin-top:8px">Henüz işlem yok.</div>
-<button id="clearBtn" style="margin-top:12px">Geçmişi temizle</button>
+  <div class="row"><b>İşlem geçmişi</b><span id="count" class="small muted">0 kayıt</span></div>
+  <div id="history" class="small muted" style="margin-top:8px">Henüz işlem yok.</div>
+  <button id="clearBtn" style="margin-top:12px">Geçmişi temizle</button>
 </section>
 
 <footer>
-Canlı veri: Binance herkese açık BTC/USDT ve ETH/USDT fiyatları.
-XAU/USD ve EUR/USD fiyatları örnektir. Sinyaller deneysel kurallardır;
-yatırım tavsiyesi veya kâr garantisi değildir. Sistem yalnızca sanal
-işlem kaydı oluşturur. Sanal bakiye, gerçek bir kâr/zarar hesabı değildir.
+  Canlı veri: Binance herkese açık BTC/USDT ve ETH/USDT fiyatları.
+  XAU/USD ve EUR/USD örnek fiyatlardır. Sinyaller deneysel kurallardır;
+  yatırım tavsiyesi veya kâr garantisi değildir. Yalnızca sanal işlem kaydı oluşturulur.
+  Sanal bakiye otomatik kâr/zarar hesaplamaz. Kayıtlar bu tarayıcıdaki yerel depolamada tutulur.
 </footer>
 </main>
 
 <script>
 "use strict";
 
-const SAVE_KEY="tradepilot_demo_v2";
+const SAVE_KEY = "tradepilot_demo_v3";
 
-const assets=[
- {name:"BTC / USDT",symbol:"BTCUSDT",price:0,change:0,live:false,history:[]},
- {name:"ETH / USDT",symbol:"ETHUSDT",price:0,change:0,live:false,history:[]},
- {name:"XAU / USD",symbol:"",price:4028.4,change:0.31,live:false,history:[]},
- {name:"EUR / USD",symbol:"",price:1.1632,change:-0.12,live:false,history:[]}
+const assets = [
+  {name:"BTC / USDT",symbol:"BTCUSDT",price:0,change:0,live:false,history:[]},
+  {name:"ETH / USDT",symbol:"ETHUSDT",price:0,change:0,live:false,history:[]},
+  {name:"XAU / USD",symbol:"",price:4028.4,change:0.31,live:false,history:[]},
+  {name:"EUR / USD",symbol:"",price:1.1632,change:-0.12,live:false,history:[]}
 ];
 
-let selected=0;
-let balance=10000;
-let trades=[];
-let lastAutoSide="";
-let lastAutoTime=0;
-let fetching=false;
-let autoStatusText="Otomatik mod kapalı.";
+let selected = 0;
+let balance = 10000;
+let trades = [];
+let lastAutoSide = "";
+let lastAutoTime = 0;
+let fetching = false;
+let autoStatusText = "Otomatik mod kapalı.";
 
-const $=id=>document.getElementById(id);
-const fmt=n=>Number(n).toLocaleString("en-US",{
- minimumFractionDigits:2,maximumFractionDigits:2
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString("en-US",{
+  minimumFractionDigits:2,
+  maximumFractionDigits:2
 });
 
 function saveState(){
- try{
-  const state={
-   selected,
-   balance,
-   trades:trades.slice(0,100),
-   auto:$("auto").checked,
-   autoStatusText,
-   lastAutoSide,
-   lastAutoTime,
-   histories:assets.map(m=>({
-    symbol:m.symbol,
-    history:m.history.slice(-8),
-    price:m.price,
-    change:m.change
-   }))
-  };
-  localStorage.setItem(SAVE_KEY,JSON.stringify(state));
- }catch(e){
-  autoStatusText="Kayıt yapılamadı; tarayıcı depolamasını kontrol et.";
-  $("autoStatus").textContent=autoStatusText;
- }
+  try{
+    const state = {
+      selected,
+      balance,
+      trades:trades.slice(0,100),
+      auto:$("auto").checked,
+      autoStatusText,
+      lastAutoSide,
+      lastAutoTime,
+      histories:assets.map(m=>({
+        symbol:m.symbol,
+        history:m.history.slice(-8)
+      }))
+    };
+    localStorage.setItem(SAVE_KEY,JSON.stringify(state));
+  }catch(e){
+    autoStatusText = "Kayıt yapılamadı. Tarayıcı depolamasını kontrol et.";
+    $("autoStatus").textContent = autoStatusText;
+  }
 }
 
 function loadState(){
- try{
-  const raw=localStorage.getItem(SAVE_KEY);
-  if(!raw)return;
-  const s=JSON.parse(raw);
-  if(Number.isInteger(s.selected)&&s.selected>=0&&s.selected<assets.length)
-   selected=s.selected;
-  if(Number.isFinite(s.balance))balance=s.balance;
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return;
 
-  if(Array.isArray(s.trades)){
-   trades=s.trades.filter(t=>
-    t&&["BUY","SELL"].includes(t.side)&&
-    typeof t.market==="string"&&Number.isFinite(Number(t.price))
-   ).slice(0,100);
+    const s = JSON.parse(raw);
+
+    if(Number.isInteger(s.selected) && s.selected>=0 && s.selected<assets.length){
+      selected = s.selected;
+    }
+
+    if(Number.isFinite(s.balance)) balance = s.balance;
+
+    if(Array.isArray(s.trades)){
+      trades = s.trades.filter(t =>
+        t &&
+        ["BUY","SELL"].includes(t.side) &&
+        typeof t.market === "string" &&
+        Number.isFinite(Number(t.price))
+      ).slice(0,100);
+    }
+
+    if(Array.isArray(s.histories)){
+      s.histories.forEach(h=>{
+        const m = assets.find(a=>a.symbol && a.symbol===h.symbol);
+        if(m && Array.isArray(h.history)){
+          m.history = h.history
+            .filter(n=>Number.isFinite(n) && n>0)
+            .slice(-8);
+        }
+      });
+    }
+
+    $("auto").checked = s.auto === true;
+    lastAutoSide = typeof s.lastAutoSide === "string" ? s.lastAutoSide : "";
+    lastAutoTime = Number.isFinite(s.lastAutoTime) ? s.lastAutoTime : 0;
+
+    if(typeof s.autoStatusText === "string"){
+      autoStatusText = s.autoStatusText;
+    }
+  }catch(e){
+    autoStatusText = "Önceki kayıt okunamadı; yeni demo oturumu başladı.";
   }
-
-  if(Array.isArray(s.histories)){
-   s.histories.forEach(h=>{
-    const m=assets.find(a=>a.symbol===h.symbol&&a.symbol!=="");
-    if(!m)return;
-    if(Array.isArray(h.history))
-     m.history=h.history.filter(n=>Number.isFinite(n)&&n>0).slice(-8);
-    if(Number.isFinite(h.price))m.price=h.price;
-    if(Number.isFinite(h.change))m.change=h.change;
-   });
-  }
-
-  $("auto").checked=s.auto===true;
-  lastAutoSide=typeof s.lastAutoSide==="string"?s.lastAutoSide:"";
-  lastAutoTime=Number.isFinite(s.lastAutoTime)?s.lastAutoTime:0;
-  if(typeof s.autoStatusText==="string")
-   autoStatusText=s.autoStatusText;
- }catch(e){
-  autoStatusText="Önceki kayıt okunamadı; yeni demo oturumu başladı.";
- }
 }
 
+/* Son fiyat örnekleri arasındaki hareketi değerlendirir.
+   Eşik düşürüldü; daha sık ve gürültülü sinyal oluşabilir. */
 function signal(m){
- if(!m.live||m.history.length<5)return "BEKLE";
- const first=m.history[0];
- const last=m.history[m.history.length-1];
- if(!first||first<=0)return "BEKLE";
- const momentum=(last-first)/first*100;
- if(momentum>=0.12)return "BUY";
- if(momentum<=-0.12)return "SELL";
- return "BEKLE";
+  if(!m.live || m.history.length<3) return "BEKLE";
+
+  const first = m.history[0];
+  const last = m.history[m.history.length-1];
+
+  if(!first || first<=0 || !Number.isFinite(last)) return "BEKLE";
+
+  const momentum = ((last-first)/first)*100;
+
+  if(momentum >= 0.025) return "BUY";
+  if(momentum <= -0.025) return "SELL";
+
+  return "BEKLE";
 }
 
 function renderMarkets(){
- $("markets").innerHTML=assets.map((m,i)=>`
-  <button class="market ${i===selected?"active":""}" data-market="${i}">
-   <b>${m.name}</b><br>
-   <span class="small ${m.change>=0?"green":"red"}">
-    ${m.live?"CANLI":"ÖRNEK"} · ${m.change>=0?"+":""}${m.change.toFixed(2)}%
-   </span>
-  </button>`).join("");
+  $("markets").innerHTML = assets.map((m,i)=>`
+    <button class="market ${i===selected?"active":""}" data-market="${i}">
+      <b>${m.name}</b><br>
+      <span class="small ${m.change>=0?"green":"red"}">
+        ${m.live?"CANLI":"ÖRNEK"} · ${m.change>=0?"+":""}${m.change.toFixed(2)}%
+      </span>
+    </button>
+  `).join("");
 
- document.querySelectorAll("[data-market]").forEach(btn=>{
-  btn.onclick=()=>{
-   selected=Number(btn.dataset.market);
-   render();
-   checkAuto();
-  };
- });
+  document.querySelectorAll("[data-market]").forEach(btn=>{
+    btn.onclick = ()=>{
+      selected = Number(btn.dataset.market);
+      render();
+      checkAuto();
+    };
+  });
 }
 
 function addTrade(side,automatic=false){
- const m=assets[selected];
- trades.unshift({
-  side,
-  market:m.name,
-  price:m.price,
-  time:new Date().toLocaleString("tr-TR"),
-  automatic
- });
- trades=trades.slice(0,100);
- render();
+  const m = assets[selected];
+
+  if(!m.live || !Number.isFinite(m.price) || m.price<=0){
+    if(automatic){
+      autoStatusText = "Canlı fiyat olmadan otomatik kayıt oluşturulmadı.";
+      $("autoStatus").textContent = autoStatusText;
+    }else{
+      alert("Bu piyasa için canlı fiyat yok. BTC/USDT veya ETH/USDT seç.");
+    }
+    saveState();
+    return;
+  }
+
+  trades.unshift({
+    side,
+    market:m.name,
+    price:m.price,
+    time:new Date().toLocaleString("tr-TR"),
+    automatic
+  });
+
+  trades = trades.slice(0,100);
+  render();
 }
 
 function render(){
- const m=assets[selected];
- const s=signal(m);
- renderMarkets();
+  const m = assets[selected];
+  const s = signal(m);
 
- $("asset").textContent=m.name;
- $("price").textContent=m.price>0
-  ?"$"+Number(m.price).toLocaleString("en-US",{
-    minimumFractionDigits:2,
-    maximumFractionDigits:m.symbol==="BTCUSDT"?2:4
-   })
-  :"Veri bekleniyor...";
+  renderMarkets();
 
- $("change").textContent=(m.change>=0?"+":"")+m.change.toFixed(2)+"%";
- $("change").className="small "+(m.change>=0?"green":"red");
- $("signal").textContent=s;
- $("signal").className="signal "+(s==="BUY"?"green":s==="SELL"?"red":"");
+  $("asset").textContent = m.name;
+  $("price").textContent = m.price>0
+    ? "$"+Number(m.price).toLocaleString("en-US",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:m.symbol==="BTCUSDT"?2:4
+      })
+    : "Veri bekleniyor...";
 
- $("reason").textContent=!m.live
-  ?"Bu piyasa örnek fiyat gösterir; canlı sinyal kapalı."
-  :m.history.length<5
-  ?"Sinyal için yeterli fiyat örneği birikiyor."
-  :s==="BUY"
-  ?"Kısa vadeli fiyat hareketi yukarı yönlü. Demo BUY sinyali."
-  :s==="SELL"
-  ?"Kısa vadeli fiyat hareketi aşağı yönlü. Demo SELL sinyali."
-  :"Belirlenen hareket eşiği aşılmadı. Bekle.";
+  $("change").textContent = (m.change>=0?"+":"")+m.change.toFixed(2)+"%";
+  $("change").className = "small "+(m.change>=0?"green":"red");
 
- $("balance").textContent="$"+fmt(balance);
- $("count").textContent=trades.length+" kayıt";
+  $("signal").textContent = s;
+  $("signal").className = "signal "+(s==="BUY"?"green":s==="SELL"?"red":"");
 
- $("history").innerHTML=trades.length?trades.map(t=>`
-  <div class="trade">
-   <div class="row">
-    <b class="${t.side==="BUY"?"green":"red"}">${t.side} · ${t.market}</b>
-    <span>${t.time}</span>
-   </div>
-   <div>Fiyat: $${Number(t.price).toLocaleString("en-US",{maximumFractionDigits:4})}</div>
-   <div class="muted">${t.automatic?"Otomatik demo kaydı":"Manuel demo kaydı"} · Gerçek emir yok</div>
-  </div>`).join(""):"Henüz işlem yok.";
+  if(!m.live){
+    $("reason").textContent = "Bu piyasa örnek fiyat gösterir. Canlı sinyal için BTC/USDT veya ETH/USDT seç.";
+  }else if(m.history.length<3){
+    $("reason").textContent = "Sinyal için fiyat örnekleri birikiyor.";
+  }else if(s==="BUY"){
+    $("reason").textContent = "Kısa vadeli hareket yukarı yönlü. Deneysel demo BUY sinyali.";
+  }else if(s==="SELL"){
+    $("reason").textContent = "Kısa vadeli hareket aşağı yönlü. Deneysel demo SELL sinyali.";
+  }else{
+    $("reason").textContent = "Fiyat hareketi sinyal eşiğini aşmadı. Bekle.";
+  }
 
- $("autoStatus").textContent=autoStatusText;
- saveState();
+  $("balance").textContent = "$"+fmt(balance);
+  $("count").textContent = trades.length+" kayıt";
+
+  $("history").innerHTML = trades.length
+    ? trades.map(t=>`
+      <div class="trade">
+        <div class="row">
+          <b class="${t.side==="BUY"?"green":"red"}">${t.side} · ${t.market}</b>
+          <span>${t.time}</span>
+        </div>
+        <div>Fiyat: $${Number(t.price).toLocaleString("en-US",{maximumFractionDigits:4})}</div>
+        <div class="muted">${t.automatic?"Otomatik demo kaydı":"Manuel demo kaydı"} · Gerçek emir yok</div>
+      </div>
+    `).join("")
+    : "Henüz işlem yok.";
+
+  $("autoStatus").textContent = autoStatusText;
+  saveState();
 }
 
 function checkAuto(){
- if(!$("auto").checked){
-  autoStatusText="Otomatik mod kapalı.";
-  $("autoStatus").textContent=autoStatusText;
+  if(!$("auto").checked){
+    autoStatusText = "Otomatik mod kapalı.";
+    $("autoStatus").textContent = autoStatusText;
+    saveState();
+    return;
+  }
+
+  const m = assets[selected];
+
+  if(!m.live){
+    autoStatusText = "Canlı işlem için BTC/USDT veya ETH/USDT seç.";
+    $("autoStatus").textContent = autoStatusText;
+    saveState();
+    return;
+  }
+
+  const s = signal(m);
+
+  if(s==="BEKLE"){
+    lastAutoSide = "";
+    autoStatusText = "Yeni sinyal bekleniyor...";
+    $("autoStatus").textContent = autoStatusText;
+    saveState();
+    return;
+  }
+
+  if(s===lastAutoSide){
+    autoStatusText = s+" sinyali işlendi; yeni sinyal bekleniyor.";
+    $("autoStatus").textContent = autoStatusText;
+    saveState();
+    return;
+  }
+
+  if(Date.now()-lastAutoTime<60000){
+    autoStatusText = "Güvenlik aralığı: yeni demo işlemi bekleniyor.";
+    $("autoStatus").textContent = autoStatusText;
+    saveState();
+    return;
+  }
+
+  lastAutoSide = s;
+  lastAutoTime = Date.now();
+  autoStatusText = "Sanal "+s+" kaydı oluşturuldu.";
+  addTrade(s,true);
+  $("autoStatus").textContent = autoStatusText;
   saveState();
-  return;
- }
-
- const m=assets[selected];
- const s=signal(m);
-
- if(s==="BEKLE"){
-  lastAutoSide="";
-  autoStatusText="Yeni sinyal bekleniyor...";
-  $("autoStatus").textContent=autoStatusText;
-  saveState();
-  return;
- }
-
- if(s===lastAutoSide){
-  autoStatusText=s+" sinyali daha önce işlendi; yeni sinyal bekleniyor.";
-  $("autoStatus").textContent=autoStatusText;
-  saveState();
-  return;
- }
-
- if(Date.now()-lastAutoTime<60000){
-  autoStatusText="Güvenlik aralığı: yeni işlem için bekleniyor.";
-  $("autoStatus").textContent=autoStatusText;
-  saveState();
-  return;
- }
-
- lastAutoSide=s;
- lastAutoTime=Date.now();
- autoStatusText="Sanal "+s+" kaydı oluşturuldu.";
- addTrade(s,true);
- $("autoStatus").textContent=autoStatusText;
- saveState();
 }
 
 async function updatePrices(){
- if(fetching)return;
- fetching=true;
+  if(fetching) return;
+  fetching = true;
 
- try{
-  const results=await Promise.all(
-   ["BTCUSDT","ETHUSDT"].map(async symbol=>{
-    const response=await fetch(
-     "https://api.binance.com/api/v3/ticker/24hr?symbol="+symbol,
-     {cache:"no-store"}
+  try{
+    const results = await Promise.all(
+      ["BTCUSDT","ETHUSDT"].map(async symbol=>{
+        const response = await fetch(
+          "https://api.binance.com/api/v3/ticker/24hr?symbol="+symbol,
+          {cache:"no-store"}
+        );
+        if(!response.ok) throw new Error("Fiyat verisi alınamadı");
+        return response.json();
+      })
     );
-    if(!response.ok)throw new Error("Fiyat verisi alınamadı");
-    return response.json();
-   })
-  );
 
-  for(const t of results){
-   const m=assets.find(a=>a.symbol===t.symbol);
-   if(!m)continue;
-   m.price=Number(t.lastPrice);
-   m.change=Number(t.priceChangePercent);
-   m.live=true;
-   m.history.push(m.price);
-   if(m.history.length>8)m.history.shift();
+    for(const t of results){
+      const m = assets.find(a=>a.symbol===t.symbol);
+      if(!m) continue;
+
+      const price = Number(t.lastPrice);
+      const change = Number(t.priceChangePercent);
+
+      if(!Number.isFinite(price) || price<=0) continue;
+
+      m.price = price;
+      m.change = Number.isFinite(change)?change:0;
+      m.live = true;
+      m.history.push(price);
+
+      if(m.history.length>8) m.history.shift();
+    }
+
+    $("connection").textContent = "CANLI VERİ BAĞLI";
+    $("connection").className = "pill green";
+    $("status").textContent = "Son güncelleme "+new Date().toLocaleTimeString("tr-TR");
+    $("status").className = "small green";
+
+  }catch(e){
+    $("connection").textContent = "VERİ BAĞLANTISI HATASI";
+    $("connection").className = "pill red";
+    $("status").textContent = "Bağlantı başarısız; yeniden denenecek.";
+    $("status").className = "small red";
+  }finally{
+    fetching = false;
+    render();
+    checkAuto();
   }
-
-  $("connection").textContent="CANLI VERİ BAĞLI";
-  $("connection").className="pill green";
-  $("status").textContent="Son güncelleme "+new Date().toLocaleTimeString("tr-TR");
-  $("status").className="small green";
-
- }catch(e){
-  $("connection").textContent="VERİ BAĞLANTISI HATASI";
-  $("connection").className="pill red";
-  $("status").textContent="Bağlantı başarısız";
-  $("status").className="small red";
- }finally{
-  fetching=false;
-  render();
-  checkAuto();
- }
 }
 
-$("buyBtn").onclick=()=>addTrade("BUY");
-$("sellBtn").onclick=()=>addTrade("SELL");
+$("buyBtn").onclick = ()=>addTrade("BUY");
+$("sellBtn").onclick = ()=>addTrade("SELL");
 
-$("auto").onchange=()=>{
- lastAutoSide="";
- lastAutoTime=0;
- autoStatusText=$("auto").checked
-  ?"Otomatik demo açık; sinyal bekleniyor."
-  :"Otomatik mod kapalı.";
- saveState();
- checkAuto();
+$("auto").onchange = ()=>{
+  lastAutoSide = "";
+  lastAutoTime = 0;
+
+  autoStatusText = $("auto").checked
+    ? "Otomatik demo açık; sinyal bekleniyor."
+    : "Otomatik mod kapalı.";
+
+  saveState();
+  checkAuto();
 };
 
-$("clearBtn").onclick=()=>{
- trades=[];
- render();
+$("clearBtn").onclick = ()=>{
+  if(!confirm("İşlem geçmişi silinsin mi?")) return;
+  trades = [];
+  render();
 };
 
 loadState();
@@ -365,7 +420,7 @@ updatePrices();
 setInterval(updatePrices,15000);
 
 window.addEventListener("pageshow",()=>{
- render();
+  render();
 });
 </script>
 </body>
