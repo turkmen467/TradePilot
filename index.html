@@ -32,11 +32,37 @@ th{color:var(--muted);background:#10192b}
 .note{font-size:12px;color:var(--muted);line-height:1.8}
 input[type=number]{width:125px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+
+/* Demo giriş ekranı */
+#loginScreen{position:fixed;inset:0;z-index:9999;background:#080e1b;display:flex;align-items:center;justify-content:center;padding:20px}
+.loginBox{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
+.loginBox h2{margin-top:0}.loginBox input{display:block;width:100%;margin:10px 0}
+.loginBox button{width:100%;margin-top:8px}
+#loginError{color:var(--red);min-height:20px;font-size:12px}
+body.locked{overflow:hidden}
 @media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}#chart{height:240px}}
 @media(max-width:420px){main{padding:8px}.card{padding:10px}.value{font-size:20px}}
 </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- TradePilot demo giriş ekranı -->
+<div id="loginScreen">
+ <div class="loginBox">
+  <div class="logo">TRADE<span>PILOT</span></div>
+  <h2>Demo giriş</h2>
+  <p class="muted">TradePilot demo paneline giriş yap.</p>
+  <form id="loginForm">
+   <input id="loginUser" autocomplete="username" placeholder="Kullanıcı adı" required>
+   <input id="loginPass" type="password" autocomplete="current-password" placeholder="Şifre" required>
+   <button class="blue" type="submit">Giriş yap</button>
+  </form>
+  <div id="loginError"></div>
+  <div class="muted">Demo kullanıcı adı: demo · Şifre: 1234</div>
+  <p class="muted">Bu ekran gerçek kullanıcı doğrulaması değildir. Güvenli giriş için sunucu gerekir.</p>
+ </div>
+</div>
+
 <header>
  <div>
   <div class="logo">TRADE<span>PILOT</span></div>
@@ -121,6 +147,19 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 <script>
 "use strict";
 
+/* Demo arayüz kilidi; gerçek sunucu tabanlı kimlik doğrulaması değildir. */
+$("loginForm").addEventListener("submit", function(e){
+ e.preventDefault();
+ const username=$("loginUser").value.trim();
+ const password=$("loginPass").value;
+ if(username==="demo" && password==="1234"){
+  $("loginScreen").style.display="none";
+  document.body.classList.remove("locked");
+ }else{
+  $("loginError").textContent="Kullanıcı adı veya şifre hatalı.";
+ }
+});
+
 const PRODUCT = "AUD/USD OTC";
 const START_BALANCE = 1000;
 const DURATION = 60000;
@@ -137,7 +176,7 @@ const state = {
  autoSeenCandle:null, consecutiveLosses:0,
  lossGuardTriggered:false, principalGuardArmed:false,
  principalGuardTriggered:false, lastSignal:"WAIT",
- lastAnalysis:null
+ lastAnalysis:null, lastReason:"Sinyal bekleniyor"
 };
 
 function money(n){
@@ -202,7 +241,7 @@ function RSI(values,period=14){
  return 100-100/(1+ag/al);
 }
 
-/* Fiyat yalnızca kullanıcı girişinden gelir; piyasa sembolü sabittir. */
+/* Fiyat yalnızca kullanıcı girişinden gelir. */
 function recordQuote(){
  const px=Number($("quote").value);
  if(!Number.isFinite(px)||px<=0){
@@ -336,9 +375,6 @@ function closeTrade(t){
 
  t.exit=exit;t.pnl=pnl;t.returned=returned;
  t.closedAt=Date.now();t.status="CLOSED";
-
- // Açılışta tutar bakiyeden düşmüştü.
- // Kapanışta yalnızca toplam geri dönüş eklenir.
  state.balance+=returned;
  state.totalPnl+=pnl;
  state.history.unshift(t);
@@ -444,46 +480,65 @@ function renderChart(){
  if(state.currentCandle)data.push(state.currentCandle);
  $("chartPrice").textContent="AUD/USD OTC · Son girilen fiyat: "+priceText(state.price);
 
- if(data.length<2){
+ /* DÜZELTME: Tek mum varsa da çiz. */
+ if(data.length<1){
   ctx.fillStyle="#9aabc3";ctx.font="14px Arial";
   ctx.fillText("Mum oluşturmak için fiyat girişi yap.",12,28);
-  $("chartStatus").textContent="Mumlar manuel fiyat girişlerinden oluşur.";
+  $("chartStatus").textContent="Fiyat girilince ilk mum burada görünür.";
   return;
  }
+
  let lo=Math.min(...data.map(c=>c.low)),hi=Math.max(...data.map(c=>c.high));
- if(!(hi>lo)){hi+=0.0001;lo-=0.0001;}
- const pad={l:10,r:82,t:18,b:18},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+ if(!(hi>lo)){
+  const center=hi;
+  hi=center+0.00005;
+  lo=center-0.00005;
+ }
+ const pad={l:10,r:82,t:22,b:18},cw=Math.max(1,w-pad.l-pad.r),ch=Math.max(1,h-pad.t-pad.b);
  const y=v=>pad.t+(hi-v)/(hi-lo)*ch;
  ctx.font="10px Arial";
+
  for(let j=0;j<=4;j++){
   const yy=pad.t+ch*j/4;
   ctx.strokeStyle="#243148";ctx.beginPath();
   ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
-  ctx.fillStyle="#9aabc3";ctx.fillText(priceText(hi-(hi-lo)*j/4),w-pad.r+4,yy+3);
+  ctx.fillStyle="#9aabc3";
+  ctx.fillText(priceText(hi-(hi-lo)*j/4),w-pad.r+4,yy+3);
  }
- const step=cw/data.length,bw=Math.max(2,step*.6);
+
+ const step=cw/data.length,bw=Math.max(3,Math.min(14,step*.6));
  data.forEach((c,i)=>{
   const x=pad.l+i*step+step/2;
   const color=c.close>=c.open?"#28d6a2":"#ff657c";
-  ctx.strokeStyle=color;ctx.beginPath();
-  ctx.moveTo(x,y(c.high));ctx.lineTo(x,y(c.low));ctx.stroke();
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x,y(c.high));ctx.lineTo(x,y(c.low));ctx.stroke();
   ctx.fillStyle=color;
-  const top=y(Math.max(c.open,c.close)),bottom=y(Math.min(c.open,c.close));
-  ctx.fillRect(x-bw/2,top,bw,Math.max(1,bottom-top));
+
+  /* DÜZELTME: Çok küçük gövdeler de görünür. */
+  const top=y(Math.max(c.open,c.close));
+  const bottom=y(Math.min(c.open,c.close));
+  const bodyHeight=Math.max(3,bottom-top);
+  const bodyTop=(top+bottom-bodyHeight)/2;
+  ctx.fillRect(x-bw/2,bodyTop,bw,bodyHeight);
  });
+
  const closes=data.map(c=>c.close),e9=EMA(closes,9),e21=EMA(closes,21);
  function drawLine(vals,color){
-  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();let started=false;
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();
+  let started=false;
   vals.forEach((v,i)=>{
    if(!Number.isFinite(v))return;
    const x=pad.l+i*step+step/2,yy=y(v);
-   if(!started){ctx.moveTo(x,yy);started=true;}else ctx.lineTo(x,yy);
+   if(!started){ctx.moveTo(x,yy);started=true;}
+   else ctx.lineTo(x,yy);
   });
-  ctx.stroke();
+  if(started)ctx.stroke();
  }
- drawLine(e9,"#5aa9ff");drawLine(e21,"#ffb454");
- ctx.font="11px Arial";ctx.fillStyle="#5aa9ff";ctx.fillText("EMA 9",12,13);
- ctx.fillStyle="#ffb454";ctx.fillText("EMA 21",68,13);
+ drawLine(e9,"#5aa9ff");
+ drawLine(e21,"#ffb454");
+ ctx.font="11px Arial";
+ ctx.fillStyle="#5aa9ff";ctx.fillText("EMA 9",12,14);
+ ctx.fillStyle="#ffb454";ctx.fillText("EMA 21",68,14);
  $("chartStatus").textContent=data.length+" mum · Kaynak: manuel OTC fiyat girişi";
 }
 
