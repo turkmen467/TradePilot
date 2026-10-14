@@ -8,7 +8,7 @@
 <style>
 :root{color-scheme:dark;--bg:#0a1020;--panel:#121c30;--line:#293953;--text:#edf3ff;--muted:#9aabc3;--green:#28d6a2;--red:#ff657c;--yellow:#f5cb68}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
 header{padding:16px;background:#10192b;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .logo{font-size:24px;font-weight:bold}.logo span{color:var(--green)}
 main{max-width:1200px;margin:auto;padding:12px}
@@ -27,41 +27,17 @@ button{font-weight:bold;cursor:pointer}button:disabled{opacity:.5;cursor:not-all
 table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px}
 td,th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);background:#10192b}
-#chart{display:block;width:100%;height:280px;background:#0b1323;border:1px solid var(--line);border-radius:8px}
+.chart-wrap{position:relative;width:100%;height:300px;min-height:240px;overflow:hidden}
+#chart{display:block;width:100%;height:100%;min-height:240px;background:#0b1323;border:1px solid var(--line);border-radius:8px}
 #toast{min-height:20px;margin-top:8px;color:var(--yellow);font-size:12px}
 .note{font-size:12px;color:var(--muted);line-height:1.8}
 input[type=number]{width:125px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
-
-/* Demo giriş ekranı */
-#loginScreen{position:fixed;inset:0;z-index:9999;background:#080e1b;display:flex;align-items:center;justify-content:center;padding:20px}
-.loginBox{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px}
-.loginBox h2{margin-top:0}.loginBox input{display:block;width:100%;margin:10px 0}
-.loginBox button{width:100%;margin-top:8px}
-#loginError{color:var(--red);min-height:20px;font-size:12px}
-body.locked{overflow:hidden}
-@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}#chart{height:240px}}
-@media(max-width:420px){main{padding:8px}.card{padding:10px}.value{font-size:20px}}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-wrap{height:260px}}
+@media(max-width:420px){main{padding:8px}.card{padding:10px}.value{font-size:20px}.chart-wrap{height:250px}}
 </style>
 </head>
-<body class="locked">
-
-<!-- TradePilot demo giriş ekranı -->
-<div id="loginScreen">
- <div class="loginBox">
-  <div class="logo">TRADE<span>PILOT</span></div>
-  <h2>Demo giriş</h2>
-  <p class="muted">TradePilot demo paneline giriş yap.</p>
-  <form id="loginForm">
-   <input id="loginUser" autocomplete="username" placeholder="Kullanıcı adı" required>
-   <input id="loginPass" type="password" autocomplete="current-password" placeholder="Şifre" required>
-   <button class="blue" type="submit">Giriş yap</button>
-  </form>
-  <div id="loginError"></div>
-  <div class="muted">Demo kullanıcı adı: demo · Şifre: 1234</div>
-  <p class="muted">Bu ekran gerçek kullanıcı doğrulaması değildir. Güvenli giriş için sunucu gerekir.</p>
- </div>
-</div>
+<body>
 
 <header>
  <div>
@@ -115,7 +91,9 @@ body.locked{overflow:hidden}
  <section class="card">
   <div class="title">AUD/USD OTC — 1 dakikalık mum grafiği</div>
   <div id="chartPrice" class="muted">Fiyat bekleniyor...</div>
-  <canvas id="chart"></canvas>
+  <div class="chart-wrap">
+   <canvas id="chart" aria-label="AUD/USD OTC mum grafiği"></canvas>
+  </div>
   <div id="chartStatus" class="muted">Mum verisi bekleniyor.</div>
   <div id="indicators" class="muted">EMA: — · RSI: — · Sinyal: BEKLE</div>
  </section>
@@ -146,19 +124,7 @@ body.locked{overflow:hidden}
 
 <script>
 "use strict";
-
-/* Demo arayüz kilidi; gerçek sunucu tabanlı kimlik doğrulaması değildir. */
-$("loginForm").addEventListener("submit", function(e){
- e.preventDefault();
- const username=$("loginUser").value.trim();
- const password=$("loginPass").value;
- if(username==="demo" && password==="1234"){
-  $("loginScreen").style.display="none";
-  document.body.classList.remove("locked");
- }else{
-  $("loginError").textContent="Kullanıcı adı veya şifre hatalı.";
- }
-});
+const $ = id => document.getElementById(id);
 
 const PRODUCT = "AUD/USD OTC";
 const START_BALANCE = 1000;
@@ -166,8 +132,6 @@ const DURATION = 60000;
 const MAX_CONSECUTIVE_LOSSES = 3;
 const MAX_OPEN = 12;
 const FRESH_MS = 20000;
-
-const $ = id => document.getElementById(id);
 
 const state = {
  price:null, quoteAt:0, candles:[], currentCandle:null,
@@ -241,7 +205,7 @@ function RSI(values,period=14){
  return 100-100/(1+ag/al);
 }
 
-/* Fiyat yalnızca kullanıcı girişinden gelir. */
+/* Mumlar sadece kullanıcının girdiği OTC fiyatlarından oluşur. */
 function recordQuote(){
  const px=Number($("quote").value);
  if(!Number.isFinite(px)||px<=0){
@@ -261,9 +225,11 @@ function recordQuote(){
   state.currentCandle.low=Math.min(state.currentCandle.low,px);
   state.currentCandle.close=px;
  }
+
  $("connection").textContent="Manuel OTC fiyatı";
  $("connection").className="badge amber";
  $("quoteInfo").textContent="Son fiyat: "+priceText(px)+" · "+new Date(now).toLocaleTimeString("tr-TR");
+
  analyze();
  settleExpired();
  maybeAutoTrade();
@@ -464,86 +430,150 @@ function renderHistory(){
  }).join(""):'<tr><td colspan="9">Henüz işlem yok.</td></tr>';
 }
 
+/* DÜZELTİLMİŞ MUM GRAFİĞİ */
 function renderChart(){
- const canvas=$("chart"),ctx=canvas.getContext("2d");
+ const canvas=$("chart");
+ if(!canvas)return;
+ const ctx=canvas.getContext("2d");
+ if(!ctx)return;
+
  const rect=canvas.getBoundingClientRect();
- if(!rect.width||!rect.height)return;
- const dpr=window.devicePixelRatio||1;
- canvas.width=Math.round(rect.width*dpr);
- canvas.height=Math.round(rect.height*dpr);
+ const w=Math.max(1,rect.width);
+ const h=Math.max(1,rect.height);
+ const dpr=Math.max(1,window.devicePixelRatio||1);
+
+ const pixelW=Math.round(w*dpr);
+ const pixelH=Math.round(h*dpr);
+ if(canvas.width!==pixelW)canvas.width=pixelW;
+ if(canvas.height!==pixelH)canvas.height=pixelH;
+
  ctx.setTransform(dpr,0,0,dpr,0,0);
- const w=rect.width,h=rect.height;
  ctx.clearRect(0,0,w,h);
- ctx.fillStyle="#0b1323";ctx.fillRect(0,0,w,h);
+ ctx.fillStyle="#0b1323";
+ ctx.fillRect(0,0,w,h);
 
  const data=state.candles.slice(-55);
  if(state.currentCandle)data.push(state.currentCandle);
- $("chartPrice").textContent="AUD/USD OTC · Son girilen fiyat: "+priceText(state.price);
 
- /* DÜZELTME: Tek mum varsa da çiz. */
- if(data.length<1){
-  ctx.fillStyle="#9aabc3";ctx.font="14px Arial";
-  ctx.fillText("Mum oluşturmak için fiyat girişi yap.",12,28);
-  $("chartStatus").textContent="Fiyat girilince ilk mum burada görünür.";
+ $("chartPrice").textContent=
+  "AUD/USD OTC · Son fiyat: "+priceText(state.price);
+
+ if(data.length===0){
+  ctx.fillStyle="#edf3ff";
+  ctx.font="14px Arial";
+  ctx.fillText("İlk mumu görmek için OTC fiyatını gir.",12,30);
+  $("chartStatus").textContent="Fiyat bekleniyor.";
   return;
  }
 
- let lo=Math.min(...data.map(c=>c.low)),hi=Math.max(...data.map(c=>c.high));
- if(!(hi>lo)){
-  const center=hi;
-  hi=center+0.00005;
-  lo=center-0.00005;
- }
- const pad={l:10,r:82,t:22,b:18},cw=Math.max(1,w-pad.l-pad.r),ch=Math.max(1,h-pad.t-pad.b);
- const y=v=>pad.t+(hi-v)/(hi-lo)*ch;
- ctx.font="10px Arial";
+ let lo=Math.min(...data.map(c=>c.low));
+ let hi=Math.max(...data.map(c=>c.high));
 
+ if(!Number.isFinite(lo)||!Number.isFinite(hi)){
+  $("chartStatus").textContent="Grafik fiyat verisi geçersiz.";
+  return;
+ }
+
+ if(hi===lo){
+  const margin=Math.max(Math.abs(hi)*0.0001,0.00005);
+  hi+=margin;
+  lo-=margin;
+ }else{
+  const margin=(hi-lo)*0.12;
+  hi+=margin;
+  lo-=margin;
+ }
+
+ const pad={l:10,r:82,t:25,b:20};
+ const cw=Math.max(1,w-pad.l-pad.r);
+ const ch=Math.max(1,h-pad.t-pad.b);
+ const y=v=>pad.t+(hi-v)/(hi-lo)*ch;
+
+ ctx.font="10px Arial";
  for(let j=0;j<=4;j++){
   const yy=pad.t+ch*j/4;
-  ctx.strokeStyle="#243148";ctx.beginPath();
-  ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
+  ctx.strokeStyle="#243148";
+  ctx.beginPath();
+  ctx.moveTo(pad.l,yy);
+  ctx.lineTo(w-pad.r,yy);
+  ctx.stroke();
+
   ctx.fillStyle="#9aabc3";
   ctx.fillText(priceText(hi-(hi-lo)*j/4),w-pad.r+4,yy+3);
  }
 
- const step=cw/data.length,bw=Math.max(3,Math.min(14,step*.6));
+ const step=cw/data.length;
+ const bw=Math.max(3,Math.min(12,step*0.62));
+
  data.forEach((c,i)=>{
   const x=pad.l+i*step+step/2;
   const color=c.close>=c.open?"#28d6a2":"#ff657c";
-  ctx.strokeStyle=color;ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(x,y(c.high));ctx.lineTo(x,y(c.low));ctx.stroke();
-  ctx.fillStyle=color;
 
-  /* DÜZELTME: Çok küçük gövdeler de görünür. */
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(x,y(c.high));
+  ctx.lineTo(x,y(c.low));
+  ctx.stroke();
+
   const top=y(Math.max(c.open,c.close));
   const bottom=y(Math.min(c.open,c.close));
   const bodyHeight=Math.max(3,bottom-top);
-  const bodyTop=(top+bottom-bodyHeight)/2;
-  ctx.fillRect(x-bw/2,bodyTop,bw,bodyHeight);
+
+  ctx.fillStyle=color;
+  ctx.fillRect(
+   x-bw/2,
+   (top+bottom-bodyHeight)/2,
+   bw,
+   bodyHeight
+  );
  });
 
- const closes=data.map(c=>c.close),e9=EMA(closes,9),e21=EMA(closes,21);
- function drawLine(vals,color){
-  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.beginPath();
+ const closes=data.map(c=>c.close);
+ const e9=EMA(closes,9);
+ const e21=EMA(closes,21);
+
+ function drawLine(values,color){
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
   let started=false;
-  vals.forEach((v,i)=>{
+
+  values.forEach((v,i)=>{
    if(!Number.isFinite(v))return;
-   const x=pad.l+i*step+step/2,yy=y(v);
-   if(!started){ctx.moveTo(x,yy);started=true;}
-   else ctx.lineTo(x,yy);
+   const x=pad.l+i*step+step/2;
+   const yy=y(v);
+
+   if(!started){
+    ctx.moveTo(x,yy);
+    started=true;
+   }else{
+    ctx.lineTo(x,yy);
+   }
   });
+
   if(started)ctx.stroke();
  }
+
  drawLine(e9,"#5aa9ff");
  drawLine(e21,"#ffb454");
+
  ctx.font="11px Arial";
- ctx.fillStyle="#5aa9ff";ctx.fillText("EMA 9",12,14);
- ctx.fillStyle="#ffb454";ctx.fillText("EMA 21",68,14);
- $("chartStatus").textContent=data.length+" mum · Kaynak: manuel OTC fiyat girişi";
+ ctx.fillStyle="#5aa9ff";
+ ctx.fillText("EMA 9",12,15);
+ ctx.fillStyle="#ffb454";
+ ctx.fillText("EMA 21",68,15);
+
+ $("chartStatus").textContent=
+  data.length+" mum · Manuel OTC fiyat verisi";
 }
 
 function renderAll(){
- renderSummary();renderOpen();renderHistory();renderIndicators();renderChart();
+ renderSummary();
+ renderOpen();
+ renderHistory();
+ renderIndicators();
+ renderChart();
 }
 
 $("auto").addEventListener("click",()=>{
@@ -560,19 +590,27 @@ $("reset").addEventListener("click",()=>{
  if(state.trades.some(t=>t.status==="OPEN")){
   toast("Açık işlem varken hesap sıfırlanamaz.","bad");return;
  }
- state.balance=START_BALANCE;state.totalPnl=0;
- state.trades=[];state.history=[];state.auto=false;
- state.autoSeenCandle=null;state.consecutiveLosses=0;
- state.lossGuardTriggered=false;state.principalGuardArmed=false;
+ state.balance=START_BALANCE;
+ state.totalPnl=0;
+ state.trades=[];
+ state.history=[];
+ state.auto=false;
+ state.autoSeenCandle=null;
+ state.consecutiveLosses=0;
+ state.lossGuardTriggered=false;
+ state.principalGuardArmed=false;
  state.principalGuardTriggered=false;
  toast("Demo hesap sıfırlandı. Otomatik mod kapalı.","ok");
  renderAll();
 });
 
 window.addEventListener("resize",renderChart);
+window.addEventListener("orientationchange",()=>setTimeout(renderChart,150));
+
 setInterval(()=>{
  settleExpired();
- renderSummary();renderOpen();
+ renderSummary();
+ renderOpen();
 },1000);
 
 renderAll();
