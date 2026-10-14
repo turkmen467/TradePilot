@@ -4,522 +4,681 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080d18">
-<title>TradePilot | Akıllı Demo</title>
+<meta name="theme-color" content="#08111f">
+<title>TradePilot | Demo Trading</title>
 <style>
-:root{color-scheme:dark;--bg:#080d18;--panel:#111c2e;--line:#283850;--muted:#96a6bd;--green:#21d6a1;--red:#ff647c;--blue:#718fff}
+:root{color-scheme:dark;--bg:#08111f;--panel:#101d30;--panel2:#14243a;--line:#24354c;--text:#edf4ff;--muted:#91a4bd;--green:#28d69a;--red:#ff6177;--blue:#66aaff;--gold:#ffd166}
 *{box-sizing:border-box}
-body{margin:0;padding:14px 9px 32px;background:radial-gradient(ellipse at top,#19294a,#080d18 65%);color:#edf3ff;font:14px -apple-system,BlinkMacSystemFont,Arial,sans-serif}
-.app{max-width:1100px;margin:auto}
-header,.heading,.chartFoot{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}
-header{margin-bottom:15px}
-.brand{font-size:27px;font-weight:850}.brand span{color:var(--green)}
-.sub,.small,.status{color:var(--muted);font-size:12px;line-height:1.6;margin-top:5px}
-.pill,.tag{padding:7px 9px;border-radius:8px;background:#1d2b43;color:#b8c9ff;font-size:10px;font-weight:800}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}
-.card,.panel{background:linear-gradient(145deg,#131e30,#0e1624);border:1px solid var(--line);border-radius:15px;padding:13px;margin-bottom:12px;min-width:0}
-.label{color:var(--muted);font-size:10px;letter-spacing:.5px}
-.value{font-size:23px;font-weight:800;margin-top:7px;overflow-wrap:anywhere}
-.green{color:var(--green)}.red{color:var(--red)}
-.heading{font-weight:800;font-size:15px;margin-bottom:12px}
-.chartWrap{height:270px;background:#09111e;border:1px solid #1c2b40;border-radius:11px;overflow:hidden}
+body{margin:0;background:var(--bg);color:var(--text);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:18px 16px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-size:23px;font-weight:850;letter-spacing:-.8px}.brand span{color:var(--green)}
+.sub{color:var(--muted);font-size:11px;margin-top:4px}
+.pill{border:1px solid var(--line);padding:7px 10px;border-radius:20px;color:var(--muted);font-size:11px;white-space:nowrap}
+main{max-width:1100px;margin:auto;padding:14px;display:grid;gap:13px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.panel,.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.stat{padding:13px;min-width:0}.stat .label{font-size:11px;color:var(--muted);margin-bottom:9px}
+.stat .value{font-size:clamp(16px,3vw,23px);font-weight:750;overflow-wrap:anywhere}
+.green{color:var(--green)!important}.red{color:var(--red)!important}.muted{color:var(--muted)}
+.panel{padding:14px;min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}
+h2{font-size:15px;margin:0;font-weight:750}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+select,button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);padding:10px 12px;border-radius:9px}
+button{cursor:pointer;font-weight:700}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:#176c58;border-color:#258d72}.danger{background:#612737;border-color:#8c3d50}
+.chart-wrap{height:280px;position:relative;width:100%;overflow:hidden}
 canvas{width:100%;height:100%;display:block}
-.chartFoot{font-size:11px;color:var(--muted);margin-top:8px}
-.controls{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
-button,select{font:inherit}
-.btn{border:0;border-radius:9px;padding:10px 12px;font-weight:800;cursor:pointer;color:#07111d;background:var(--green)}
-.btn.secondary{color:#e6edff;background:#26344b;border:1px solid #3a4b65}
-.btn.danger{background:var(--red);color:#210710}
-select{max-width:100%;padding:9px;background:#26344b;color:white;border:1px solid #3a4b65;border-radius:8px}
-.markets{display:grid;gap:7px}
-.market{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:7px;background:#0b1422;border:1px solid #1d2a3e;border-radius:9px;padding:9px}
-.coin{font-weight:750}.pair,.change{font-size:10px;color:var(--muted);margin-top:3px}
-.price{font-weight:750;text-align:right}.change{text-align:right}
-.tableWrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
-th,td{text-align:left;padding:9px 6px;border-bottom:1px solid #26344a}
-th{color:var(--muted);font-weight:600}
-td button{padding:6px 8px;font-size:11px}
-.empty{color:var(--muted);padding:16px;text-align:center}
-.notice{border:1px solid #584b2b;background:#292315;color:#f4d994;border-radius:11px;padding:12px;font-size:11px;line-height:1.7;margin-top:12px}
-.statline{display:flex;gap:7px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-top:9px}
-.statline span{background:#0b1422;border:1px solid #223149;border-radius:7px;padding:7px}
-.rules{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.rule{border:1px solid var(--line);border-radius:9px;padding:10px;background:#0b1422}
-.rule b{display:block;font-size:17px;margin-top:5px}
-@media(min-width:760px){.layout{display:grid;grid-template-columns:1.45fr 1fr;gap:12px}}
-@media(max-width:420px){.brand{font-size:24px}.value{font-size:20px}.chartWrap{height:235px}.card,.panel{padding:11px}.btn{padding:9px}.market{gap:5px;padding:7px}}
+.price-line{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}
+.big-price{font-size:24px;font-weight:800}
+.chip{display:inline-block;border-radius:7px;padding:4px 7px;font-size:11px;background:var(--panel2);border:1px solid var(--line)}
+.status{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--muted)}
+.signal-buy{color:var(--green);font-weight:800}.signal-sell{color:var(--red);font-weight:800}
+.signal-none{color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.small{font-size:11px;color:var(--muted);line-height:1.5}
+.badge{font-size:10px;border-radius:5px;padding:4px 6px;background:#1b3047;color:#c2d6ef}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#20334a;border:1px solid #40536a;padding:11px 15px;border-radius:10px;max-width:90%;z-index:10;display:none}
+footer{padding:0 16px 22px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:650px){
+ main{padding:10px;gap:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stat{padding:11px}.panel{padding:12px}.chart-wrap{height:240px}
+ header{padding:15px 12px}.brand{font-size:21px}
+}
 </style>
 </head>
 <body>
-<main class="app">
 <header>
- <div>
-  <div class="brand">Trade<span>Pilot</span></div>
-  <div class="sub">Canlı mumlar · Otomatik demo · Gerçekçi K/Z</div>
- </div>
- <div class="pill" id="connection">BAĞLANIYOR</div>
+  <div>
+    <div class="brand">Trade<span>Pilot</span></div>
+    <div class="sub">Canlı piyasa · Akıllı sinyal sıralaması · Demo işlemler</div>
+  </div>
+  <div class="pill" id="connection">Veri bağlantısı bekleniyor</div>
 </header>
 
-<section class="grid">
- <div class="card"><div class="label">KULLANILABİLİR SANAL BAKİYE</div><div class="value" id="balance">$1,000.00</div><div class="small">Açık pozisyon tutarları ayrıdır</div></div>
- <div class="card"><div class="label">AÇIK POZİSYON</div><div class="value" id="openCount">0</div><div class="small">Pozisyon başına 100 $</div></div>
- <div class="card"><div class="label">GERÇEKLEŞEN K/Z</div><div class="value" id="realized">$0.00</div><div class="small">Kapanmış işlemler</div></div>
- <div class="card"><div class="label">AÇIK POZİSYON K/Z</div><div class="value" id="unrealized">$0.00</div><div class="small">Son alınan fiyatlara göre</div></div>
-</section>
-
-<div class="layout">
-<section>
- <div class="panel">
-  <div class="heading"><span id="chartTitle">BTC/USDT · 1 dakika</span><span class="tag" id="chartTag">CANLI MUM</span></div>
-  <div class="controls" style="margin:0 0 10px">
-   <label for="symbol">Parite</label>
-   <select id="symbol">
-    <option value="BTCUSDT">BTC/USDT</option><option value="ETHUSDT">ETH/USDT</option>
-    <option value="BNBUSDT">BNB/USDT</option><option value="SOLUSDT">SOL/USDT</option>
-    <option value="XRPUSDT">XRP/USDT</option><option value="ADAUSDT">ADA/USDT</option>
-    <option value="DOGEUSDT">DOGE/USDT</option><option value="AVAXUSDT">AVAX/USDT</option>
-    <option value="LINKUSDT">LINK/USDT</option><option value="DOTUSDT">DOT/USDT</option>
-    <option value="LTCUSDT">LTC/USDT</option><option value="TRXUSDT">TRX/USDT</option>
-   </select>
-   <label for="interval">Mum</label>
-   <select id="interval">
-    <option value="1m">1 dakika</option><option value="3m">3 dakika</option>
-    <option value="5m">5 dakika</option><option value="15m">15 dakika</option>
-   </select>
+<main>
+  <div class="grid">
+    <div class="stat"><div class="label">Demo bakiye</div><div class="value" id="balance">$1,000.00</div></div>
+    <div class="stat"><div class="label">Net toplam K/Z</div><div class="value" id="totalPnl">$0.00</div></div>
+    <div class="stat"><div class="label">Açık pozisyon</div><div class="value" id="openCount">0</div></div>
+    <div class="stat"><div class="label">Açık net K/Z</div><div class="value" id="openPnl">$0.00</div></div>
   </div>
-  <div class="chartWrap"><canvas id="chart"></canvas></div>
-  <div class="chartFoot"><span id="lastUpdate">Canlı veri bekleniyor</span><span id="lastPrice">Fiyat: —</span></div>
-  <div class="statline"><span id="candleInfo">Mum bilgisi bekleniyor</span><span id="trendInfo">Sinyal: BEKLE</span></div>
-  <div class="controls">
-   <button class="btn" id="buyBtn">＋ Demo AL</button>
-   <button class="btn danger" id="sellBtn">− Demo SAT</button>
-   <button class="btn secondary" id="closeBtn">Hepsini kapat</button>
-  </div>
-  <div class="status" id="signal">Canlı veri bekleniyor…</div>
- </div>
 
- <div class="panel">
-  <div class="heading">Açık pozisyonlar <span class="tag">+1 $ / −2 $</span></div>
-  <div class="rules">
-   <div class="rule"><span class="label">İŞLEM BAŞINA KÂR HEDEFİ</span><b class="green">+$1.00</b></div>
-   <div class="rule"><span class="label">İŞLEM BAŞINA ZARAR SINIRI</span><b class="red">−$2.00</b></div>
-  </div>
-  <p class="small">Hedef veya zarar sınırı görülünce pozisyon kapatılmaya çalışılır. 15 saniyelik zorunlu kapanış yoktur.</p>
-  <div class="tableWrap"><table>
-   <thead><tr><th>Parite</th><th>Yön</th><th>Giriş</th><th>Fiyat</th><th>K/Z</th><th></th></tr></thead>
-   <tbody id="positions"><tr><td colspan="6" class="empty">Açık pozisyon yok</td></tr></tbody>
-  </table></div>
- </div>
-</section>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Canlı mum grafiği</h2>
+      <div class="controls">
+        <select id="symbolSelect" aria-label="Parite">
+          <option>BTCUSDT</option><option>ETHUSDT</option><option>BNBUSDT</option>
+          <option>SOLUSDT</option><option>XRPUSDT</option><option>ADAUSDT</option>
+          <option>DOGEUSDT</option><option>AVAXUSDT</option><option>LINKUSDT</option>
+          <option>DOTUSDT</option><option>LTCUSDT</option><option>TRXUSDT</option>
+        </select>
+        <select id="intervalSelect" aria-label="Mum aralığı">
+          <option value="1m">1 dakika</option>
+          <option value="3m">3 dakika</option>
+          <option value="5m">5 dakika</option>
+          <option value="15m">15 dakika</option>
+        </select>
+      </div>
+    </div>
+    <div class="price-line">
+      <span class="big-price" id="chartPrice">--</span>
+      <span class="chip" id="chartChange">Canlı fiyat bekleniyor</span>
+      <span class="chip" id="chartPair">BTCUSDT</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+    <div class="small" id="chartStatus">Mum verisi yükleniyor…</div>
+  </section>
 
-<section>
- <div class="panel">
-  <div class="heading">Piyasa tarayıcısı <span class="tag" id="marketCount">0/12</span></div>
-  <div class="markets" id="markets"><div class="empty">Veri bekleniyor…</div></div>
-  <div class="status" id="dataStatus">Binance bağlantısı deneniyor…</div>
-  <div class="controls">
-   <button class="btn secondary" id="refreshBtn">↻ Yenile</button>
-   <button class="btn" id="autoBtn">Otomatik demo: Kapalı</button>
-  </div>
- </div>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Otomatik demo işlem</h2>
+      <span class="badge">12 parite taraması</span>
+    </div>
+    <div class="grid">
+      <div class="stat"><div class="label">İşlem tutarı</div><div class="value">$100</div></div>
+      <div class="stat"><div class="label">Net kâr hedefi</div><div class="value green">+$1.00</div></div>
+      <div class="stat"><div class="label">Net zarar sınırı</div><div class="value red">−$2.00</div></div>
+      <div class="stat"><div class="label">Komisyon</div><div class="value">%0,1 + %0,1</div></div>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button class="primary" id="startBtn">Otomatik işlemi başlat</button>
+      <button id="stopBtn" disabled>Otomatiği durdur</button>
+      <button class="danger" id="closeAllBtn">Tüm pozisyonları kapat</button>
+      <button id="resetBtn">Demo hesabını sıfırla</button>
+    </div>
+    <p class="status" id="autoStatus" style="margin-bottom:0">Otomatik işlem kapalı. Canlı piyasa verisi bekleniyor.</p>
+    <p class="small">Tarama, 12 paritenin tamamını karşılaştırır ve yeterince güçlü sinyal varsa en yüksek puanlı tek adayı seçer. İşlem açmak için uygun sinyal yoksa bekler.</p>
+  </section>
 
- <div class="panel">
-  <div class="heading">Otomatik demo <span class="tag">SÜRE SINIRI YOK</span></div>
-  <p class="small">12 parite taranır. Aynı paritede ikinci pozisyon açılmaz. Zayıf sinyalde beklenir. Her pozisyonun kendi +1 $ hedefi ve −2 $ zarar sınırı vardır.</p>
-  <div class="grid" style="margin-top:12px">
-   <div class="card"><div class="label">TAMAMLANAN</div><div class="value" id="shortCount">0</div></div>
-   <div class="card"><div class="label">DOĞRU YÖN</div><div class="value" id="winRate">—</div></div>
-  </div>
-  <div class="status" id="autoStatus">Otomatik demo kapalı.</div>
-  <div class="statline"><span>Giriş: 100 $</span><span>Hedef: +1 $</span><span>Zarar: −2 $</span></div>
- </div>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>En güçlü sinyaller</h2>
+      <span class="small" id="scanTime">Henüz taranmadı</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parite</th><th>Fiyat</th><th>Sinyal</th><th>Puan</th><th>RSI</th><th>Momentum</th></tr></thead>
+        <tbody id="signalsBody"><tr><td colspan="6" class="muted">Piyasa verisi yükleniyor…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
 
- <div class="panel">
-  <div class="heading">Son işlemler <span class="tag">DEMO</span></div>
-  <div class="tableWrap"><table>
-   <thead><tr><th>Saat</th><th>Varlık</th><th>İşlem</th><th>K/Z</th></tr></thead>
-   <tbody id="history"><tr><td colspan="4" class="empty">Henüz işlem yok</td></tr></tbody>
-  </table></div>
- </div>
-</section>
-</div>
+  <section class="panel">
+    <div class="panel-head"><h2>Açık pozisyonlar</h2><span class="small">Komisyon sonrası net K/Z</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parite</th><th>Yön</th><th>Giriş</th><th>Son fiyat</th><th>Net K/Z</th><th>İşlem</th></tr></thead>
+        <tbody id="positionsBody"><tr><td colspan="6" class="muted">Açık pozisyon yok.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
 
-<div class="notice"><b>Önemli demo uyarısı:</b> Bu uygulama Binance herkese açık piyasa verilerini kullanır, gerçek emir göndermez. +1 $ ve −2 $ seviyeleri kâr garantisi değildir. Tarayıcıda kontrol edilen seviyeler, hızlı fiyat hareketinde veya bağlantı kesilmesinde tam o değerden gerçekleşmeyebilir. Gerçek işlemlerde komisyon ve kayma da vardır.</div>
-<div class="sub" style="text-align:center;margin-top:15px">TradePilot · Birleşik canlı demo</div>
+  <section class="panel">
+    <div class="panel-head"><h2>İşlem geçmişi</h2><span class="small" id="tradeCount">0 işlem</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Saat</th><th>Parite</th><th>Yön</th><th>Giriş</th><th>Çıkış</th><th>Komisyon</th><th>Net K/Z</th><th>Neden</th></tr></thead>
+        <tbody id="historyBody"><tr><td colspan="8" class="muted">Henüz kapanan işlem yok.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+  <section class="panel">
+    <h2>İşlem ve komisyon ayarları</h2>
+    <div class="grid" style="margin-top:12px">
+      <div><div class="small">Demo başlangıç bakiyesi ($)</div><input id="initialBalance" type="number" min="100" step="100" value="1000" style="width:100%;margin-top:6px"></div>
+      <div><div class="small">İşlem başı tutar ($)</div><input id="orderSize" type="number" min="10" step="10" value="100" style="width:100%;margin-top:6px"></div>
+      <div><div class="small">Her yön komisyonu (%)</div><input id="feeRate" type="number" min="0" max="2" step="0.01" value="0.1" style="width:100%;margin-top:6px"></div>
+      <div><div class="small">Maksimum açık tutar ($)</div><input id="maxExposure" type="number" min="100" step="50" value="750" style="width:100%;margin-top:6px"></div>
+    </div>
+    <p class="small">Ayarlar yeni işlemlere uygulanır. Kâr hedefi +1 USD, zarar sınırı −2 USD olarak tanımlıdır. Komisyon oranı, demo varsayımıdır; gerçek hesap oranını garanti etmez.</p>
+  </section>
 </main>
+<footer>TradePilot Demo · Gerçek emir gönderilmez · Kâr garantisi yoktur</footer>
+<div id="toast"></div>
 
 <script>
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
+"use strict";
+
 const SYMBOLS=[
- ['BTCUSDT','Bitcoin'],['ETHUSDT','Ethereum'],['BNBUSDT','BNB'],
- ['SOLUSDT','Solana'],['XRPUSDT','XRP'],['ADAUSDT','Cardano'],
- ['DOGEUSDT','Dogecoin'],['AVAXUSDT','Avalanche'],['LINKUSDT','Chainlink'],
- ['DOTUSDT','Polkadot'],['LTCUSDT','Litecoin'],['TRXUSDT','TRON']
+ "BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","ADAUSDT",
+ "DOGEUSDT","AVAXUSDT","LINKUSDT","DOTUSDT","LTCUSDT","TRXUSDT"
 ];
-const STORE='tradepilot_unified_demo_v5';
-const ORDER=100,MAX_USED=750,STOP=2,TARGET=1;
-let state;
-try{state=JSON.parse(localStorage.getItem(STORE));}catch(e){}
-if(!state||typeof state.balance!=='number'){
- state={balance:1000,realized:0,positions:[],trades:[],nextId:1,completed:0,wins:0};
+const FEE_DEFAULT=0.001;
+const TAKE_PROFIT=1;
+const STOP_LOSS=-2;
+const STORAGE_KEY="tradepilot_demo_v3";
+
+let state={
+ balance:1000,initialBalance:1000,orderSize:100,maxExposure:750,
+ auto:false,positions:[],history:[],totalRealized:0,
+};
+let prices={};
+let candles=[];
+let signals=[];
+let scanning=false;
+let scanTimer=null;
+let priceTimer=null;
+let ws=null;
+let wsRetry=null;
+let chartRequest=0;
+let lastScannedCandle={};
+let lastScanAt=0;
+let dataHealthy=false;
+let closing=new Set();
+
+const $=id=>document.getElementById(id);
+const money=n=>(n<0?"−":"")+"$"+Math.abs(Number(n||0)).toFixed(2);
+const fmtPrice=n=>{
+ if(!Number.isFinite(Number(n)))return "--";
+ const v=Number(n);
+ return v>=1000?v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):
+ v>=1?v.toFixed(4):v.toFixed(7);
+};
+const timeStr=t=>new Date(t).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+function toast(msg){
+ const el=$("toast");el.textContent=msg;el.style.display="block";
+ clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display="none",2800);
 }
-state.positions=Array.isArray(state.positions)?state.positions:[];
-state.trades=Array.isArray(state.trades)?state.trades:[];
-state.nextId=Number(state.nextId)||1;
-state.realized=Number(state.realized)||0;
-state.completed=Number(state.completed)||0;
-state.wins=Number(state.wins)||0;
-state.auto=false;
-
-let selected=$('symbol').value,interval=$('interval').value;
-let candles=[],prices={},changes={};
-let socket=null,reconnectTimer=null,scanning=false,lastScanned={};
-
-const money=n=>(n<0?'−':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmt=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:n<1?7:2});
-const used=()=>state.positions.reduce((s,p)=>s+p.amount,0);
-
-function save(){try{localStorage.setItem(STORE,JSON.stringify(state));}catch(e){}}
-function status(s){$('dataStatus').textContent=s;}
-function connection(ok,s){
- $('connection').textContent='● '+s;
- $('connection').style.color=ok?'var(--green)':'var(--red)';
+function getFeeRate(){
+ const n=Number($("feeRate").value);
+ return Number.isFinite(n)&&n>=0?Math.min(n/100,0.02):FEE_DEFAULT;
 }
-async function getJSON(path,timeout=8000){
- let err;
- for(const base of ['https://data-api.binance.vision','https://api.binance.com']){
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
+function persist(){
+ try{
+  localStorage.setItem(STORAGE_KEY,JSON.stringify({
+   balance:state.balance,initialBalance:state.initialBalance,
+   orderSize:state.orderSize,maxExposure:state.maxExposure,
+   positions:state.positions,history:state.history,
+   totalRealized:state.totalRealized
+  }));
+ }catch(e){}
+}
+function loadSaved(){
+ try{
+  const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
+  if(!d)return;
+  if(Number.isFinite(d.balance))state.balance=d.balance;
+  if(Number.isFinite(d.initialBalance))state.initialBalance=d.initialBalance;
+  if(Number.isFinite(d.orderSize))state.orderSize=d.orderSize;
+  if(Number.isFinite(d.maxExposure))state.maxExposure=d.maxExposure;
+  if(Array.isArray(d.positions))state.positions=d.positions;
+  if(Array.isArray(d.history))state.history=d.history;
+  if(Number.isFinite(d.totalRealized))state.totalRealized=d.totalRealized;
+ }catch(e){}
+}
+function usedExposure(){
+ return state.positions.reduce((sum,p)=>sum+p.amount,0);
+}
+function openFee(amount){return amount*getFeeRate();}
+function estimateNet(p,price){
+ const direction=p.side==="BUY"?1:-1;
+ const gross=(price-p.entry)*direction*(p.amount/p.entry);
+ const exitFee=p.amount*(price/p.entry)*getFeeRate();
+ return gross-(p.entryFee||0)-exitFee;
+}
+function setConnection(ok,msg){
+ dataHealthy=ok;
+ $("connection").textContent=msg;
+ $("connection").style.color=ok?"var(--green)":"var(--gold)";
+}
+function apiBases(){
+ return ["https://data-api.binance.vision","https://api.binance.com"];
+}
+async function fetchJSON(path){
+ let lastError;
+ for(const base of apiBases()){
   try{
-   const r=await fetch(base+path,{cache:'no-store',signal:controller.signal});
-   if(!r.ok)throw Error('HTTP '+r.status);
-   return await r.json();
-  }catch(e){err=e;}finally{clearTimeout(timer);}
+   const controller=new AbortController();
+   const timeout=setTimeout(()=>controller.abort(),9000);
+   const response=await fetch(base+path,{signal:controller.signal,cache:"no-store"});
+   clearTimeout(timeout);
+   if(!response.ok)throw new Error("HTTP "+response.status);
+   return await response.json();
+  }catch(e){lastError=e;}
  }
- throw err||Error('Binance verisine ulaşılamadı');
+ throw lastError||new Error("Piyasa verisi alınamadı");
 }
-function mapCandles(data){
- return data.map(x=>({t:+x[0],o:+x[1],h:+x[2],l:+x[3],c:+x[4],v:+x[5]}))
- .filter(c=>[c.t,c.o,c.h,c.l,c.c].every(Number.isFinite));
-}
-async function getCandles(symbol,tf='1m'){
- return mapCandles(await getJSON('/api/v3/klines?symbol='+symbol+'&interval='+tf+'&limit=80'));
+async function getCandles(symbol,interval="1m",limit=100){
+ const data=await fetchJSON("/api/v3/klines?symbol="+encodeURIComponent(symbol)+
+ "&interval="+encodeURIComponent(interval)+"&limit="+limit);
+ return data.map(k=>({t:Number(k[0]),o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5],closeTime:+k[6]}));
 }
 async function getPrice(symbol){
- const d=await getJSON('/api/v3/ticker/price?symbol='+symbol);
- const p=Number(d.price);
- if(!Number.isFinite(p)||p<=0)throw Error('Fiyat geçersiz');
- return p;
-}
-async function refreshMarket(){
- const data=await getJSON('/api/v3/ticker/24hr',10000);
- const wanted=new Set(SYMBOLS.map(s=>s[0]));
- data.forEach(d=>{
-  if(wanted.has(d.symbol)){
-   prices[d.symbol]=Number(d.lastPrice);
-   changes[d.symbol]=Number(d.priceChangePercent);
-  }
- });
- renderMarkets();renderAll();
-}
-function floating(p){
- const price=prices[p.symbol];
- if(!Number.isFinite(price)||!p.entry||p.entry<=0)return 0;
- return (price-p.entry)*(p.side==='AL'?1:-1)*(p.amount/p.entry);
-}
-function addTrade(symbol,action,pnl=null){
- state.trades.unshift({time:new Date().toLocaleTimeString('tr-TR'),symbol,action,pnl});
- state.trades=state.trades.slice(0,100);
-}
-function openPosition(side,symbol=selected,source='Manuel'){
- const price=prices[symbol];
- if(!Number.isFinite(price)||price<=0){
-  $('signal').textContent='Güncel fiyat yok; işlem açılmadı.';return null;
- }
- if(state.positions.some(p=>p.symbol===symbol)){
-  $('signal').textContent=symbol+' için açık işlem zaten var.';return null;
- }
- if(used()+ORDER>MAX_USED||state.balance<ORDER){
-  $('signal').textContent='Bakiye veya 750 $ açık pozisyon sınırı doldu.';return null;
- }
- const p={id:state.nextId++,symbol,side,entry:price,amount:ORDER,openedAt:Date.now(),source};
- state.balance-=ORDER;
- state.positions.push(p);
- addTrade(symbol,side+' açıldı · '+source);
- save();renderAll();
- return p;
-}
-
-/* Çıkış: her pozisyon için kendi +1 $ hedefi ve -2 $ zarar sınırı. */
-function closePosition(id,reason){
- const i=state.positions.findIndex(p=>p.id===id);
- if(i<0)return null;
- const p=state.positions[i],price=prices[p.symbol];
- if(!Number.isFinite(price)||price<=0)return null;
-
- const pnl=floating(p);
- state.balance+=p.amount+pnl;
- state.realized+=pnl;
- state.positions.splice(i,1);
- state.completed++;
-
- if(pnl>0)state.wins++;
- addTrade(p.symbol,reason,pnl);
- save();renderAll();
- return {p,pnl,price};
-}
-
-function checkStops(){
- for(const p of [...state.positions]){
-  const pl=floating(p);
-  if(pl>=TARGET){
-   closePosition(p.id,'Kâr hedefi +1 $');
-  }else if(pl<=-STOP){
-   closePosition(p.id,'Zarar sınırı −2 $');
-  }
+ try{
+  const d=await fetchJSON("/api/v3/ticker/price?symbol="+encodeURIComponent(symbol));
+  const p=Number(d.price);
+  if(!Number.isFinite(p)||p<=0)throw new Error("Geçersiz fiyat");
+  prices[symbol]=p;
+  return p;
+ }catch(e){
+  if(Number.isFinite(prices[symbol]))return prices[symbol];
+  throw e;
  }
 }
-function average(a){return a.length?a.reduce((s,n)=>s+n,0)/a.length:0;}
 function ema(values,period){
  if(values.length<period)return null;
- let v=average(values.slice(0,period)),k=2/(period+1);
- for(let i=period;i<values.length;i++)v=values[i]*k+v*(1-k);
- return v;
+ const k=2/(period+1);
+ let result=values.slice(0,period).reduce((a,b)=>a+b,0)/period;
+ for(let i=period;i<values.length;i++)result=values[i]*k+result*(1-k);
+ return result;
 }
 function rsi(values,period=14){
- if(values.length<=period)return null;
+ if(values.length<=period)return 50;
  let gains=0,losses=0;
  for(let i=values.length-period;i<values.length;i++){
   const d=values[i]-values[i-1];
   if(d>0)gains+=d;else losses-=d;
  }
- if(losses===0)return gains===0?50:100;
- const rs=(gains/period)/(losses/period);
- return 100-100/(1+rs);
+ if(losses===0)return 100;
+ return 100-(100/(1+gains/losses));
 }
-function getSignal(cs){
- if(!cs||cs.length<30)return {side:null,why:'Yeterli mum yok'};
- const closed=cs.slice(0,-1),closes=closed.map(c=>c.c);
- if(closes.length<25)return {side:null,why:'Kapanmış mum yetersiz'};
- const fast=ema(closes,8),slow=ema(closes,21),strength=rsi(closes,14);
- if(fast===null||slow===null||strength===null)return {side:null,why:'İndikatör hesaplanıyor'};
- const n=closes.length,last=closes[n-1],older=closes[n-4],c=closed[n-1];
- if(!last||!older||!c.o)return {side:null,why:'Geçersiz fiyat'};
- const momentum=(last-older)/older;
- const separation=(fast-slow)/slow;
- const body=(c.c-c.o)/c.o;
- const minSep=0.00025,minMomentum=0.00035,minBody=0.00012;
- if(fast>slow&&last>fast&&strength>=53&&strength<=67&&momentum>=minMomentum&&separation>=minSep&&body>=minBody){
-  return {side:'AL',why:'Güçlü yukarı sinyal · RSI '+strength.toFixed(0)};
- }
- if(fast<slow&&last<fast&&strength>=33&&strength<=47&&momentum<=-minMomentum&&separation<=-minSep&&body<=-minBody){
-  return {side:'SAT',why:'Güçlü aşağı sinyal · RSI '+strength.toFixed(0)};
- }
- return {side:null,why:'Güçlü sinyal yok; bekleniyor'};
+function analyzeCandles(cs){
+ if(!cs||cs.length<35)return {side:null,score:0,rsi:50,momentum:0,reason:"Yetersiz veri"};
+ const closed=cs.slice(0,-1);
+ const closes=closed.map(c=>c.c);
+ const fast=ema(closes.slice(-50),8);
+ const slow=ema(closes.slice(-60),21);
+ const last=closes[closes.length-1];
+ const previous=closes[closes.length-4];
+ const momentum=previous?(last-previous)/previous:0;
+ const rv=rsi(closes,14);
+ const candle=closed[closed.length-1];
+ const range=Math.max(candle.h-candle.l,Number.EPSILON);
+ const body=(candle.c-candle.o)/Math.max(candle.o,Number.EPSILON);
+ const separation=slow?(fast-slow)/slow:0;
+ const trendUp=fast>slow&&last>fast;
+ const trendDown=fast<slow&&last<fast;
+ let buy=0,sell=0;
+ if(trendUp)buy+=30;
+ if(trendDown)sell+=30;
+ if(momentum>0)buy+=Math.min(25,momentum*10000);
+ if(momentum<0)sell+=Math.min(25,Math.abs(momentum)*10000);
+ if(separation>0)buy+=Math.min(20,separation*20000);
+ if(separation<0)sell+=Math.min(20,Math.abs(separation)*20000);
+ if(rv>=53&&rv<=69)buy+=15;
+ if(rv>=31&&rv<=47)sell+=15;
+ if(body>0)buy+=Math.min(10,body/range*10);
+ if(body<0)sell+=Math.min(10,Math.abs(body)/range*10);
+ buy=Math.min(100,Math.round(buy));
+ sell=Math.min(100,Math.round(sell));
+ const buyValid=trendUp&&rv>=53&&rv<=70&&momentum>=0.00015&&separation>=0.0001;
+ const sellValid=trendDown&&rv>=30&&rv<=47&&momentum<=-0.00015&&separation<=-0.0001;
+ let side=null,score=0;
+ if(buyValid&&buy>=50){side="BUY";score=buy;}
+ if(sellValid&&sell>=50&&sell>score){side="SELL";score=sell;}
+ return {side,score,rsi:rv,momentum,separation,fast,slow,last,reason:side? "Trend + momentum":"Yeterli güç yok"};
 }
-function renderMarkets(){
- const list=SYMBOLS.filter(s=>Number.isFinite(prices[s[0]]));
- $('marketCount').textContent=list.length+' / '+SYMBOLS.length;
- $('markets').innerHTML=list.map(s=>{
-  const p=prices[s[0]],ch=changes[s[0]]||0;
-  return '<div class="market"><div><div class="coin">'+s[1]+'</div><div class="pair">'+s[0].replace('USDT','/USDT')+'</div></div>'+
-   '<div><div class="price">$'+fmt(p)+'</div><div class="change '+(ch>=0?'green':'red')+'">'+(ch>=0?'+':'')+ch.toFixed(2)+'%</div></div>'+
-   '<button class="btn secondary" data-pick="'+s[0]+'">Grafik</button></div>';
- }).join('')||'<div class="empty">Piyasa verisi bekleniyor…</div>';
- document.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>changeSymbol(b.dataset.pick));
+async function getSignalFor(symbol){
+ const cs=await getCandles(symbol,"1m",100);
+ const result=analyzeCandles(cs);
+ result.symbol=symbol;
+ result.price=cs.length?cs[cs.length-1].c:prices[symbol];
+ result.candleTime=cs.length?cs[cs.length-1].t:0;
+ return result;
 }
-function renderAll(){
- const unreal=state.positions.reduce((s,p)=>s+floating(p),0);
- $('balance').textContent=money(state.balance);
- $('openCount').textContent=state.positions.length;
- $('realized').textContent=money(state.realized);
- $('realized').className='value '+(state.realized>=0?'green':'red');
- $('unrealized').textContent=money(unreal);
- $('unrealized').className='value '+(unreal>=0?'green':'red');
- $('autoBtn').textContent='Otomatik demo: '+(state.auto?'Açık':'Kapalı');
- $('shortCount').textContent=state.completed;
- $('winRate').textContent=state.completed?(100*state.wins/state.completed).toFixed(1)+'%':'—';
- $('positions').innerHTML=state.positions.map(p=>{
-  const price=prices[p.symbol],pl=floating(p);
-  return '<tr><td>'+p.symbol.replace('USDT','')+'</td><td>'+p.side+'</td><td>$'+fmt(p.entry)+'</td><td>'+
-   (Number.isFinite(price)?'$'+fmt(price):'—')+'</td><td class="'+(pl>=0?'green':'red')+'">'+money(pl)+'</td>'+
-   '<td><button class="btn danger" data-close="'+p.id+'">Kapat</button></td></tr>';
- }).join('')||'<tr><td colspan="6" class="empty">Açık pozisyon yok</td></tr>';
- document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closePosition(Number(b.dataset.close),'Manuel kapat'));
- $('history').innerHTML=state.trades.slice(0,18).map(t=>'<tr><td>'+t.time+'</td><td>'+t.symbol.replace('USDT','')+
-  '</td><td>'+t.action+'</td><td class="'+((t.pnl||0)>=0?'green':'red')+'">'+(t.pnl==null?'—':money(t.pnl))+'</td></tr>').join('')||
-  '<tr><td colspan="4" class="empty">Henüz işlem yok</td></tr>';
+function updateSignalsTable(){
+ const sorted=[...signals].sort((a,b)=>b.score-a.score);
+ $("signalsBody").innerHTML=sorted.map(s=>{
+  const side=s.side==="BUY"?"AL":s.side==="SELL"?"SAT":"BEKLE";
+  const cls=s.side==="BUY"?"signal-buy":s.side==="SELL"?"signal-sell":"signal-none";
+  return `<tr><td>${s.symbol}</td><td>${fmtPrice(s.price)}</td><td class="${cls}">${side}</td><td>${s.score}/100</td><td>${Number(s.rsi||0).toFixed(1)}</td><td class="${s.momentum>=0?"green":"red"}">${(Number(s.momentum||0)*100).toFixed(3)}%</td></tr>`;
+ }).join("")||'<tr><td colspan="6" class="muted">Henüz sinyal yok.</td></tr>';
 }
-async function changeSymbol(symbol){
- selected=symbol;$('symbol').value=symbol;
- $('chartTitle').textContent=symbol.replace('USDT','/USDT')+' · '+interval;
- candles=[];drawChart();await loadCandles();connectSocket();
-}
-async function loadCandles(){
- try{
-  const fresh=await getCandles(selected,interval);
-  if(fresh.length){
-   candles=fresh;
-   prices[selected]=fresh[fresh.length-1].c;
-   $('lastUpdate').textContent='Mum güncellendi · '+new Date().toLocaleTimeString('tr-TR');
-   $('lastPrice').textContent='Fiyat: $'+fmt(prices[selected]);
-   drawChart();updateCandleInfo();renderAll();
-  }
- }catch(e){$('lastUpdate').textContent='Mum verisi alınamadı; tekrar denenecek';}
-}
-function disconnectSocket(){
- if(socket){try{socket.onclose=null;socket.close();}catch(e){}socket=null;}
- clearTimeout(reconnectTimer);
-}
-function connectSocket(){
- disconnectSocket();
- const sym=selected.toLowerCase(),tf=interval;
- try{
-  socket=new WebSocket('wss://data-stream.binance.vision/ws/'+sym+'@kline_'+tf);
-  socket.onopen=()=>{connection(true,'BINANCE CANLI');$('chartTag').textContent='CANLI AKIŞ';};
-  socket.onmessage=ev=>{
-   try{
-    const k=JSON.parse(ev.data).k;if(!k)return;
-    const c={t:+k.t,o:+k.o,h:+k.h,l:+k.l,c:+k.c,v:+k.v};
-    prices[sym.toUpperCase()]=c.c;
-    if(candles.length&&candles[candles.length-1].t===c.t)candles[candles.length-1]=c;
-    else{candles.push(c);if(candles.length>80)candles.shift();}
-    $('lastUpdate').textContent='Canlı mum · '+new Date().toLocaleTimeString('tr-TR');
-    $('lastPrice').textContent='Fiyat: $'+fmt(c.c);
-    drawChart();updateCandleInfo();checkStops();renderAll();
-   }catch(e){}
-  };
-  socket.onerror=()=>{};
-  socket.onclose=()=>{
-   connection(false,'YENİDEN BAĞLANIYOR');
-   reconnectTimer=setTimeout(()=>{if(selected.toLowerCase()===sym&&interval===tf)connectSocket();},3000);
-  };
- }catch(e){connection(false,'REST YEDEK');}
-}
-function updateCandleInfo(){
- if(!candles.length)return;
- const c=candles[candles.length-1],sig=getSignal(candles);
- $('candleInfo').textContent='Açılış '+fmt(c.o)+' · Yüksek '+fmt(c.h)+' · Düşük '+fmt(c.l);
- $('trendInfo').textContent='Sinyal: '+(sig.side||'BEKLE');
- $('signal').textContent=sig.why;
-}
-function drawChart(){
- const canvas=$('chart'),ctx=canvas.getContext('2d'),rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
- canvas.width=Math.max(1,Math.floor(rect.width*dpr));canvas.height=Math.max(1,Math.floor(rect.height*dpr));
- ctx.setTransform(dpr,0,0,dpr,0,0);
- const w=rect.width,h=rect.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#09111e';ctx.fillRect(0,0,w,h);
- if(!candles.length){ctx.fillStyle='#96a6bd';ctx.font='13px sans-serif';ctx.fillText('Canlı mum verisi bekleniyor…',14,h/2);return;}
- const vis=candles.slice(-60),max=Math.max(...vis.map(c=>c.h)),min=Math.min(...vis.map(c=>c.l)),range=max-min||1;
- const pad={l:8,r:66,t:13,b:18},cw=Math.max(1,w-pad.l-pad.r),ch=Math.max(1,h-pad.t-pad.b),y=v=>pad.t+(max-v)/range*ch;
- ctx.strokeStyle='#1b2a40';ctx.lineWidth=1;
- for(let i=0;i<5;i++){
-  const yy=pad.t+i*ch/4;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
-  ctx.fillStyle='#96a6bd';ctx.font='10px sans-serif';ctx.fillText(fmt(max-range*i/4),w-pad.r+3,yy+3);
- }
- const step=cw/vis.length,bw=Math.max(2,step*.58);
- vis.forEach((c,i)=>{
-  const x=pad.l+i*step+step/2,col=c.c>=c.o?'#21d6a1':'#ff647c';
-  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();
-  const top=y(Math.max(c.o,c.c)),bottom=y(Math.min(c.o,c.c));
-  ctx.fillRect(x-bw/2,top,bw,Math.max(1,bottom-top));
- });
- const current=vis[vis.length-1].c;
- ctx.strokeStyle='#718fff';ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pad.l,y(current));ctx.lineTo(w-pad.r,y(current));ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle='#718fff';ctx.fillRect(w-pad.r+1,y(current)-8,pad.r-2,16);
- ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.fillText(fmt(current),w-pad.r+3,y(current)+3);
-}
-
-/* Aynı paritede açık işlem yoksa, sinyal için 1 dakikalık mumlar incelenir. */
 async function scanMarkets(){
  if(!state.auto||scanning)return;
- scanning=true;let checked=0,opened=0,failed=0;
+ scanning=true;
+ $("autoStatus").textContent="12 parite karşılaştırılıyor; en güçlü sinyal aranıyor…";
  try{
-  for(const item of SYMBOLS){
+  const results=[];
+  // Tüm piyasaları karşılaştır; tarama sırasındaki ilk sinyale göre karar verme.
+  for(const symbol of SYMBOLS){
    if(!state.auto)break;
-   const symbol=item[0];
-   if(state.positions.some(p=>p.symbol===symbol))continue;
-   if(used()+ORDER>MAX_USED||state.balance<ORDER)break;
    try{
-    const cs=await getCandles(symbol,'1m');
-    if(cs.length<30)continue;
-    checked++;
-    const minute=cs[cs.length-1].t;
-    if(lastScanned[symbol]===minute)continue;
-    lastScanned[symbol]=minute;
-    const sig=getSignal(cs);
-    if(!sig.side)continue;
-    prices[symbol]=await getPrice(symbol);
-    const p=openPosition(sig.side,symbol,'Otomatik demo');
-    if(p)opened++;
-   }catch(e){failed++;}
+    const s=await getSignalFor(symbol);
+    results.push(s);
+    if(Number.isFinite(s.price))prices[symbol]=s.price;
+   }catch(e){
+    results.push({symbol,side:null,score:0,rsi:0,momentum:0,price:prices[symbol],reason:"Veri alınamadı"});
+   }
   }
-  $('autoStatus').textContent='Tarama '+checked+'/'+SYMBOLS.length+' · Yeni işlem '+opened+
-   ' · Veri hatası '+failed+'. '+(opened?'Pozisyonlar +1/−2 $ kurallarıyla izleniyor.':'Uygun sinyal bekleniyor.');
- }finally{scanning=false;}
-}
-
-$('buyBtn').onclick=()=>openPosition('AL',selected,'Manuel');
-$('sellBtn').onclick=()=>openPosition('SAT',selected,'Manuel');
-$('closeBtn').onclick=()=>{
- [...state.positions].forEach(p=>closePosition(p.id,'Toplu manuel kapat'));
-};
-$('refreshBtn').onclick=async()=>{
- try{status('Veriler yenileniyor…');await refreshMarket();await loadCandles();status('Veri yenilendi.');}
- catch(e){status('Veri alınamadı; yeniden denenecek.');}
-};
-$('autoBtn').onclick=()=>{
- state.auto=!state.auto;save();renderAll();
- $('autoStatus').textContent=state.auto?'Otomatik demo açık; güçlü sinyal aranıyor.':'Otomatik demo kapatıldı.';
- if(state.auto)scanMarkets();
-};
-$('symbol').onchange=()=>changeSymbol($('symbol').value);
-$('interval').onchange=()=>{
- interval=$('interval').value;
- $('chartTitle').textContent=selected.replace('USDT','/USDT')+' · '+interval;
- loadCandles();connectSocket();
-};
-window.addEventListener('resize',drawChart);
-window.addEventListener('online',()=>{
- refreshMarket().catch(()=>{});loadCandles();connectSocket();
-});
-window.addEventListener('offline',()=>connection(false,'İNTERNET YOK'));
-
-async function updatePositionPrices(){
- const symbols=[...new Set(state.positions.map(p=>p.symbol))];
- await Promise.all(symbols.map(async symbol=>{
-  try{prices[symbol]=await getPrice(symbol);}catch(e){}
- }));
- checkStops();
- renderAll();
-}
-async function start(){
- renderAll();
- try{
-  await refreshMarket();await loadCandles();
-  connection(true,'BINANCE CANLI');status('Canlı piyasa verisi bağlı.');
+  if(results.length){
+   signals=results;
+   updateSignalsTable();
+   $("scanTime").textContent="Son tarama: "+timeStr(Date.now());
+  }
+  if(!state.auto)return;
+  const eligible=results.filter(s=>s.side&&s.score>=50)
+   .filter(s=>!state.positions.some(p=>p.symbol===s.symbol))
+   .sort((a,b)=>b.score-a.score);
+  const candidate=eligible[0];
+  if(!candidate){
+   $("autoStatus").textContent="Tarama tamamlandı. Güçlü, uygun ve yeni bir sinyal yok; bekleniyor.";
+   return;
+  }
+  // Aynı açık mumda aynı parite için tekrar giriş yapılmasını engelle.
+  if(lastScannedCandle[candidate.symbol]===candidate.candleTime){
+   $("autoStatus").textContent="En güçlü aday "+candidate.symbol+"; bu mumda zaten değerlendirildi. Yeni mum bekleniyor.";
+   return;
+  }
+  lastScannedCandle[candidate.symbol]=candidate.candleTime;
+  if(usedExposure()+state.orderSize>state.maxExposure+1e-8){
+   $("autoStatus").textContent="En güçlü aday: "+candidate.symbol+" ("+candidate.score+"/100). Açık tutar limiti dolu.";
+   return;
+  }
+  const p=await getPrice(candidate.symbol);
+  openPosition(candidate.side,candidate.symbol,p,"Otomatik demo · "+candidate.score+"/100");
+  $("autoStatus").textContent="Seçilen en güçlü sinyal: "+candidate.symbol+" "+candidate.side+" · "+candidate.score+"/100";
  }catch(e){
-  connection(false,'BAĞLANTI BEKLENİYOR');
-  status('Bağlantı kurulamadı; tekrar denenecek.');
+  $("autoStatus").textContent="Tarama hatası: "+e.message;
+ }finally{
+  scanning=false;
  }
- connectSocket();
- setInterval(async()=>{
-  try{
-   await refreshMarket();
-   await updatePositionPrices();
-  }catch(e){connection(false,'VERİ YENİLENİYOR');}
- },3000);
- setInterval(()=>{
-  checkStops();
-  renderAll();
- },500);
- setInterval(()=>{
-  if(state.auto)scanMarkets();
- },15000);
 }
-start();
-})();
+function openPosition(side,symbol,price,source="Manuel demo"){
+ if(!["BUY","SELL"].includes(side)||!Number.isFinite(price)||price<=0)return false;
+ if(state.positions.some(p=>p.symbol===symbol)){
+  toast(symbol+" için zaten açık pozisyon var.");return false;
+ }
+ const amount=Number(state.orderSize);
+ if(!Number.isFinite(amount)||amount<=0){toast("İşlem tutarını kontrol et.");return false;}
+ if(usedExposure()+amount>state.maxExposure+1e-8){toast("Maksimum açık tutar sınırına ulaşıldı.");return false;}
+ const entryFee=amount*getFeeRate();
+ if(state.balance<amount+entryFee){toast("Bakiye, işlem tutarı ve giriş komisyonu için yetersiz.");return false;}
+ const p={
+  id:Date.now()+"_"+Math.random().toString(36).slice(2,8),
+  symbol,side,entry:price,price,amount,entryFee,
+  openedAt:Date.now(),source
+ };
+ // Sanal teminat ve giriş komisyonu düşülür; kapanışta teminat ve çıkış sonucu geri eklenir.
+ state.balance-=amount+entryFee;
+ state.positions.push(p);
+ persist();renderAll();
+ toast(symbol+" "+side+" demo pozisyonu açıldı.");
+ return true;
+}
+function closePosition(id,reason="Manuel kapatma",priceOverride=null){
+ const p=state.positions.find(x=>x.id===id);
+ if(!p||closing.has(id))return;
+ const price=Number.isFinite(priceOverride)?priceOverride:prices[p.symbol]||p.price;
+ if(!Number.isFinite(price)||price<=0){toast("Kapanış fiyatı henüz alınamadı.");return;}
+ closing.add(id);
+ const gross=(price-p.entry)*(p.side==="BUY"?1:-1)*(p.amount/p.entry);
+ const exitFee=p.amount*(price/p.entry)*getFeeRate();
+ const net=gross-(p.entryFee||0)-exitFee;
+ // Giriş komisyonu açılışta düşüldü; burada yalnızca teminat ve çıkış sonucu eklenir.
+ state.balance+=p.amount+gross-exitFee;
+ state.totalRealized+=net;
+ state.positions=state.positions.filter(x=>x.id!==id);
+ state.history.unshift({
+  time:Date.now(),symbol:p.symbol,side:p.side,entry:p.entry,exit:price,
+  fees:(p.entryFee||0)+exitFee,net,reason
+ });
+ state.history=state.history.slice(0,200);
+ closing.delete(id);
+ persist();renderAll();
+ toast(p.symbol+" kapandı · Net "+money(net));
+}
+function closeAll(){
+ for(const p of [...state.positions]){
+  const price=prices[p.symbol]||p.price;
+  closePosition(p.id,"Toplu manuel kapatma",price);
+ }
+}
+async function refreshOpenPrices(){
+ const open=[...state.positions];
+ for(const p of open){
+  try{
+   const price=await getPrice(p.symbol);
+   p.price=price;
+   const net=estimateNet(p,price);
+   if(net>=TAKE_PROFIT){
+    closePosition(p.id,"Net kâr hedefi",price);
+   }else if(net<=STOP_LOSS){
+    closePosition(p.id,"Net zarar sınırı",price);
+   }
+  }catch(e){
+   // API kesintisinde son geçerli fiyat korunur; geçersiz fiyatla kapanış yapılmaz.
+  }
+ }
+ renderAll();
+}
+function renderPositions(){
+ const body=$("positionsBody");
+ if(!state.positions.length){
+  body.innerHTML='<tr><td colspan="6" class="muted">Açık pozisyon yok.</td></tr>';
+  return;
+ }
+ body.innerHTML=state.positions.map(p=>{
+  const price=prices[p.symbol]||p.price;
+  const net=estimateNet(p,price);
+  return `<tr>
+   <td>${p.symbol}</td>
+   <td class="${p.side==="BUY"?"signal-buy":"signal-sell"}">${p.side}</td>
+   <td>${fmtPrice(p.entry)}</td><td>${fmtPrice(price)}</td>
+   <td class="${net>=0?"green":"red"}">${money(net)}</td>
+   <td><button class="danger" data-close="${p.id}">Kapat</button></td>
+  </tr>`;
+ }).join("");
+}
+function renderHistory(){
+ $("tradeCount").textContent=state.history.length+" işlem";
+ $("historyBody").innerHTML=state.history.slice(0,60).map(h=>
+  `<tr><td>${timeStr(h.time)}</td><td>${h.symbol}</td>
+  <td class="${h.side==="BUY"?"signal-buy":"signal-sell"}">${h.side}</td>
+  <td>${fmtPrice(h.entry)}</td><td>${fmtPrice(h.exit)}</td>
+  <td>${money(h.fees)}</td><td class="${h.net>=0?"green":"red"}">${money(h.net)}</td><td>${h.reason}</td></tr>`
+ ).join("")||'<tr><td colspan="8" class="muted">Henüz kapanan işlem yok.</td></tr>';
+}
+function renderAll(){
+ const openNet=state.positions.reduce((sum,p)=>sum+estimateNet(p,prices[p.symbol]||p.price),0);
+ $("balance").textContent=money(state.balance);
+ $("totalPnl").textContent=money(state.totalRealized+openNet);
+ $("totalPnl").className="value "+(state.totalRealized+openNet>=0?"green":"red");
+ $("openCount").textContent=state.positions.length;
+ $("openPnl").textContent=money(openNet);
+ $("openPnl").className="value "+(openNet>=0?"green":"red");
+ renderPositions();renderHistory();
+}
+function drawChart(){
+ const canvas=$("chart"),ctx=canvas.getContext("2d");
+ const rect=canvas.getBoundingClientRect();
+ if(rect.width<1||rect.height<1)return;
+ const dpr=Math.max(1,window.devicePixelRatio||1);
+ canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+ const w=rect.width,h=rect.height;
+ ctx.clearRect(0,0,w,h);
+ ctx.fillStyle="#101d30";ctx.fillRect(0,0,w,h);
+ if(!candles.length){
+  ctx.fillStyle="#91a4bd";ctx.font="13px sans-serif";ctx.fillText("Mum verisi bekleniyor…",12,24);return;
+ }
+ const shown=candles.slice(-65);
+ const min=Math.min(...shown.map(c=>c.l)),max=Math.max(...shown.map(c=>c.h));
+ const pad={l:8,r:62,t:12,b:20};
+ const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+ const range=Math.max(max-min,Number.EPSILON);
+ const y=v=>pad.t+(max-v)/range*ch;
+ ctx.font="10px sans-serif";ctx.textAlign="left";
+ for(let i=0;i<=4;i++){
+  const yy=pad.t+ch*i/4;
+  ctx.strokeStyle="#26384e";ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
+  const value=max-range*i/4;
+  ctx.fillStyle="#91a4bd";ctx.fillText(fmtPrice(value),w-pad.r+5,yy+3);
+ }
+ const slot=cw/shown.length;
+ const bodyW=Math.max(2,Math.min(9,slot*.65));
+ shown.forEach((c,i)=>{
+  const x=pad.l+i*slot+slot/2;
+  const up=c.c>=c.o;
+  ctx.strokeStyle=up?"#28d69a":"#ff6177";
+  ctx.fillStyle=ctx.strokeStyle;
+  ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();
+  const top=y(Math.max(c.o,c.c)),bottom=y(Math.min(c.o,c.c));
+  ctx.fillRect(x-bodyW/2,top,bodyW,Math.max(1,bottom-top));
+ });
+ const last=shown[shown.length-1].c;
+ ctx.strokeStyle="#66aaff";ctx.setLineDash([4,3]);
+ ctx.beginPath();ctx.moveTo(pad.l,y(last));ctx.lineTo(w-pad.r,y(last));ctx.stroke();ctx.setLineDash([]);
+}
+async function loadChart(){
+ const req=++chartRequest;
+ const symbol=$("symbolSelect").value;
+ const interval=$("intervalSelect").value;
+ $("chartPair").textContent=symbol;
+ $("chartStatus").textContent="Mum verisi yükleniyor…";
+ try{
+  const cs=await getCandles(symbol,interval,100);
+  if(req!==chartRequest)return;
+  candles=cs;
+  const last=cs[cs.length-1];
+  prices[symbol]=last.c;
+  $("chartPrice").textContent=fmtPrice(last.c);
+  const first=cs[0].o;
+  const change=(last.c-first)/first*100;
+  $("chartChange").textContent=(change>=0?"+":"")+change.toFixed(2)+"%";
+  $("chartChange").className="chip "+(change>=0?"green":"red");
+  $("chartStatus").textContent=symbol+" · "+interval+" · Son mum: "+timeStr(last.t);
+  setConnection(true,"Piyasa verisi bağlı");
+  drawChart();
+ }catch(e){
+  if(req!==chartRequest)return;
+  $("chartStatus").textContent="Mum verisi alınamadı: "+e.message+" · Bağlantı tekrar denenecek.";
+  setConnection(false,"Veri bağlantısı sorunu");
+ }
+}
+function disconnectWS(){
+ if(ws){try{ws.onclose=null;ws.close();}catch(e){}ws=null;}
+ if(wsRetry){clearTimeout(wsRetry);wsRetry=null;}
+}
+function connectWS(){
+ disconnectWS();
+ const symbol=$("symbolSelect").value.toLowerCase();
+ const interval=$("intervalSelect").value;
+ const url="wss://data-stream.binance.vision/ws/"+symbol+"@kline_"+interval;
+ try{
+  ws=new WebSocket(url);
+  ws.onopen=()=>setConnection(true,"Canlı mum bağlantısı aktif");
+  ws.onmessage=ev=>{
+   try{
+    const d=JSON.parse(ev.data),k=d.k;
+    if(!k)return;
+    const candle={t:+k.t,o:+k.o,h:+k.h,l:+k.l,c:+k.c,v:+k.v,closeTime:+k.T};
+    const last=candles[candles.length-1];
+    if(last&&last.t===candle.t)candles[candles.length-1]=candle;
+    else candles.push(candle);
+    candles=candles.slice(-150);
+    prices[symbol.toUpperCase()]=candle.c;
+    $("chartPrice").textContent=fmtPrice(candle.c);
+    drawChart();
+   }catch(e){}
+  };
+  ws.onerror=()=>setConnection(false,"Canlı bağlantı yenileniyor");
+  ws.onclose=()=>{
+   if(wsRetry)clearTimeout(wsRetry);
+   wsRetry=setTimeout(()=>{loadChart();connectWS();},5000);
+  };
+ }catch(e){
+  wsRetry=setTimeout(connectWS,5000);
+ }
+}
+function startAuto(){
+ if(state.auto)return;
+ state.auto=true;
+ $("startBtn").disabled=true;$("stopBtn").disabled=false;
+ $("autoStatus").textContent="Otomatik demo açık. En güçlü sinyal aranıyor…";
+ scanMarkets();
+ scanTimer=setInterval(scanMarkets,15000);
+}
+function stopAuto(){
+ state.auto=false;
+ $("startBtn").disabled=false;$("stopBtn").disabled=true;
+ if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
+ $("autoStatus").textContent="Otomatik işlem durduruldu. Açık pozisyonlar izlenmeye devam eder.";
+}
+async function boot(){
+ loadSaved();
+ $("initialBalance").value=state.initialBalance;
+ $("orderSize").value=state.orderSize;
+ $("maxExposure").value=state.maxExposure;
+ renderAll();
+ await loadChart();
+ connectWS();
+ // Pozisyonların fiyatlarını ve komisyon sonrası net K/Z değerlerini güncelle.
+ priceTimer=setInterval(refreshOpenPrices,2500);
+ // Tarama kapalı olsa da sinyal tablosu güncel tutulur.
+ setInterval(async()=>{
+  if(state.auto||scanning)return;
+  try{
+   const results=[];
+   for(const symbol of SYMBOLS){
+    try{
+     const s=await getSignalFor(symbol);
+     results.push(s);
+     if(Number.isFinite(s.price))prices[symbol]=s.price;
+    }catch(e){}
+   }
+   if(results.length){signals=results;updateSignalsTable();$("scanTime").textContent="Son tarama: "+timeStr(Date.now());}
+  }catch(e){}
+ },45000);
+}
+$("symbolSelect").addEventListener("change",async()=>{await loadChart();connectWS();});
+$("intervalSelect").addEventListener("change",async()=>{await loadChart();connectWS();});
+$("startBtn").addEventListener("click",startAuto);
+$("stopBtn").addEventListener("click",stopAuto);
+$("closeAllBtn").addEventListener("click",closeAll);
+$("positionsBody").addEventListener("click",ev=>{
+ const btn=ev.target.closest("[data-close]");
+ if(btn)closePosition(btn.dataset.close,"Manuel kapatma");
+});
+$("resetBtn").addEventListener("click",()=>{
+ if(state.auto){toast("Önce otomatiği durdur.");return;}
+ if(state.positions.length){toast("Sıfırlamadan önce tüm pozisyonları kapat.");return;}
+ if(!confirm("Demo bakiyesi ve işlem geçmişi sıfırlansın mı?"))return;
+ state.balance=Math.max(100,Number($("initialBalance").value)||1000);
+ state.initialBalance=state.balance;state.totalRealized=0;state.history=[];
+ persist();renderAll();toast("Demo hesabı sıfırlandı.");
+});
+["initialBalance","orderSize","maxExposure"].forEach(id=>{
+ $(id).addEventListener("change",()=>{
+  const initial=Math.max(100,Number($("initialBalance").value)||1000);
+  const order=Math.max(10,Number($("orderSize").value)||100);
+  const exposure=Math.max(order,Number($("maxExposure").value)||750);
+  state.initialBalance=initial;state.orderSize=order;state.maxExposure=exposure;
+  $("initialBalance").value=initial;$("orderSize").value=order;$("maxExposure").value=exposure;
+  persist();
+ });
+});
+window.addEventListener("resize",drawChart);
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden){loadChart();connectWS();refreshOpenPrices();}
+});
+boot();
 </script>
 </body>
 </html>
