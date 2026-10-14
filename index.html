@@ -466,5 +466,298 @@ setInterval(()=>{checkStops();renderAll()},2000);
 setInterval(()=>{if(state.auto&&!scanning&&!busy)scan()},15000);
 })();
 </script>
+<!-- TradePilot: 15 saniyelik yön tahmini DEMO modülü -->
+<section id="tp15" style="
+  margin:16px auto;padding:16px;max-width:1050px;
+  background:#111c2e;color:#eef4ff;border:1px solid #26344a;
+  border-radius:16px;font:14px -apple-system,BlinkMacSystemFont,Arial,sans-serif">
+  <h2 style="margin-top:0">⚡ TradePilot · 15 Saniye Demo</h2>
+  <p style="color:#94a3b8">
+    Yeni 1 dakikalık mum açıldığında sinyal değerlendirir.
+    Yalnızca sanal sonuç üretir; gerçek emir göndermez.
+  </p>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
+    <div style="flex:1;min-width:120px;padding:12px;background:#0a1220;border-radius:10px">
+      <small style="color:#94a3b8">Sanal bakiye</small>
+      <div id="tp15bal" style="font-size:22px;font-weight:bold">$1,000.00</div>
+    </div>
+    <div style="flex:1;min-width:120px;padding:12px;background:#0a1220;border-radius:10px">
+      <small style="color:#94a3b8">Doğru sinyal</small>
+      <div id="tp15rate" style="font-size:22px;font-weight:bold">—</div>
+    </div>
+    <div style="flex:1;min-width:120px;padding:12px;background:#0a1220;border-radius:10px">
+      <small style="color:#94a3b8">Tamamlanan tahmin</small>
+      <div id="tp15count" style="font-size:22px;font-weight:bold">0</div>
+    </div>
+  </div>
+
+  <label for="tp15symbol">Varlık</label>
+  <select id="tp15symbol" style="padding:10px;margin:8px;background:#26344b;color:white;border-radius:8px">
+    <option value="BTCUSDT">BTC / USDT</option>
+    <option value="ETHUSDT">ETH / USDT</option>
+    <option value="BNBUSDT">BNB / USDT</option>
+    <option value="SOLUSDT">SOL / USDT</option>
+    <option value="XRPUSDT">XRP / USDT</option>
+  </select>
+
+  <button id="tp15start" style="padding:11px 14px;border:0;border-radius:9px;background:#21d6a1;font-weight:bold">
+    Demo tahminini başlat
+  </button>
+  <button id="tp15stop" style="padding:11px 14px;border:0;border-radius:9px;background:#26344b;color:white">
+    Durdur
+  </button>
+
+  <p id="tp15status" style="color:#94a3b8;line-height:1.5">Başlatılmayı bekliyor.</p>
+  <div style="overflow:auto">
+    <table style="width:100%;border-collapse:collapse;text-align:left">
+      <thead><tr>
+        <th style="padding:8px">Saat</th>
+        <th style="padding:8px">Tahmin</th>
+        <th style="padding:8px">Giriş</th>
+        <th style="padding:8px">15 sn sonra</th>
+        <th style="padding:8px">Sonuç</th>
+      </tr></thead>
+      <tbody id="tp15history"></tbody>
+    </table>
+  </div>
+  <p style="font-size:11px;color:#94a3b8">
+    Bu deneysel modül Binance fiyatlarını kullanır. Binomo Crypto IDX fiyatıyla aynı olduğu varsayılmaz.
+    Başarı garantisi yoktur. Ekran arka plana alındığında telefon zamanlayıcıları gecikebilir.
+  </p>
+</section>
+
+<script>
+(() => {
+  'use strict';
+
+  const KEY = 'tradepilot_15s_demo_v1';
+  const $ = id => document.getElementById(id);
+  let running = false;
+  let timer = null;
+  let lastMinute = null;
+  let pending = null;
+  let busy = false;
+
+  let data;
+  try {
+    data = JSON.parse(localStorage.getItem(KEY));
+  } catch (_) {}
+
+  if (!data || typeof data.balance !== 'number') {
+    data = { balance: 1000, correct: 0, total: 0, history: [] };
+  }
+  if (!Array.isArray(data.history)) data.history = [];
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (_) {}
+  }
+
+  function fmt(n) {
+    return Number(n).toLocaleString('en-US', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    });
+  }
+
+  function paint() {
+    $('tp15bal').textContent = '$' + fmt(data.balance);
+    $('tp15count').textContent = data.total;
+    $('tp15rate').textContent = data.total
+      ? (100 * data.correct / data.total).toFixed(1) + '%'
+      : '—';
+
+    $('tp15history').innerHTML = data.history.slice(0, 20).map(x =>
+      `<tr>
+        <td style="padding:8px;border-top:1px solid #26344a">${x.time}</td>
+        <td style="padding:8px;border-top:1px solid #26344a">${x.side}</td>
+        <td style="padding:8px;border-top:1px solid #26344a">${x.entry}</td>
+        <td style="padding:8px;border-top:1px solid #26344a">${x.exit}</td>
+        <td style="padding:8px;border-top:1px solid #26344a;color:${x.result === 'Doğru' ? '#21d6a1' : x.result === 'Yanlış' ? '#ff647c' : '#94a3b8'}">${x.result}</td>
+      </tr>`
+    ).join('');
+  }
+
+  async function getJSON(url) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7000);
+    try {
+      const r = await fetch(url, {
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      if (!r.ok) throw Error('HTTP ' + r.status);
+      return await r.json();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function getPrice(symbol) {
+    const path = '/api/v3/ticker/price?symbol=' + symbol;
+    let d;
+    try {
+      d = await getJSON('https://data-api.binance.vision' + path);
+    } catch (_) {
+      d = await getJSON('https://api.binance.com' + path);
+    }
+    const price = Number(d.price);
+    if (!Number.isFinite(price) || price <= 0) throw Error('Geçersiz fiyat');
+    return price;
+  }
+
+  async function getCandles(symbol) {
+    const path = '/api/v3/klines?symbol=' + symbol + '&interval=1m&limit=40';
+    let d;
+    try {
+      d = await getJSON('https://data-api.binance.vision' + path);
+    } catch (_) {
+      d = await getJSON('https://api.binance.com' + path);
+    }
+    return d.map(c => ({
+      time: Number(c[0]),
+      open: Number(c[1]),
+      close: Number(c[4])
+    }));
+  }
+
+  function ema(values, period) {
+    if (values.length < period) return null;
+    let v = values.slice(0, period).reduce((a,b) => a+b, 0) / period;
+    const k = 2 / (period + 1);
+    for (let i = period; i < values.length; i++) {
+      v = values[i] * k + v * (1-k);
+    }
+    return v;
+  }
+
+  function rsi(values, period = 14) {
+    if (values.length <= period) return null;
+    let up = 0, down = 0;
+    for (let i = values.length-period; i < values.length; i++) {
+      const delta = values[i] - values[i-1];
+      if (delta > 0) up += delta;
+      else down -= delta;
+    }
+    if (down === 0) return up === 0 ? 50 : 100;
+    const rs = (up/period) / (down/period);
+    return 100 - 100/(1+rs);
+  }
+
+  function chooseSignal(candles) {
+    // Sadece kapanmış mumları kullan; açık mumdan gelecek bilgiyi kullanma.
+    const closed = candles.slice(0, -1);
+    const closes = closed.map(c => c.close);
+    if (closes.length < 25) return null;
+
+    const fast = ema(closes, 8);
+    const slow = ema(closes, 21);
+    const strength = rsi(closes, 14);
+    const last = closes[closes.length - 1];
+    const prior = closes[closes.length - 4];
+    const momentum = (last - prior) / prior;
+
+    if (fast > slow && last > fast && strength >= 52 &&
+        strength <= 68 && momentum > 0) return 'YUKARI';
+
+    if (fast < slow && last < fast && strength >= 32 &&
+        strength <= 48 && momentum < 0) return 'AŞAĞI';
+
+    return null;
+  }
+
+  async function tick() {
+    if (!running || busy) return;
+    busy = true;
+
+    try {
+      const symbol = $('tp15symbol').value;
+      const candles = await getCandles(symbol);
+      const currentMinute = candles[candles.length - 1].time;
+
+      // Her yeni 1 dakikalık mumda en fazla bir tahmin.
+      if (lastMinute === currentMinute) {
+        $('tp15status').textContent = 'Yeni mum bekleniyor. Son kontrol: ' +
+          new Date().toLocaleTimeString('tr-TR');
+        return;
+      }
+      lastMinute = currentMinute;
+
+      const side = chooseSignal(candles);
+      if (!side) {
+        $('tp15status').textContent =
+          'Yeni mum algılandı; güçlü sinyal yok. İşlem açılmadı.';
+        return;
+      }
+
+      const entry = await getPrice(symbol);
+      pending = { symbol, side, entry, started: Date.now() };
+      $('tp15status').textContent =
+        side + ' sinyali · giriş $' + entry + ' · 15 saniye izleniyor…';
+
+      const thisPending = pending;
+      setTimeout(async () => {
+        if (!running || pending !== thisPending) return;
+        try {
+          const exit = await getPrice(thisPending.symbol);
+          const result = exit === thisPending.entry
+            ? 'Berabere'
+            : ((thisPending.side === 'YUKARI' && exit > thisPending.entry) ||
+               (thisPending.side === 'AŞAĞI' && exit < thisPending.entry))
+              ? 'Doğru' : 'Yanlış';
+
+          data.total++;
+          if (result === 'Doğru') data.correct++;
+
+          data.history.unshift({
+            time: new Date().toLocaleTimeString('tr-TR'),
+            side: thisPending.side,
+            entry: thisPending.entry,
+            exit: exit,
+            result
+          });
+          data.history = data.history.slice(0, 100);
+          pending = null;
+          save();
+          paint();
+          $('tp15status').textContent =
+            '15 saniyelik sonuç: ' + result + ' · ' +
+            thisPending.side + ' · çıkış $' + exit;
+        } catch (e) {
+          $('tp15status').textContent =
+            'Son fiyat alınamadı; bu tahmin puanlanmadı. Yeniden bağlanmayı dene.';
+          pending = null;
+        }
+      }, 15000);
+
+    } catch (e) {
+      $('tp15status').textContent =
+        'Veri alınamadı. Bağlantını kontrol et; sistem yeniden deneyecek.';
+    } finally {
+      busy = false;
+    }
+  }
+
+  $('tp15start').onclick = () => {
+    if (running) return;
+    running = true;
+    lastMinute = null;
+    $('tp15status').textContent = 'Demo başlatıldı; yeni mum bekleniyor…';
+    tick();
+    timer = setInterval(tick, 3000);
+  };
+
+  $('tp15stop').onclick = () => {
+    running = false;
+    clearInterval(timer);
+    timer = null;
+    pending = null;
+    $('tp15status').textContent =
+      'Demo durduruldu. Kaydedilen sonuçlar korunuyor.';
+  };
+
+  paint();
+})();
+</script>
 </body>
+   
 </html>
