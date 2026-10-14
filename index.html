@@ -1,683 +1,163 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#08111f">
-<title>TradePilot | Demo Trading</title>
+<title>TradePilot | Pocket Demo</title>
 <style>
-:root{color-scheme:dark;--bg:#08111f;--panel:#101d30;--panel2:#14243a;--line:#24354c;--text:#edf4ff;--muted:#91a4bd;--green:#28d69a;--red:#ff6177;--blue:#66aaff;--gold:#ffd166}
+:root{color-scheme:dark;--bg:#08111f;--panel:#101d30;--line:#263950;--text:#edf4ff;--muted:#91a4bd;--green:#28d69a;--red:#ff6177;--gold:#ffd166}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{padding:18px 16px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
-.brand{font-size:23px;font-weight:850;letter-spacing:-.8px}.brand span{color:var(--green)}
-.sub{color:var(--muted);font-size:11px;margin-top:4px}
-.pill{border:1px solid var(--line);padding:7px 10px;border-radius:20px;color:var(--muted);font-size:11px;white-space:nowrap}
-main{max-width:1100px;margin:auto;padding:14px;display:grid;gap:13px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.panel,.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px}
-.stat{padding:13px;min-width:0}.stat .label{font-size:11px;color:var(--muted);margin-bottom:9px}
-.stat .value{font-size:clamp(16px,3vw,23px);font-weight:750;overflow-wrap:anywhere}
-.green{color:var(--green)!important}.red{color:var(--red)!important}.muted{color:var(--muted)}
-.panel{padding:14px;min-width:0}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}
-h2{font-size:15px;margin:0;font-weight:750}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-select,button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);padding:10px 12px;border-radius:9px}
-button{cursor:pointer;font-weight:700}
-button:disabled{opacity:.45;cursor:not-allowed}
-.primary{background:#176c58;border-color:#258d72}.danger{background:#612737;border-color:#8c3d50}
-.chart-wrap{height:280px;position:relative;width:100%;overflow:hidden}
-canvas{width:100%;height:100%;display:block}
-.price-line{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}
-.big-price{font-size:24px;font-weight:800}
-.chip{display:inline-block;border-radius:7px;padding:4px 7px;font-size:11px;background:var(--panel2);border:1px solid var(--line)}
-.status{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
-th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
-th{font-weight:600;color:var(--muted)}
-.signal-buy{color:var(--green);font-weight:800}.signal-sell{color:var(--red);font-weight:800}
-.signal-none{color:var(--muted)}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.small{font-size:11px;color:var(--muted);line-height:1.5}
-.badge{font-size:10px;border-radius:5px;padding:4px 6px;background:#1b3047;color:#c2d6ef}
-#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#20334a;border:1px solid #40536a;padding:11px 15px;border-radius:10px;max-width:90%;z-index:10;display:none}
-footer{padding:0 16px 22px;text-align:center;color:var(--muted);font-size:11px}
-@media(max-width:650px){
- main{padding:10px;gap:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .stat{padding:11px}.panel{padding:12px}.chart-wrap{height:240px}
- header{padding:15px 12px}.brand{font-size:21px}
-}
+header{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.brand{font-size:23px;font-weight:850}.brand span{color:var(--green)}
+small,.muted{color:var(--muted);font-size:11px}
+main{max-width:1100px;margin:auto;padding:12px;display:grid;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.panel,.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.panel{padding:13px;min-width:0}.stat{padding:12px;min-width:0}
+.label{font-size:11px;color:var(--muted);margin-bottom:8px}
+.value{font-size:clamp(17px,3vw,22px);font-weight:750;overflow-wrap:anywhere}
+.green,.callText{color:var(--green)}.red,.putText{color:var(--red)}.gold{color:var(--gold)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+h2{font-size:15px;margin:0}
+button,select,input{font:inherit;color:var(--text);background:#14243a;border:1px solid var(--line);border-radius:8px;padding:10px}
+button{cursor:pointer;font-weight:700}button:disabled{opacity:.45;cursor:not-allowed}
+.actions,.controls{display:flex;gap:8px;flex-wrap:wrap}
+.primary{background:#176c58}.danger,.put{background:#612737}.call{background:#176c58}
+.price{font-size:25px;font-weight:800;margin:8px 0}
+canvas{width:100%;height:240px;display:block}
+.tableWrap{overflow-x:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}
+th,td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+.notice{padding:11px;border:1px solid #6b5725;background:#302817;color:#f8dda0;border-radius:9px;font-size:12px;line-height:1.5}
+.formGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.formGrid label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.formGrid input{width:100%}
+#toast{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#20334a;border:1px solid #40536a;padding:12px;border-radius:10px;z-index:9}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:0 12px 20px}
+@media(max-width:650px){main{padding:8px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.formGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:10px}header{padding:12px}.brand{font-size:21px}}
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <div class="brand">Trade<span>Pilot</span></div>
-    <div class="sub">Canlı piyasa · Akıllı sinyal sıralaması · Demo işlemler</div>
-  </div>
-  <div class="pill" id="connection">Veri bağlantısı bekleniyor</div>
+ <div><div class="brand">Trade<span>Pilot</span></div><small>Pocket Option için sinyal ve sanal demo</small></div>
+ <div id="connection" class="muted">Veri bekleniyor</div>
 </header>
-
 <main>
-  <div class="grid">
-    <div class="stat"><div class="label">Demo bakiye</div><div class="value" id="balance">$1,000.00</div></div>
-    <div class="stat"><div class="label">Net toplam K/Z</div><div class="value" id="totalPnl">$0.00</div></div>
-    <div class="stat"><div class="label">Açık pozisyon</div><div class="value" id="openCount">0</div></div>
-    <div class="stat"><div class="label">Açık net K/Z</div><div class="value" id="openPnl">$0.00</div></div>
+ <div class="notice">
+  <b>Demo modu:</b> Bu uygulama Pocket Option'a bağlanmaz ve gerçek emir göndermez.
+  Coinbase Exchange fiyatları kullanılır; Pocket Option fiyatlarıyla aynı olmayabilir.
+  15 saniyelik işlemler sanal simülasyondur. Kazanç garantisi yoktur.
+ </div>
+ <div class="grid">
+  <div class="stat"><div class="label">Sanal bakiye</div><div class="value" id="balance">$1,000.00</div></div>
+  <div class="stat"><div class="label">Toplam net K/Z</div><div class="value" id="pnl">$0.00</div></div>
+  <div class="stat"><div class="label">Açık işlemler</div><div class="value" id="openCount">0</div></div>
+  <div class="stat"><div class="label">Kazanma oranı</div><div class="value" id="winRate">—</div></div>
+ </div>
+ <section class="panel">
+  <div class="head"><h2>Canlı fiyat ve mum grafiği</h2>
+   <select id="symbol"></select>
   </div>
-
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Canlı mum grafiği</h2>
-      <div class="controls">
-        <select id="symbolSelect" aria-label="Parite">
-          <option>BTCUSDT</option><option>ETHUSDT</option><option>BNBUSDT</option>
-          <option>SOLUSDT</option><option>XRPUSDT</option><option>ADAUSDT</option>
-          <option>DOGEUSDT</option><option>AVAXUSDT</option><option>LINKUSDT</option>
-          <option>DOTUSDT</option><option>LTCUSDT</option><option>TRXUSDT</option>
-        </select>
-        <select id="intervalSelect" aria-label="Mum aralığı">
-          <option value="1m">1 dakika</option>
-          <option value="3m">3 dakika</option>
-          <option value="5m">5 dakika</option>
-          <option value="15m">15 dakika</option>
-        </select>
-      </div>
-    </div>
-    <div class="price-line">
-      <span class="big-price" id="chartPrice">--</span>
-      <span class="chip" id="chartChange">Canlı fiyat bekleniyor</span>
-      <span class="chip" id="chartPair">BTCUSDT</span>
-    </div>
-    <div class="chart-wrap"><canvas id="chart"></canvas></div>
-    <div class="small" id="chartStatus">Mum verisi yükleniyor…</div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Otomatik demo işlem</h2>
-      <span class="badge">12 parite taraması</span>
-    </div>
-    <div class="grid">
-      <div class="stat"><div class="label">İşlem tutarı</div><div class="value">$100</div></div>
-      <div class="stat"><div class="label">Net kâr hedefi</div><div class="value green">+$1.00</div></div>
-      <div class="stat"><div class="label">Net zarar sınırı</div><div class="value red">−$2.00</div></div>
-      <div class="stat"><div class="label">Komisyon</div><div class="value">%0,1 + %0,1</div></div>
-    </div>
-    <div class="actions" style="margin-top:12px">
-      <button class="primary" id="startBtn">Otomatik işlemi başlat</button>
-      <button id="stopBtn" disabled>Otomatiği durdur</button>
-      <button class="danger" id="closeAllBtn">Tüm pozisyonları kapat</button>
-      <button id="resetBtn">Demo hesabını sıfırla</button>
-    </div>
-    <p class="status" id="autoStatus" style="margin-bottom:0">Otomatik işlem kapalı. Canlı piyasa verisi bekleniyor.</p>
-    <p class="small">Tarama, 12 paritenin tamamını karşılaştırır ve yeterince güçlü sinyal varsa en yüksek puanlı tek adayı seçer. İşlem açmak için uygun sinyal yoksa bekler.</p>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <h2>En güçlü sinyaller</h2>
-      <span class="small" id="scanTime">Henüz taranmadı</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Parite</th><th>Fiyat</th><th>Sinyal</th><th>Puan</th><th>RSI</th><th>Momentum</th></tr></thead>
-        <tbody id="signalsBody"><tr><td colspan="6" class="muted">Piyasa verisi yükleniyor…</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><h2>Açık pozisyonlar</h2><span class="small">Komisyon sonrası net K/Z</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Parite</th><th>Yön</th><th>Giriş</th><th>Son fiyat</th><th>Net K/Z</th><th>İşlem</th></tr></thead>
-        <tbody id="positionsBody"><tr><td colspan="6" class="muted">Açık pozisyon yok.</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><h2>İşlem geçmişi</h2><span class="small" id="tradeCount">0 işlem</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Saat</th><th>Parite</th><th>Yön</th><th>Giriş</th><th>Çıkış</th><th>Komisyon</th><th>Net K/Z</th><th>Neden</th></tr></thead>
-        <tbody id="historyBody"><tr><td colspan="8" class="muted">Henüz kapanan işlem yok.</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-  <section class="panel">
-    <h2>İşlem ve komisyon ayarları</h2>
-    <div class="grid" style="margin-top:12px">
-      <div><div class="small">Demo başlangıç bakiyesi ($)</div><input id="initialBalance" type="number" min="100" step="100" value="1000" style="width:100%;margin-top:6px"></div>
-      <div><div class="small">İşlem başı tutar ($)</div><input id="orderSize" type="number" min="10" step="10" value="100" style="width:100%;margin-top:6px"></div>
-      <div><div class="small">Her yön komisyonu (%)</div><input id="feeRate" type="number" min="0" max="2" step="0.01" value="0.1" style="width:100%;margin-top:6px"></div>
-      <div><div class="small">Maksimum açık tutar ($)</div><input id="maxExposure" type="number" min="100" step="50" value="750" style="width:100%;margin-top:6px"></div>
-    </div>
-    <p class="small">Ayarlar yeni işlemlere uygulanır. Kâr hedefi +1 USD, zarar sınırı −2 USD olarak tanımlıdır. Komisyon oranı, demo varsayımıdır; gerçek hesap oranını garanti etmez.</p>
-  </section>
+  <div class="price" id="price">--</div>
+  <div class="muted" id="chartStatus">Fiyat verisi yükleniyor…</div>
+  <canvas id="chart"></canvas>
+  <div class="actions">
+   <button class="call" id="callBtn">CALL / YUKARI</button>
+   <button class="put" id="putBtn">PUT / AŞAĞI</button>
+  </div>
+ </section>
+ <section class="panel">
+  <div class="head"><h2>Otomatik demo simülasyonu</h2><small>15 saniye vade</small></div>
+  <div class="grid">
+   <div class="stat"><div class="label">İşlem tutarı</div><div class="value" id="stakeShow">$10</div></div>
+   <div class="stat"><div class="label">Ödeme oranı</div><div class="value" id="payoutShow">80%</div></div>
+   <div class="stat"><div class="label">Vade</div><div class="value">15 sn</div></div>
+   <div class="stat"><div class="label">Sinyal eşiği</div><div class="value">55/100</div></div>
+  </div>
+  <div class="actions" style="margin-top:12px">
+   <button class="primary" id="startBtn">Otomatik demo başlat</button>
+   <button id="stopBtn" disabled>Durdur</button>
+   <button class="danger" id="resetBtn">Demo hesabını sıfırla</button>
+  </div>
+  <p id="autoStatus" class="muted">Otomatik mod kapalı.</p>
+  <small>En güçlü sinyal seçilir. Aynı varlıkta aynı anda ikinci işlem açılmaz. Gerçek platforma emir gönderilmez.</small>
+ </section>
+ <section class="panel">
+  <div class="head"><h2>En güçlü sinyaller</h2><small id="scanTime">Tarama bekleniyor</small></div>
+  <div class="tableWrap"><table>
+   <thead><tr><th>Varlık</th><th>Fiyat</th><th>Sinyal</th><th>Puan</th><th>RSI</th><th>Momentum</th></tr></thead>
+   <tbody id="signals"><tr><td colspan="6">Veri yükleniyor…</td></tr></tbody>
+  </table></div>
+ </section>
+ <section class="panel">
+  <div class="head"><h2>Açık demo işlemleri</h2><small>Vade sonunda sonuçlanır</small></div>
+  <div class="tableWrap"><table>
+   <thead><tr><th>Varlık</th><th>Yön</th><th>Giriş</th><th>Son fiyat</th><th>Kalan</th></tr></thead>
+   <tbody id="positions"><tr><td colspan="5">Açık işlem yok.</td></tr></tbody>
+  </table></div>
+ </section>
+ <section class="panel">
+  <div class="head"><h2>İşlem geçmişi</h2><small id="tradeCount">0 işlem</small></div>
+  <div class="tableWrap"><table>
+   <thead><tr><th>Saat</th><th>Varlık</th><th>Yön</th><th>Giriş</th><th>Çıkış</th><th>Sonuç</th><th>Net K/Z</th></tr></thead>
+   <tbody id="history"><tr><td colspan="7">Henüz işlem yok.</td></tr></tbody>
+  </table></div>
+ </section>
+ <section class="panel">
+  <h2>Demo ayarları</h2>
+  <div class="formGrid" style="margin-top:12px">
+   <div><label for="initial">Başlangıç bakiyesi ($)</label><input id="initial" type="number" min="10" step="10" value="1000"></div>
+   <div><label for="stake">İşlem tutarı ($)</label><input id="stake" type="number" min="1" step="1" value="10"></div>
+   <div><label for="payout">Kazanç ödeme oranı (%)</label><input id="payout" type="number" min="1" max="100" value="80"></div>
+   <div><label for="maxOpen">Maksimum açık işlem</label><input id="maxOpen" type="number" min="1" max="12" value="3"></div>
+  </div>
+  <p class="muted">Kazanç: tutar × ödeme oranı. Kayıp: işlem tutarının tamamı. Beraberlikte net sonuç sıfırdır. Ödeme oranı örnektir; platform oranı değildir.</p>
+ </section>
 </main>
-<footer>TradePilot Demo · Gerçek emir gönderilmez · Kâr garantisi yoktur</footer>
+<footer>TradePilot · Sanal simülasyon · Gerçek emir yok · Kâr garantisi yok</footer>
 <div id="toast"></div>
-
 <script>
 "use strict";
-
-const SYMBOLS=[
- "BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","ADAUSDT",
- "DOGEUSDT","AVAXUSDT","LINKUSDT","DOTUSDT","LTCUSDT","TRXUSDT"
-];
-const FEE_DEFAULT=0.001;
-const TAKE_PROFIT=1;
-const STOP_LOSS=-2;
-const STORAGE_KEY="tradepilot_demo_v3";
-
-let state={
- balance:1000,initialBalance:1000,orderSize:100,maxExposure:750,
- auto:false,positions:[],history:[],totalRealized:0,
-};
-let prices={};
-let candles=[];
-let signals=[];
-let scanning=false;
-let scanTimer=null;
-let priceTimer=null;
-let ws=null;
-let wsRetry=null;
-let chartRequest=0;
-let lastScannedCandle={};
-let lastScanAt=0;
-let dataHealthy=false;
-let closing=new Set();
-
+const ASSETS=["BTC-USD","ETH-USD","SOL-USD","XRP-USD","ADA-USD","DOGE-USD","AVAX-USD","LINK-USD","DOT-USD","LTC-USD","BCH-USD","TRX-USD"];
+const STORE="tradepilot_pocket_demo_v1";
 const $=id=>document.getElementById(id);
 const money=n=>(n<0?"−":"")+"$"+Math.abs(Number(n||0)).toFixed(2);
-const fmtPrice=n=>{
- if(!Number.isFinite(Number(n)))return "--";
- const v=Number(n);
- return v>=1000?v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):
- v>=1?v.toFixed(4):v.toFixed(7);
-};
-const timeStr=t=>new Date(t).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-function toast(msg){
- const el=$("toast");el.textContent=msg;el.style.display="block";
- clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.display="none",2800);
-}
-function getFeeRate(){
- const n=Number($("feeRate").value);
- return Number.isFinite(n)&&n>=0?Math.min(n/100,0.02):FEE_DEFAULT;
-}
-function persist(){
- try{
-  localStorage.setItem(STORAGE_KEY,JSON.stringify({
-   balance:state.balance,initialBalance:state.initialBalance,
-   orderSize:state.orderSize,maxExposure:state.maxExposure,
-   positions:state.positions,history:state.history,
-   totalRealized:state.totalRealized
-  }));
- }catch(e){}
-}
-function loadSaved(){
- try{
-  const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");
-  if(!d)return;
-  if(Number.isFinite(d.balance))state.balance=d.balance;
-  if(Number.isFinite(d.initialBalance))state.initialBalance=d.initialBalance;
-  if(Number.isFinite(d.orderSize))state.orderSize=d.orderSize;
-  if(Number.isFinite(d.maxExposure))state.maxExposure=d.maxExposure;
-  if(Array.isArray(d.positions))state.positions=d.positions;
-  if(Array.isArray(d.history))state.history=d.history;
-  if(Number.isFinite(d.totalRealized))state.totalRealized=d.totalRealized;
- }catch(e){}
-}
-function usedExposure(){
- return state.positions.reduce((sum,p)=>sum+p.amount,0);
-}
-function openFee(amount){return amount*getFeeRate();}
-function estimateNet(p,price){
- const direction=p.side==="BUY"?1:-1;
- const gross=(price-p.entry)*direction*(p.amount/p.entry);
- const exitFee=p.amount*(price/p.entry)*getFeeRate();
- return gross-(p.entryFee||0)-exitFee;
-}
-function setConnection(ok,msg){
- dataHealthy=ok;
- $("connection").textContent=msg;
- $("connection").style.color=ok?"var(--green)":"var(--gold)";
-}
-function apiBases(){
- return ["https://data-api.binance.vision","https://api.binance.com"];
-}
-async function fetchJSON(path){
- let lastError;
- for(const base of apiBases()){
-  try{
-   const controller=new AbortController();
-   const timeout=setTimeout(()=>controller.abort(),9000);
-   const response=await fetch(base+path,{signal:controller.signal,cache:"no-store"});
-   clearTimeout(timeout);
-   if(!response.ok)throw new Error("HTTP "+response.status);
-   return await response.json();
-  }catch(e){lastError=e;}
- }
- throw lastError||new Error("Piyasa verisi alınamadı");
-}
-async function getCandles(symbol,interval="1m",limit=100){
- const data=await fetchJSON("/api/v3/klines?symbol="+encodeURIComponent(symbol)+
- "&interval="+encodeURIComponent(interval)+"&limit="+limit);
- return data.map(k=>({t:Number(k[0]),o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5],closeTime:+k[6]}));
-}
-async function getPrice(symbol){
- try{
-  const d=await fetchJSON("/api/v3/ticker/price?symbol="+encodeURIComponent(symbol));
-  const p=Number(d.price);
-  if(!Number.isFinite(p)||p<=0)throw new Error("Geçersiz fiyat");
-  prices[symbol]=p;
-  return p;
- }catch(e){
-  if(Number.isFinite(prices[symbol]))return prices[symbol];
-  throw e;
- }
-}
-function ema(values,period){
- if(values.length<period)return null;
- const k=2/(period+1);
- let result=values.slice(0,period).reduce((a,b)=>a+b,0)/period;
- for(let i=period;i<values.length;i++)result=values[i]*k+result*(1-k);
- return result;
-}
-function rsi(values,period=14){
- if(values.length<=period)return 50;
- let gains=0,losses=0;
- for(let i=values.length-period;i<values.length;i++){
-  const d=values[i]-values[i-1];
-  if(d>0)gains+=d;else losses-=d;
- }
- if(losses===0)return 100;
- return 100-(100/(1+gains/losses));
-}
-function analyzeCandles(cs){
- if(!cs||cs.length<35)return {side:null,score:0,rsi:50,momentum:0,reason:"Yetersiz veri"};
- const closed=cs.slice(0,-1);
- const closes=closed.map(c=>c.c);
- const fast=ema(closes.slice(-50),8);
- const slow=ema(closes.slice(-60),21);
- const last=closes[closes.length-1];
- const previous=closes[closes.length-4];
- const momentum=previous?(last-previous)/previous:0;
- const rv=rsi(closes,14);
- const candle=closed[closed.length-1];
- const range=Math.max(candle.h-candle.l,Number.EPSILON);
- const body=(candle.c-candle.o)/Math.max(candle.o,Number.EPSILON);
- const separation=slow?(fast-slow)/slow:0;
- const trendUp=fast>slow&&last>fast;
- const trendDown=fast<slow&&last<fast;
- let buy=0,sell=0;
- if(trendUp)buy+=30;
- if(trendDown)sell+=30;
- if(momentum>0)buy+=Math.min(25,momentum*10000);
- if(momentum<0)sell+=Math.min(25,Math.abs(momentum)*10000);
- if(separation>0)buy+=Math.min(20,separation*20000);
- if(separation<0)sell+=Math.min(20,Math.abs(separation)*20000);
- if(rv>=53&&rv<=69)buy+=15;
- if(rv>=31&&rv<=47)sell+=15;
- if(body>0)buy+=Math.min(10,body/range*10);
- if(body<0)sell+=Math.min(10,Math.abs(body)/range*10);
- buy=Math.min(100,Math.round(buy));
- sell=Math.min(100,Math.round(sell));
- const buyValid=trendUp&&rv>=53&&rv<=70&&momentum>=0.00015&&separation>=0.0001;
- const sellValid=trendDown&&rv>=30&&rv<=47&&momentum<=-0.00015&&separation<=-0.0001;
- let side=null,score=0;
- if(buyValid&&buy>=50){side="BUY";score=buy;}
- if(sellValid&&sell>=50&&sell>score){side="SELL";score=sell;}
- return {side,score,rsi:rv,momentum,separation,fast,slow,last,reason:side? "Trend + momentum":"Yeterli güç yok"};
-}
-async function getSignalFor(symbol){
- const cs=await getCandles(symbol,"1m",100);
- const result=analyzeCandles(cs);
- result.symbol=symbol;
- result.price=cs.length?cs[cs.length-1].c:prices[symbol];
- result.candleTime=cs.length?cs[cs.length-1].t:0;
- return result;
-}
-function updateSignalsTable(){
- const sorted=[...signals].sort((a,b)=>b.score-a.score);
- $("signalsBody").innerHTML=sorted.map(s=>{
-  const side=s.side==="BUY"?"AL":s.side==="SELL"?"SAT":"BEKLE";
-  const cls=s.side==="BUY"?"signal-buy":s.side==="SELL"?"signal-sell":"signal-none";
-  return `<tr><td>${s.symbol}</td><td>${fmtPrice(s.price)}</td><td class="${cls}">${side}</td><td>${s.score}/100</td><td>${Number(s.rsi||0).toFixed(1)}</td><td class="${s.momentum>=0?"green":"red"}">${(Number(s.momentum||0)*100).toFixed(3)}%</td></tr>`;
- }).join("")||'<tr><td colspan="6" class="muted">Henüz sinyal yok.</td></tr>';
-}
-async function scanMarkets(){
- if(!state.auto||scanning)return;
- scanning=true;
- $("autoStatus").textContent="12 parite karşılaştırılıyor; en güçlü sinyal aranıyor…";
- try{
-  const results=[];
-  // Tüm piyasaları karşılaştır; tarama sırasındaki ilk sinyale göre karar verme.
-  for(const symbol of SYMBOLS){
-   if(!state.auto)break;
-   try{
-    const s=await getSignalFor(symbol);
-    results.push(s);
-    if(Number.isFinite(s.price))prices[symbol]=s.price;
-   }catch(e){
-    results.push({symbol,side:null,score:0,rsi:0,momentum:0,price:prices[symbol],reason:"Veri alınamadı"});
-   }
-  }
-  if(results.length){
-   signals=results;
-   updateSignalsTable();
-   $("scanTime").textContent="Son tarama: "+timeStr(Date.now());
-  }
-  if(!state.auto)return;
-  const eligible=results.filter(s=>s.side&&s.score>=50)
-   .filter(s=>!state.positions.some(p=>p.symbol===s.symbol))
-   .sort((a,b)=>b.score-a.score);
-  const candidate=eligible[0];
-  if(!candidate){
-   $("autoStatus").textContent="Tarama tamamlandı. Güçlü, uygun ve yeni bir sinyal yok; bekleniyor.";
-   return;
-  }
-  // Aynı açık mumda aynı parite için tekrar giriş yapılmasını engelle.
-  if(lastScannedCandle[candidate.symbol]===candidate.candleTime){
-   $("autoStatus").textContent="En güçlü aday "+candidate.symbol+"; bu mumda zaten değerlendirildi. Yeni mum bekleniyor.";
-   return;
-  }
-  lastScannedCandle[candidate.symbol]=candidate.candleTime;
-  if(usedExposure()+state.orderSize>state.maxExposure+1e-8){
-   $("autoStatus").textContent="En güçlü aday: "+candidate.symbol+" ("+candidate.score+"/100). Açık tutar limiti dolu.";
-   return;
-  }
-  const p=await getPrice(candidate.symbol);
-  openPosition(candidate.side,candidate.symbol,p,"Otomatik demo · "+candidate.score+"/100");
-  $("autoStatus").textContent="Seçilen en güçlü sinyal: "+candidate.symbol+" "+candidate.side+" · "+candidate.score+"/100";
- }catch(e){
-  $("autoStatus").textContent="Tarama hatası: "+e.message;
- }finally{
-  scanning=false;
- }
-}
-function openPosition(side,symbol,price,source="Manuel demo"){
- if(!["BUY","SELL"].includes(side)||!Number.isFinite(price)||price<=0)return false;
- if(state.positions.some(p=>p.symbol===symbol)){
-  toast(symbol+" için zaten açık pozisyon var.");return false;
- }
- const amount=Number(state.orderSize);
- if(!Number.isFinite(amount)||amount<=0){toast("İşlem tutarını kontrol et.");return false;}
- if(usedExposure()+amount>state.maxExposure+1e-8){toast("Maksimum açık tutar sınırına ulaşıldı.");return false;}
- const entryFee=amount*getFeeRate();
- if(state.balance<amount+entryFee){toast("Bakiye, işlem tutarı ve giriş komisyonu için yetersiz.");return false;}
- const p={
-  id:Date.now()+"_"+Math.random().toString(36).slice(2,8),
-  symbol,side,entry:price,price,amount,entryFee,
-  openedAt:Date.now(),source
- };
- // Sanal teminat ve giriş komisyonu düşülür; kapanışta teminat ve çıkış sonucu geri eklenir.
- state.balance-=amount+entryFee;
- state.positions.push(p);
- persist();renderAll();
- toast(symbol+" "+side+" demo pozisyonu açıldı.");
- return true;
-}
-function closePosition(id,reason="Manuel kapatma",priceOverride=null){
- const p=state.positions.find(x=>x.id===id);
- if(!p||closing.has(id))return;
- const price=Number.isFinite(priceOverride)?priceOverride:prices[p.symbol]||p.price;
- if(!Number.isFinite(price)||price<=0){toast("Kapanış fiyatı henüz alınamadı.");return;}
- closing.add(id);
- const gross=(price-p.entry)*(p.side==="BUY"?1:-1)*(p.amount/p.entry);
- const exitFee=p.amount*(price/p.entry)*getFeeRate();
- const net=gross-(p.entryFee||0)-exitFee;
- // Giriş komisyonu açılışta düşüldü; burada yalnızca teminat ve çıkış sonucu eklenir.
- state.balance+=p.amount+gross-exitFee;
- state.totalRealized+=net;
- state.positions=state.positions.filter(x=>x.id!==id);
- state.history.unshift({
-  time:Date.now(),symbol:p.symbol,side:p.side,entry:p.entry,exit:price,
-  fees:(p.entryFee||0)+exitFee,net,reason
- });
- state.history=state.history.slice(0,200);
- closing.delete(id);
- persist();renderAll();
- toast(p.symbol+" kapandı · Net "+money(net));
-}
-function closeAll(){
- for(const p of [...state.positions]){
-  const price=prices[p.symbol]||p.price;
-  closePosition(p.id,"Toplu manuel kapatma",price);
- }
-}
-async function refreshOpenPrices(){
- const open=[...state.positions];
- for(const p of open){
-  try{
-   const price=await getPrice(p.symbol);
-   p.price=price;
-   const net=estimateNet(p,price);
-   if(net>=TAKE_PROFIT){
-    closePosition(p.id,"Net kâr hedefi",price);
-   }else if(net<=STOP_LOSS){
-    closePosition(p.id,"Net zarar sınırı",price);
-   }
-  }catch(e){
-   // API kesintisinde son geçerli fiyat korunur; geçersiz fiyatla kapanış yapılmaz.
-  }
- }
- renderAll();
-}
-function renderPositions(){
- const body=$("positionsBody");
- if(!state.positions.length){
-  body.innerHTML='<tr><td colspan="6" class="muted">Açık pozisyon yok.</td></tr>';
-  return;
- }
- body.innerHTML=state.positions.map(p=>{
-  const price=prices[p.symbol]||p.price;
-  const net=estimateNet(p,price);
-  return `<tr>
-   <td>${p.symbol}</td>
-   <td class="${p.side==="BUY"?"signal-buy":"signal-sell"}">${p.side}</td>
-   <td>${fmtPrice(p.entry)}</td><td>${fmtPrice(price)}</td>
-   <td class="${net>=0?"green":"red"}">${money(net)}</td>
-   <td><button class="danger" data-close="${p.id}">Kapat</button></td>
-  </tr>`;
- }).join("");
-}
-function renderHistory(){
- $("tradeCount").textContent=state.history.length+" işlem";
- $("historyBody").innerHTML=state.history.slice(0,60).map(h=>
-  `<tr><td>${timeStr(h.time)}</td><td>${h.symbol}</td>
-  <td class="${h.side==="BUY"?"signal-buy":"signal-sell"}">${h.side}</td>
-  <td>${fmtPrice(h.entry)}</td><td>${fmtPrice(h.exit)}</td>
-  <td>${money(h.fees)}</td><td class="${h.net>=0?"green":"red"}">${money(h.net)}</td><td>${h.reason}</td></tr>`
- ).join("")||'<tr><td colspan="8" class="muted">Henüz kapanan işlem yok.</td></tr>';
-}
-function renderAll(){
- const openNet=state.positions.reduce((sum,p)=>sum+estimateNet(p,prices[p.symbol]||p.price),0);
- $("balance").textContent=money(state.balance);
- $("totalPnl").textContent=money(state.totalRealized+openNet);
- $("totalPnl").className="value "+(state.totalRealized+openNet>=0?"green":"red");
- $("openCount").textContent=state.positions.length;
- $("openPnl").textContent=money(openNet);
- $("openPnl").className="value "+(openNet>=0?"green":"red");
- renderPositions();renderHistory();
-}
-function drawChart(){
- const canvas=$("chart"),ctx=canvas.getContext("2d");
- const rect=canvas.getBoundingClientRect();
- if(rect.width<1||rect.height<1)return;
- const dpr=Math.max(1,window.devicePixelRatio||1);
- canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
- ctx.setTransform(dpr,0,0,dpr,0,0);
- const w=rect.width,h=rect.height;
- ctx.clearRect(0,0,w,h);
- ctx.fillStyle="#101d30";ctx.fillRect(0,0,w,h);
- if(!candles.length){
-  ctx.fillStyle="#91a4bd";ctx.font="13px sans-serif";ctx.fillText("Mum verisi bekleniyor…",12,24);return;
- }
- const shown=candles.slice(-65);
- const min=Math.min(...shown.map(c=>c.l)),max=Math.max(...shown.map(c=>c.h));
- const pad={l:8,r:62,t:12,b:20};
- const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
- const range=Math.max(max-min,Number.EPSILON);
- const y=v=>pad.t+(max-v)/range*ch;
- ctx.font="10px sans-serif";ctx.textAlign="left";
- for(let i=0;i<=4;i++){
-  const yy=pad.t+ch*i/4;
-  ctx.strokeStyle="#26384e";ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();
-  const value=max-range*i/4;
-  ctx.fillStyle="#91a4bd";ctx.fillText(fmtPrice(value),w-pad.r+5,yy+3);
- }
- const slot=cw/shown.length;
- const bodyW=Math.max(2,Math.min(9,slot*.65));
- shown.forEach((c,i)=>{
-  const x=pad.l+i*slot+slot/2;
-  const up=c.c>=c.o;
-  ctx.strokeStyle=up?"#28d69a":"#ff6177";
-  ctx.fillStyle=ctx.strokeStyle;
-  ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();
-  const top=y(Math.max(c.o,c.c)),bottom=y(Math.min(c.o,c.c));
-  ctx.fillRect(x-bodyW/2,top,bodyW,Math.max(1,bottom-top));
- });
- const last=shown[shown.length-1].c;
- ctx.strokeStyle="#66aaff";ctx.setLineDash([4,3]);
- ctx.beginPath();ctx.moveTo(pad.l,y(last));ctx.lineTo(w-pad.r,y(last));ctx.stroke();ctx.setLineDash([]);
-}
-async function loadChart(){
- const req=++chartRequest;
- const symbol=$("symbolSelect").value;
- const interval=$("intervalSelect").value;
- $("chartPair").textContent=symbol;
- $("chartStatus").textContent="Mum verisi yükleniyor…";
- try{
-  const cs=await getCandles(symbol,interval,100);
-  if(req!==chartRequest)return;
-  candles=cs;
-  const last=cs[cs.length-1];
-  prices[symbol]=last.c;
-  $("chartPrice").textContent=fmtPrice(last.c);
-  const first=cs[0].o;
-  const change=(last.c-first)/first*100;
-  $("chartChange").textContent=(change>=0?"+":"")+change.toFixed(2)+"%";
-  $("chartChange").className="chip "+(change>=0?"green":"red");
-  $("chartStatus").textContent=symbol+" · "+interval+" · Son mum: "+timeStr(last.t);
-  setConnection(true,"Piyasa verisi bağlı");
-  drawChart();
- }catch(e){
-  if(req!==chartRequest)return;
-  $("chartStatus").textContent="Mum verisi alınamadı: "+e.message+" · Bağlantı tekrar denenecek.";
-  setConnection(false,"Veri bağlantısı sorunu");
- }
-}
-function disconnectWS(){
- if(ws){try{ws.onclose=null;ws.close();}catch(e){}ws=null;}
- if(wsRetry){clearTimeout(wsRetry);wsRetry=null;}
-}
-function connectWS(){
- disconnectWS();
- const symbol=$("symbolSelect").value.toLowerCase();
- const interval=$("intervalSelect").value;
- const url="wss://data-stream.binance.vision/ws/"+symbol+"@kline_"+interval;
- try{
-  ws=new WebSocket(url);
-  ws.onopen=()=>setConnection(true,"Canlı mum bağlantısı aktif");
-  ws.onmessage=ev=>{
-   try{
-    const d=JSON.parse(ev.data),k=d.k;
-    if(!k)return;
-    const candle={t:+k.t,o:+k.o,h:+k.h,l:+k.l,c:+k.c,v:+k.v,closeTime:+k.T};
-    const last=candles[candles.length-1];
-    if(last&&last.t===candle.t)candles[candles.length-1]=candle;
-    else candles.push(candle);
-    candles=candles.slice(-150);
-    prices[symbol.toUpperCase()]=candle.c;
-    $("chartPrice").textContent=fmtPrice(candle.c);
-    drawChart();
-   }catch(e){}
-  };
-  ws.onerror=()=>setConnection(false,"Canlı bağlantı yenileniyor");
-  ws.onclose=()=>{
-   if(wsRetry)clearTimeout(wsRetry);
-   wsRetry=setTimeout(()=>{loadChart();connectWS();},5000);
-  };
- }catch(e){
-  wsRetry=setTimeout(connectWS,5000);
- }
-}
-function startAuto(){
- if(state.auto)return;
- state.auto=true;
- $("startBtn").disabled=true;$("stopBtn").disabled=false;
- $("autoStatus").textContent="Otomatik demo açık. En güçlü sinyal aranıyor…";
- scanMarkets();
- scanTimer=setInterval(scanMarkets,15000);
-}
-function stopAuto(){
- state.auto=false;
- $("startBtn").disabled=false;$("stopBtn").disabled=true;
- if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
- $("autoStatus").textContent="Otomatik işlem durduruldu. Açık pozisyonlar izlenmeye devam eder.";
-}
-async function boot(){
- loadSaved();
- $("initialBalance").value=state.initialBalance;
- $("orderSize").value=state.orderSize;
- $("maxExposure").value=state.maxExposure;
- renderAll();
- await loadChart();
- connectWS();
- // Pozisyonların fiyatlarını ve komisyon sonrası net K/Z değerlerini güncelle.
- priceTimer=setInterval(refreshOpenPrices,2500);
- // Tarama kapalı olsa da sinyal tablosu güncel tutulur.
- setInterval(async()=>{
-  if(state.auto||scanning)return;
-  try{
-   const results=[];
-   for(const symbol of SYMBOLS){
-    try{
-     const s=await getSignalFor(symbol);
-     results.push(s);
-     if(Number.isFinite(s.price))prices[symbol]=s.price;
-    }catch(e){}
-   }
-   if(results.length){signals=results;updateSignalsTable();$("scanTime").textContent="Son tarama: "+timeStr(Date.now());}
-  }catch(e){}
- },45000);
-}
-$("symbolSelect").addEventListener("change",async()=>{await loadChart();connectWS();});
-$("intervalSelect").addEventListener("change",async()=>{await loadChart();connectWS();});
-$("startBtn").addEventListener("click",startAuto);
-$("stopBtn").addEventListener("click",stopAuto);
-$("closeAllBtn").addEventListener("click",closeAll);
-$("positionsBody").addEventListener("click",ev=>{
- const btn=ev.target.closest("[data-close]");
- if(btn)closePosition(btn.dataset.close,"Manuel kapatma");
-});
-$("resetBtn").addEventListener("click",()=>{
- if(state.auto){toast("Önce otomatiği durdur.");return;}
- if(state.positions.length){toast("Sıfırlamadan önce tüm pozisyonları kapat.");return;}
- if(!confirm("Demo bakiyesi ve işlem geçmişi sıfırlansın mı?"))return;
- state.balance=Math.max(100,Number($("initialBalance").value)||1000);
- state.initialBalance=state.balance;state.totalRealized=0;state.history=[];
- persist();renderAll();toast("Demo hesabı sıfırlandı.");
-});
-["initialBalance","orderSize","maxExposure"].forEach(id=>{
- $(id).addEventListener("change",()=>{
-  const initial=Math.max(100,Number($("initialBalance").value)||1000);
-  const order=Math.max(10,Number($("orderSize").value)||100);
-  const exposure=Math.max(order,Number($("maxExposure").value)||750);
-  state.initialBalance=initial;state.orderSize=order;state.maxExposure=exposure;
-  $("initialBalance").value=initial;$("orderSize").value=order;$("maxExposure").value=exposure;
-  persist();
- });
-});
-window.addEventListener("resize",drawChart);
-document.addEventListener("visibilitychange",()=>{
- if(!document.hidden){loadChart();connectWS();refreshOpenPrices();}
-});
+const fmt=n=>!Number.isFinite(Number(n))?"--":Number(n)>=1000?Number(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):Number(n)>=1?Number(n).toFixed(4):Number(n).toFixed(7);
+const clock=t=>new Date(t).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+let state={balance:1000,initial:1000,stake:10,payout:80,maxOpen:3,auto:false,positions:[],history:[]};
+let prices={},bars={},signals=[],autoTimer=null,priceTimer=null,cycleBusy=false;
+ASSETS.forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s;$("symbol").appendChild(o)});
+function toast(msg){$("toast").textContent=msg;$("toast").style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>$("toast").style.display="none",2600)}
+function save(){try{localStorage.setItem(STORE,JSON.stringify({balance:state.balance,initial:state.initial,stake:state.stake,payout:state.payout,maxOpen:state.maxOpen,history:state.history}))}catch(e){}}
+function loadSaved(){try{const d=JSON.parse(localStorage.getItem(STORE)||"null");if(!d)return;for(const k of ["balance","initial","stake","payout","maxOpen"])if(Number.isFinite(d[k]))state[k]=d[k];if(Array.isArray(d.history))state.history=d.history.slice(0,200)}catch(e){}}
+function settings(){state.stake=Math.max(1,Number($("stake").value)||10);state.payout=Math.max(1,Math.min(100,Number($("payout").value)||80));state.maxOpen=Math.max(1,Math.min(12,Math.floor(Number($("maxOpen").value)||3)));$("stakeShow").textContent=money(state.stake);$("payoutShow").textContent=state.payout+"%"}
+async function getJSON(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);try{const r=await fetch(url,{cache:"no-store",signal:c.signal});if(!r.ok)throw Error("HTTP "+r.status);return await r.json()}finally{clearTimeout(t)}}
+async function loadBars(s){try{const a=await getJSON("https://api.exchange.coinbase.com/products/"+encodeURIComponent(s)+"/candles?granularity=60");if(!Array.isArray(a))return;bars[s]=a.slice(0,100).reverse().map(k=>({t:k[0]*1000,l:+k[1],h:+k[2],o:+k[3],c:+k[4]}))}catch(e){/* varlık desteklenmiyorsa diğerleri çalışır */}}
+async function getPrice(s){const d=await getJSON("https://api.exchange.coinbase.com/products/"+encodeURIComponent(s)+"/ticker");const p=Number(d.price);if(!Number.isFinite(p)||p<=0)throw Error("Geçersiz fiyat");prices[s]=p;const a=bars[s]||(bars[s]=[]),bucket=Math.floor(Date.now()/15000)*15000;let b=a[a.length-1];if(!b||b.t!==bucket){b={t:bucket,o:p,h:p,l:p,c:p,local:true};a.push(b)}else{b.h=Math.max(b.h,p);b.l=Math.min(b.l,p);b.c=p}bars[s]=a.slice(-130);return p}
+async function refreshPrices(){const res=await Promise.allSettled(ASSETS.map(getPrice));const n=res.filter(x=>x.status==="fulfilled").length;$("connection").textContent=n+"/"+ASSETS.length+" varlık bağlı";$("connection").style.color=n?"var(--green)":"var(--gold)";renderChart();renderPositions();return n}
+function ema(a,n){if(a.length<n)return null;const k=2/(n+1);let v=a.slice(0,n).reduce((x,y)=>x+y,0)/n;for(let i=n;i<a.length;i++)v=a[i]*k+v*(1-k);return v}
+function rsi(a,n=14){if(a.length<=n)return 50;let g=0,l=0;for(let i=a.length-n;i<a.length;i++){const d=a[i]-a[i-1];if(d>0)g+=d;else l-=d}if(l===0)return 100;return 100-100/(1+g/l)}
+function analyze(s){const cs=bars[s]||[];if(cs.length<25)return {symbol:s,side:null,score:0,rsi:50,momentum:0,price:prices[s]||0};const c=cs.map(x=>x.c),f=ema(c.slice(-40),8),sl=ema(c.slice(-60),21),last=c[c.length-1],prev=c[c.length-4],mom=prev?(last-prev)/prev:0,rv=rsi(c);let up=0,down=0;if(f>sl&&last>f)up+=30;if(f<sl&&last<f)down+=30;if(mom>0)up+=Math.min(25,mom*10000);if(mom<0)down+=Math.min(25,Math.abs(mom)*10000);if(f>sl)up+=15;if(f<sl)down+=15;if(rv>=52&&rv<=70)up+=15;if(rv>=30&&rv<=48)down+=15;return {symbol:s,side:up>=55&&up>down?"CALL":down>=55&&down>up?"PUT":null,score:Math.round(Math.max(up,down)),rsi:rv,momentum:mom,price:prices[s]||last}}
+function scan(){signals=ASSETS.map(analyze).sort((a,b)=>b.score-a.score);$("signals").innerHTML=signals.map(s=>`<tr><td>${s.symbol}</td><td>${fmt(s.price)}</td><td class="${s.side==="CALL"?"green":s.side==="PUT"?"red":"muted"}">${s.side||"BEKLE"}</td><td>${s.score}/100</td><td>${s.rsi.toFixed(1)}</td><td>${(s.momentum*100).toFixed(3)}%</td></tr>`).join("");$("scanTime").textContent="Tarama: "+clock(Date.now())}
+function openTrade(side,s,manual=false){settings();if(!prices[s])return toast("Bu varlık için fiyat yok.");if(state.positions.length>=state.maxOpen)return toast("Maksimum açık işlem sayısına ulaşıldı.");if(state.positions.some(p=>p.symbol===s))return toast("Bu varlıkta zaten açık işlem var.");if(state.balance<state.stake)return toast("Sanal bakiye yetersiz.");const p={id:Date.now()+"_"+Math.random().toString(36).slice(2),symbol:s,side,entry:prices[s],price:prices[s],stake:state.stake,payout:state.payout,opened:Date.now(),expires:Date.now()+15000};state.balance-=p.stake;state.positions.push(p);save();renderAll();toast(s+" "+side+" demo işlemi açıldı.")}
+function settle(p){const out=prices[p.symbol];if(!Number.isFinite(out))return;const win=p.side==="CALL"?out>p.entry:out<p.entry,tie=out===p.entry,net=tie?0:win?p.stake*p.payout/100:-p.stake;state.balance+=p.stake+net;state.positions=state.positions.filter(x=>x.id!==p.id);state.history.unshift({time:Date.now(),symbol:p.symbol,side:p.side,entry:p.entry,exit:out,net,result:tie?"BERABERE":win?"KAZANDI":"KAYBETTİ"});state.history=state.history.slice(0,200);save();renderAll();toast(p.symbol+" "+(tie?"berabere":win?"kazandı":"kaybetti")+" · "+money(net))}
+function renderPositions(){$("positions").innerHTML=state.positions.map(p=>`<tr><td>${p.symbol}</td><td class="${p.side==="CALL"?"green":"red"}">${p.side}</td><td>${fmt(p.entry)}</td><td>${fmt(prices[p.symbol]||p.price)}</td><td>${Math.max(0,Math.ceil((p.expires-Date.now())/1000))} sn</td></tr>`).join("")||'<tr><td colspan="5" class="muted">Açık işlem yok.</td></tr>'}
+function renderHistory(){$("tradeCount").textContent=state.history.length+" işlem";$("history").innerHTML=state.history.slice(0,80).map(h=>`<tr><td>${clock(h.time)}</td><td>${h.symbol}</td><td class="${h.side==="CALL"?"green":"red"}">${h.side}</td><td>${fmt(h.entry)}</td><td>${fmt(h.exit)}</td><td class="${h.net>0?"green":h.net<0?"red":""}">${h.result}</td><td>${money(h.net)}</td></tr>`).join("")||'<tr><td colspan="7" class="muted">Henüz işlem yok.</td></tr>'}
+function renderAll(){const net=state.balance-state.initial;const wins=state.history.filter(h=>h.net>0).length,decided=state.history.filter(h=>h.net!==0).length;$("balance").textContent=money(state.balance);$("pnl").textContent=money(net);$("pnl").className="value "+(net>=0?"green":"red");$("openCount").textContent=state.positions.length;$("winRate").textContent=decided?Math.round(wins/decided*100)+"%":"—";renderPositions();renderHistory()}
+function renderChart(){const s=$("symbol").value,cs=(bars[s]||[]).slice(-65),cv=$("chart"),ctx=cv.getContext("2d"),r=cv.getBoundingClientRect();if(!r.width)return;const d=window.devicePixelRatio||1;cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.clearRect(0,0,r.width,r.height);ctx.fillStyle="#101d30";ctx.fillRect(0,0,r.width,r.height);$("price").textContent=fmt(prices[s]);$("chartStatus").textContent="Coinbase Exchange verisi · Yerel 15 sn mumları · Pocket Option fiyatı değildir";if(!cs.length){ctx.fillStyle="#91a4bd";ctx.fillText("Mum verisi bekleniyor…",12,22);return}const min=Math.min(...cs.map(x=>x.l)),max=Math.max(...cs.map(x=>x.h)),rg=Math.max(max-min,1e-9),pad={l:8,r:72,t:12,b:12},cw=r.width-pad.l-pad.r,ch=r.height-pad.t-pad.b,y=v=>pad.t+(max-v)/rg*ch;ctx.font="10px sans-serif";for(let i=0;i<=4;i++){let yy=pad.t+ch*i/4;ctx.strokeStyle="#263950";ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(r.width-pad.r,yy);ctx.stroke();ctx.fillStyle="#91a4bd";ctx.fillText(fmt(max-rg*i/4),r.width-pad.r+4,yy+3)}const slot=cw/cs.length,bw=Math.max(2,Math.min(8,slot*.65));cs.forEach((c,i)=>{const x=pad.l+i*slot+slot/2,col=c.c>=c.o?"#28d69a":"#ff6177";ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();ctx.fillRect(x-bw/2,y(Math.max(c.o,c.c)),bw,Math.max(1,y(Math.min(c.o,c.c))-y(Math.max(c.o,c.c))))})}
+async function cycle(){if(cycleBusy)return;cycleBusy=true;try{await refreshPrices();for(const p of [...state.positions])if(Date.now()>=p.expires)settle(p);scan();if(state.auto){const best=signals.find(s=>s.side&&s.score>=55&&!state.positions.some(p=>p.symbol===s.symbol));if(best&&state.positions.length<state.maxOpen)openTrade(best.side,best.symbol);else $("autoStatus").textContent="Güçlü ve uygun sinyal bekleniyor."}renderAll()}catch(e){$("chartStatus").textContent="Veri alınamadı: "+e.message}finally{cycleBusy=false}}
+function start(){if(state.auto)return;state.auto=true;$("startBtn").disabled=true;$("stopBtn").disabled=false;$("autoStatus").textContent="Otomatik sanal demo aktif; gerçek emir gönderilmez.";cycle()}
+function stop(){state.auto=false;$("startBtn").disabled=false;$("stopBtn").disabled=true;$("autoStatus").textContent="Otomatik mod durduruldu; açık işlemler vade sonunda sonuçlanır."}
+$("symbol").addEventListener("change",async()=>{const s=$("symbol").value;if(!bars[s]||bars[s].length<25)await loadBars(s);renderChart()});
+$("callBtn").addEventListener("click",()=>openTrade("CALL",$("symbol").value,true));
+$("putBtn").addEventListener("click",()=>openTrade("PUT",$("symbol").value,true));
+$("startBtn").addEventListener("click",start);$("stopBtn").addEventListener("click",stop);
+["stake","payout","maxOpen"].forEach(id=>$(id).addEventListener("change",()=>{settings();save()}));
+$("resetBtn").addEventListener("click",()=>{if(state.auto)return toast("Önce otomatiği durdur.");if(state.positions.length)return toast("Açık işlemlerin bitmesini bekle.");if(!confirm("Sanal hesap sıfırlansın mı?"))return;state.initial=Math.max(10,Number($("initial").value)||1000);state.balance=state.initial;state.history=[];save();renderAll();toast("Demo hesabı sıfırlandı.")});
+window.addEventListener("resize",renderChart);
+async function boot(){loadSaved();$("initial").value=state.initial;$("stake").value=state.stake;$("payout").value=state.payout;$("maxOpen").value=state.maxOpen;settings();renderAll();await Promise.all(ASSETS.map(loadBars));await cycle();priceTimer=setInterval(cycle,2000)}
 boot();
 </script>
 </body>
