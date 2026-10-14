@@ -42,7 +42,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 <header>
  <div>
   <div class="logo">TRADE<span>PILOT</span></div>
-  <div class="muted">Çoklu demo işlemi · 1 dakikalık mum · Sabit ödeme oranı simülasyonu</div>
+  <div class="muted">Otomatik demo bot · EMA 9/21 + RSI 14 · 60 saniye · Sabit ödeme simülasyonu</div>
  </div>
  <div class="row">
   <span id="connection" class="badge">Veri bekleniyor</span>
@@ -80,7 +80,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
   <div id="chartStatus" class="muted">Mum verisi bekleniyor...</div>
  </section>
  <section class="card">
-  <div class="title">12 parite sinyal tarayıcı <span id="scan" class="badge">Bekleniyor</span></div>
+  <div class="title">12 parite otomatik sinyal tarayıcı <span id="scan" class="badge">Bekleniyor</span></div>
+  <div class="muted">Sinyaller kapanmış mumlardan hesaplanır. Otomatik mod açıkken uygun pariteler ayrı ayrı açılır; aynı paritede tek açık işlem ve toplam en fazla 12 işlem.</div>
   <div class="table-wrap"><table>
    <thead><tr><th>Parite</th><th>Fiyat</th><th>24s %</th><th>RSI</th><th>BUY puanı</th><th>SELL puanı</th><th>Sinyal</th><th>Veri</th></tr></thead>
    <tbody id="markets"><tr><td colspan="8">Veri bekleniyor...</td></tr></tbody>
@@ -110,7 +111,6 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 <footer>TradePilot · Yalnızca demo simülasyonu</footer>
 <script>
 "use strict";
-/* Temel ayarlar */
 const PRODUCTS=[
  "BTCUSDT","ETHUSDT","SOLUSDT","XRPUSDT",
  "ADAUSDT","DOGEUSDT","AVAXUSDT","LINKUSDT",
@@ -120,14 +120,14 @@ const START_BALANCE=1000;
 const DURATION=60000;
 const FRESH_MS=25000;
 const CANDLE_FRESH_MS=90000;
-const MIN_SCORE=60;
-const MIN_GAP=20;
+const MIN_SCORE=70;
+const MIN_GAP=25;
 const MAX_OPEN=12;
 const REFRESH_MS=12000;
 const $=id=>document.getElementById(id);
 const state={
  markets:{},selected:"BTCUSDT",balance:START_BALANCE,
- totalPnl:0,trades:[],history:[],auto:false,
+ totalPnl:0,trades:[],history:[],auto:true,
  autoSeen:{},busy:false,lastRefresh:0
 };
 for(const p of PRODUCTS){
@@ -181,7 +181,6 @@ function updateExample(){
 $("stake").addEventListener("input",updateExample);
 $("payout").addEventListener("input",updateExample);
 updateExample();
-/* Binance genel piyasa verileri */
 const API_HOSTS=[
  "https://data-api.binance.vision",
  "https://api.binance.com"
@@ -229,7 +228,6 @@ async function refreshProduct(p){
  else m.error="";
  analyze(p);
 }
-/* Teknik göstergeler */
 function EMA(values,period){
  if(values.length<period)return [];
  const out=Array(period-1).fill(null);
@@ -265,22 +263,21 @@ function analyze(p){
  if(m.candles.length<30||Date.now()-m.candleAt>CANDLE_FRESH_MS){
   m.reason="Mum verisi güncel değil";return;
  }
- /* Yalnızca kapanmış mumları kullan */
  const closed=m.candles.filter(c=>c.time+60000<=Date.now());
  if(closed.length<25){m.reason="Kapanmış mum yetersiz";return;}
  const closes=closed.map(c=>c.close);
- const e8=EMA(closes,8),e21=EMA(closes,21);
+ const e9=EMA(closes,9),e21=EMA(closes,21);
  const i=closes.length-1,prev=i-1,last=closed[i];
  const rsi=RSI(closes,14);
  m.rsi=rsi;m.signalCandleTime=last.time;
- if(!Number.isFinite(e8[i])||!Number.isFinite(e21[i])||rsi===null){
+ if(!Number.isFinite(e9[i])||!Number.isFinite(e21[i])||rsi===null){
   m.reason="Gösterge hesaplanamadı";return;
  }
  let buy=0,sell=0;
- if(e8[i]>e21[i]&&e8[i]>=e8[prev])buy+=30;
- if(e8[i]<e21[i]&&e8[i]<=e8[prev])sell+=30;
- if(last.close>e8[i])buy+=20;
- if(last.close<e8[i])sell+=20;
+ if(e9[i]>e21[i]&&e9[i]>=e9[prev])buy+=35;
+ if(e9[i]<e21[i]&&e9[i]<=e9[prev])sell+=35;
+ if(last.close>e9[i])buy+=15;
+ if(last.close<e9[i])sell+=15;
  const base=closes[Math.max(0,i-3)];
  const momentum=(last.close-base)/base*100;
  if(momentum>0.025)buy+=15;
@@ -289,19 +286,18 @@ function analyze(p){
  const body=Math.abs(last.close-last.open)/range;
  if(last.close>last.open&&body>=0.30)buy+=15;
  if(last.close<last.open&&body>=0.30)sell+=15;
- if(rsi>=50&&rsi<=68)buy+=20;
- else if(rsi>45&&rsi<50)buy+=8;
- if(rsi<=50&&rsi>=32)sell+=20;
- else if(rsi>50&&rsi<55)sell+=8;
+ if(rsi>52&&rsi<=68)buy+=25;
+ else if(rsi>50&&rsi<=52)buy+=8;
+ if(rsi<48&&rsi>=32)sell+=25;
+ else if(rsi>=48&&rsi<50)sell+=8;
  m.buyScore=buy;m.sellScore=sell;
  if(rsi>76||rsi<24){m.reason="Aşırı RSI";return;}
- if(buy>=MIN_SCORE&&buy-sell>=MIN_GAP){
+ if(buy>=MIN_SCORE&&buy-sell>=MIN_GAP&&rsi>50&&e9[i]>e21[i]){
   m.signal="BUY";m.reason="BUY koşulları uygun";
- }else if(sell>=MIN_SCORE&&sell-buy>=MIN_GAP){
+ }else if(sell>=MIN_SCORE&&sell-buy>=MIN_GAP&&rsi<50&&e9[i]<e21[i]){
   m.signal="SELL";m.reason="SELL koşulları uygun";
  }else m.reason="Sinyal bekleniyor";
 }
-/* Sabit ödeme oranlı ikili işlem simülasyonu */
 function openTrade(p,side,automatic=false){
  const m=state.markets[p],stake=stakeAmount(),rate=payoutRate();
  if(!navigator.onLine||!fresh(m)){
@@ -338,7 +334,6 @@ function openTrade(p,side,automatic=false){
  if(!automatic)toast(side+" demo açıldı: "+p,"ok");
  return true;
 }
-/* Süre bitince güncel fiyatla sonuçlandır */
 async function closeTrade(t){
  if(t.status!=="OPEN"||t.settling||Date.now()<t.expiresAt)return;
  if(Date.now()-t.lastAttempt<4000)return;
@@ -358,7 +353,6 @@ async function closeTrade(t){
   }
   if(!Number.isFinite(pnl))throw new Error("Sonuç hesaplanamadı");
   t.exit=exit;t.pnl=pnl;t.closedAt=Date.now();t.status="CLOSED";t.settling=false;
-  /* Başlangıçta düşülen tutarı ve varsa kazancı geri yansıt */
   state.balance+=t.stake+pnl;
   state.totalPnl+=pnl;
   state.history.unshift(t);
@@ -371,7 +365,6 @@ async function closeTrade(t){
   toast(t.product+" kapanış için güncel fiyat bekliyor.");
  }
 }
-/* Bir taramada tüm uygun pariteleri aç */
 function maybeAutoTrade(){
  if(!state.auto||!navigator.onLine)return;
  let open=state.trades.filter(t=>t.status==="OPEN");
@@ -387,7 +380,6 @@ function maybeAutoTrade(){
  let count=0;
  for(const c of candidates){
   if(slots<=0)break;
-  /* Mum başına aynı paritede en fazla bir otomatik giriş */
   state.autoSeen[c.p]=c.m.signalCandleTime;
   if(stake>state.balance)break;
   if(open.some(t=>t.product===c.p))continue;
@@ -399,7 +391,6 @@ function maybeAutoTrade(){
  }
  if(count)toast(count+" uygun demo işlemi açıldı.","ok");
 }
-/* Ekran */
 function renderMarkets(){
  $("markets").innerHTML=PRODUCTS.map(p=>{
   const m=state.markets[p];
@@ -460,7 +451,6 @@ function renderSummary(){
 function renderAll(){
  renderSummary();renderMarkets();renderOpen();renderHistory();renderChart();
 }
-/* Mum grafiği */
 function renderChart(){
  const p=state.selected,m=state.markets[p];
  $("chartTitle").textContent=p+" · 1 dakikalık mum";
@@ -509,9 +499,21 @@ function renderChart(){
  ctx.strokeStyle="#f5cb68";ctx.setLineDash([4,3]);
  ctx.beginPath();ctx.moveTo(pad.l,y(last));ctx.lineTo(w-pad.r,y(last));ctx.stroke();
  ctx.setLineDash([]);
- $("chartStatus").textContent=data.length+" mum · Binance normal piyasa verisi";
+ const closes=data.map(c=>c.close), e9=EMA(closes,9), e21=EMA(closes,21);
+ function drawLine(vals,color){
+  ctx.strokeStyle=color;ctx.lineWidth=1.7;ctx.beginPath();let started=false;
+  vals.forEach((v,i)=>{
+   if(!Number.isFinite(v))return;
+   const x=pad.l+i*step+step/2,yy=y(v);
+   if(!started){ctx.moveTo(x,yy);started=true;}else ctx.lineTo(x,yy);
+  });
+  ctx.stroke();
+ }
+ drawLine(e9,"#5aa9ff");drawLine(e21,"#ffb454");
+ ctx.font="11px Arial";ctx.fillStyle="#5aa9ff";ctx.fillText("EMA 9",pad.l+4,pad.t+12);
+ ctx.fillStyle="#ffb454";ctx.fillText("EMA 21",pad.l+58,pad.t+12);
+ $("chartStatus").textContent=data.length+" mum · EMA 9/21 · Binance normal piyasa verisi";
 }
-/* Kontroller */
 $("asset").addEventListener("change",()=>{
  state.selected=$("asset").value;renderChart();
 });
