@@ -1,619 +1,240 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TradePilot — AUD/USD OTC</title>
-<style>
-:root{color-scheme:dark;--bg:#0a1020;--panel:#121c30;--line:#293953;--text:#edf3ff;--muted:#9aabc3;--green:#28d6a2;--red:#ff657c;--yellow:#f5cb68}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px Arial,sans-serif}
-header{padding:16px;background:#10192b;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.logo{font-size:24px;font-weight:bold}.logo span{color:var(--green)}
-main{max-width:1200px;margin:auto;padding:12px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;min-width:0}
-.label,.muted{color:var(--muted);font-size:12px;line-height:1.7}
-.value{font-size:24px;font-weight:bold;margin-top:7px;overflow-wrap:anywhere}
-.title{font-size:16px;font-weight:bold;margin-bottom:12px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-button,input{background:#1a2942;color:var(--text);border:1px solid #394b68;border-radius:8px;padding:10px}
-button{font-weight:bold;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
-.buy{background:#0d7057}.sell{background:#812d43}.blue{background:#244f86}.yellow{background:#70531d}
-.badge{display:inline-block;background:#202e46;padding:6px 9px;border-radius:7px;font-size:12px;color:var(--muted)}
-.green{color:var(--green)}.red{color:var(--red)}.amber{color:var(--yellow)}
-.table-wrap{width:100%;overflow:auto}
-table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px}
-td,th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--muted);background:#10192b}
-.chart-wrap{position:relative;width:100%;height:300px;min-height:240px;overflow:hidden}
-#chart{display:block;width:100%;height:100%;min-height:240px;background:#0b1323;border:1px solid var(--line);border-radius:8px}
-#toast{min-height:20px;margin-top:8px;color:var(--yellow);font-size:12px}
-.note{font-size:12px;color:var(--muted);line-height:1.8}
-input[type=number]{width:125px}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
-@media(max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.chart-wrap{height:260px}}
-@media(max-width:420px){main{padding:8px}.card{padding:10px}.value{font-size:20px}.chart-wrap{height:250px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradePilot - Canlı İşlem Simülatörü</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js ve Luxon Zaman Eklentisi -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
 </head>
-<body>
-
-<header>
- <div>
-  <div class="logo">TRADE<span>PILOT</span></div>
-  <div class="muted">TEK PİYASA · AUD/USD OTC · Demo · 60 saniye</div>
- </div>
- <span id="connection" class="badge">OTC fiyatı bekleniyor</span>
-</header>
-
-<main>
- <div class="grid">
-  <div class="card"><div class="label">Demo bakiye</div><div id="balance" class="value">$1,000.00</div><div class="muted">Sanal bakiye</div></div>
-  <div class="card"><div class="label">Net kâr / zarar</div><div id="totalPnl" class="value">$0.00</div><div class="muted">Kapanan işlemler</div></div>
-  <div class="card"><div class="label">Kapanan işlemler</div><div id="closed" class="value">0</div><div id="winRate" class="muted">Kazanma oranı: —</div></div>
-  <div class="card"><div class="label">Açık işlemler</div><div id="openCount" class="value">0</div><div id="lossStatus" class="muted">Ardışık kayıp: 0/3</div></div>
- </div>
-
- <section class="card">
-  <div class="title">Tek piyasa: AUD/USD OTC</div>
-  <div class="row">
-   <span class="badge">Yalnızca bu piyasa</span>
-   <span class="badge">EMA 9/21</span>
-   <span class="badge">RSI 14</span>
-  </div>
-  <p class="muted">Pocket Option ekranında gördüğün AUD/USD OTC fiyatını gir. Bu sayfa Pocket Option'a otomatik bağlı değildir ve normal AUD/USD fiyatını OTC fiyatı olarak kullanmaz.</p>
-  <div class="row">
-   <label for="quote">OTC fiyatı</label>
-   <input id="quote" type="number" min="0.00001" step="0.00001" placeholder="Örn. 0.65432">
-   <button id="submitQuote" class="blue">Fiyatı kaydet</button>
-  </div>
-  <div id="quoteInfo" class="muted">Henüz fiyat girilmedi.</div>
-  <div id="toast"></div>
- </section>
-
- <section class="card">
-  <div class="title">İşlem ayarları</div>
-  <div class="row">
-   <label for="stake">İşlem tutarı ($)</label>
-   <input id="stake" type="number" min="1" max="1000" value="100">
-   <label for="payout">Ödeme (%)</label>
-   <input id="payout" type="number" min="1" max="95" value="80">
-   <button id="buy" class="buy">BUY demo</button>
-   <button id="sell" class="sell">SELL demo</button>
-   <button id="auto" class="yellow">Otomatik: Kapalı</button>
-   <button id="reset">Demo sıfırla</button>
-  </div>
-  <div id="payoutExample" class="muted"></div>
-  <div class="muted">Otomatik mod yalnızca yeterli kapanmış mum verisiyle sinyal oluştuğunda işlem açar. Fiyat girişi manuel olduğu için gerçek zamanlı otomatik işlem garantisi yoktur.</div>
- </section>
-
- <section class="card">
-  <div class="title">AUD/USD OTC — 1 dakikalık mum grafiği</div>
-  <div id="chartPrice" class="muted">Fiyat bekleniyor...</div>
-  <div class="chart-wrap">
-   <canvas id="chart" aria-label="AUD/USD OTC mum grafiği"></canvas>
-  </div>
-  <div id="chartStatus" class="muted">Mum verisi bekleniyor.</div>
-  <div id="indicators" class="muted">EMA: — · RSI: — · Sinyal: BEKLE</div>
- </section>
-
- <section class="card">
-  <div class="title">Açık demo işlemleri</div>
-  <div class="table-wrap"><table>
-   <thead><tr><th>Piyasa</th><th>Yön</th><th>Giriş</th><th>Son fiyat</th><th>Tutar</th><th>Kalan</th><th>Kazanırsa dönüş</th></tr></thead>
-   <tbody id="openTrades"><tr><td colspan="7">Açık işlem yok.</td></tr></tbody>
-  </table></div>
- </section>
-
- <section class="card">
-  <div class="title">İşlem geçmişi</div>
-  <div class="table-wrap"><table>
-   <thead><tr><th>Saat</th><th>Piyasa</th><th>Yön</th><th>Giriş</th><th>Çıkış</th><th>Tutar</th><th>Toplam dönüş</th><th>Net sonuç</th><th>Durum</th></tr></thead>
-   <tbody id="history"><tr><td colspan="9">Henüz işlem yok.</td></tr></tbody>
-  </table></div>
- </section>
-
- <section class="card note">
-  <strong>Fiyat kaynağı:</strong> Elle girilen AUD/USD OTC fiyatı. Pocket Option'a otomatik bağlantı kurulmuş değildir.
-  <br><strong>Ödeme hesabı:</strong> 100 $ işlem ve %80 ödeme ile kazanırsa toplam dönüş 180 $, net kâr +80 $ olur. Kaybederse dönüş 0 $, net zarar −100 $ olur. Beraberlikte 100 $ iade edilir.
-  <br><strong>Koruma:</strong> Üç ardışık kayıpta ve ana para korumasında yeni işlemler durur. Gerçek hesaba emir gönderilmez; kâr garantisi yoktur.
- </section>
-</main>
-<footer>TradePilot · Yalnızca AUD/USD OTC · Demo simülasyonu</footer>
-
-<script>
-"use strict";
-const $ = id => document.getElementById(id);
-
-const PRODUCT = "AUD/USD OTC";
-const START_BALANCE = 1000;
-const DURATION = 60000;
-const MAX_CONSECUTIVE_LOSSES = 3;
-const MAX_OPEN = 12;
-const FRESH_MS = 20000;
-
-const state = {
- price:null, quoteAt:0, candles:[], currentCandle:null,
- balance:START_BALANCE, totalPnl:0,
- trades:[], history:[], auto:false,
- autoSeenCandle:null, consecutiveLosses:0,
- lossGuardTriggered:false, principalGuardArmed:false,
- principalGuardTriggered:false, lastSignal:"WAIT",
- lastAnalysis:null, lastReason:"Sinyal bekleniyor"
-};
-
-function money(n){
- return (Number.isFinite(n)?n:0).toLocaleString("en-US",{style:"currency",currency:"USD"});
-}
-function precise(n){
- if(!Number.isFinite(n))return "—";
- return (n<0?"-":"")+"$"+Math.abs(n).toFixed(2);
-}
-function priceText(n){return Number.isFinite(n)?n.toFixed(5):"—";}
-function freshQuote(){
- return Number.isFinite(state.price)&&state.price>0&&Date.now()-state.quoteAt<=FRESH_MS;
-}
-function toast(s,type="warn"){
- $("toast").textContent=s;
- $("toast").style.color=type==="ok"?"var(--green)":type==="bad"?"var(--red)":"var(--yellow)";
-}
-function rate(){
- const n=Number($("payout").value);
- return Number.isFinite(n)&&n>=1&&n<=95?n/100:null;
-}
-function stake(){
- const n=Number($("stake").value);
- return Number.isFinite(n)&&n>=1&&n<=1000?n:null;
-}
-function updateExample(){
- const s=stake(),r=rate();
- $("payoutExample").textContent=s&&r
- ?`${money(s)} işlem · %${r*100} ödeme · Kazançta dönüş ${money(s*(1+r))}, net kâr ${money(s*r)} · Kaybederse net ${precise(-s)}.`
- :"Tutar 1–1000 $, ödeme %1–95 arasında olmalı.";
-}
-$("stake").addEventListener("input",updateExample);
-$("payout").addEventListener("input",updateExample);
-updateExample();
-
-function EMA(values,period){
- if(values.length<period)return [];
- const out=Array(period-1).fill(null);
- let v=values.slice(0,period).reduce((a,b)=>a+b,0)/period;
- out.push(v);
- const k=2/(period+1);
- for(let i=period;i<values.length;i++){
-  v=values[i]*k+v*(1-k);
-  out.push(v);
- }
- return out;
-}
-function RSI(values,period=14){
- if(values.length<period+1)return null;
- let gains=0,losses=0;
- for(let i=1;i<=period;i++){
-  const d=values[i]-values[i-1];
-  if(d>0)gains+=d;else losses-=d;
- }
- let ag=gains/period,al=losses/period;
- for(let i=period+1;i<values.length;i++){
-  const d=values[i]-values[i-1];
-  ag=(ag*(period-1)+Math.max(0,d))/period;
-  al=(al*(period-1)+Math.max(0,-d))/period;
- }
- if(al===0)return 100;
- return 100-100/(1+ag/al);
-}
-
-/* Mumlar sadece kullanıcının girdiği OTC fiyatlarından oluşur. */
-function recordQuote(){
- const px=Number($("quote").value);
- if(!Number.isFinite(px)||px<=0){
-  toast("Geçerli bir AUD/USD OTC fiyatı gir.","bad");return;
- }
- const now=Date.now(),bucket=Math.floor(now/60000)*60000;
- state.price=px;state.quoteAt=now;
-
- if(!state.currentCandle||state.currentCandle.time!==bucket){
-  if(state.currentCandle){
-   state.candles.push(state.currentCandle);
-   state.candles=state.candles.slice(-300);
-  }
-  state.currentCandle={time:bucket,open:px,high:px,low:px,close:px};
- }else{
-  state.currentCandle.high=Math.max(state.currentCandle.high,px);
-  state.currentCandle.low=Math.min(state.currentCandle.low,px);
-  state.currentCandle.close=px;
- }
-
- $("connection").textContent="Manuel OTC fiyatı";
- $("connection").className="badge amber";
- $("quoteInfo").textContent="Son fiyat: "+priceText(px)+" · "+new Date(now).toLocaleTimeString("tr-TR");
-
- analyze();
- settleExpired();
- maybeAutoTrade();
- renderAll();
-}
-$("submitQuote").addEventListener("click",recordQuote);
-$("quote").addEventListener("keydown",e=>{if(e.key==="Enter")recordQuote();});
-
-function completedCandles(){
- const arr=state.candles.slice();
- if(state.currentCandle&&state.currentCandle.time+60000<=Date.now()){
-  if(!arr.some(c=>c.time===state.currentCandle.time))arr.push(state.currentCandle);
- }
- return arr.filter(c=>c.time+60000<=Date.now()).sort((a,b)=>a.time-b.time);
-}
-
-function analyze(){
- state.lastSignal="WAIT";state.lastAnalysis=null;
- const cs=completedCandles();
- if(cs.length<30){renderIndicators();return;}
- const closes=cs.map(c=>c.close);
- const e9=EMA(closes,9),e21=EMA(closes,21);
- const i=closes.length-1,rsi=RSI(closes,14);
- const last=cs[i],prev=cs[i-1];
- if(rsi===null||!Number.isFinite(e9[i])||!Number.isFinite(e21[i])){
-  renderIndicators();return;
- }
- let buy=0,sell=0;
- if(e9[i]>e21[i]&&e9[i]>=e9[i-1])buy+=35;
- if(e9[i]<e21[i]&&e9[i]<=e9[i-1])sell+=35;
- if(last.close>e9[i])buy+=15;
- if(last.close<e9[i])sell+=15;
- const base=closes[Math.max(0,i-3)];
- const momentum=(last.close-base)/base*100;
- if(momentum>0.025)buy+=15;
- if(momentum< -0.025)sell+=15;
- const range=Math.max(last.high-last.low,last.close*0.000001);
- const body=Math.abs(last.close-last.open)/range;
- if(last.close>last.open&&body>=0.30)buy+=15;
- if(last.close<last.open&&body>=0.30)sell+=15;
- if(rsi>52&&rsi<=68)buy+=25;
- else if(rsi>50&&rsi<=52)buy+=8;
- if(rsi<48&&rsi>=32)sell+=25;
- else if(rsi>=48&&rsi<50)sell+=8;
-
- state.lastAnalysis={rsi,e9:e9[i],e21:e21[i],buy,sell,candleTime:last.time};
- if(rsi>76||rsi<24){
-  state.lastReason="Aşırı RSI";
- }else if(buy>=70&&buy-sell>=25&&rsi>50&&e9[i]>e21[i]){
-  state.lastSignal="BUY";state.lastReason="BUY koşulları uygun";
- }else{
-  const bearish=last.close<last.open;
-  const previousWeak=last.close<prev.close;
-  const emaBear=e9[i]<e21[i]&&e9[i]<=e9[i-1];
-  if(sell>=80&&sell-buy>=30&&rsi>=30&&rsi<=46&&emaBear&&
-     last.close<e9[i]&&bearish&&previousWeak&&momentum< -0.025){
-   state.lastSignal="SELL";state.lastReason="Güçlü düşüş doğrulandı";
-  }else{
-   state.lastReason=sell>=80?"SELL ek doğrulama bekliyor":"Sinyal bekleniyor";
-  }
- }
- renderIndicators();
-}
-
-function openTrade(side,automatic=false){
- if(!["BUY","SELL"].includes(side))return false;
- if(state.lossGuardTriggered||state.principalGuardTriggered){
-  if(!automatic)toast("Koruma aktif; yeni işlemler durduruldu.","bad");
-  return false;
- }
- if(!freshQuote()){
-  if(!automatic)toast("Güncel OTC fiyatı girilmeden işlem açılamaz.","bad");
-  return false;
- }
- const s=stake(),r=rate();
- if(!s||!r){if(!automatic)toast("İşlem tutarını ve ödeme oranını kontrol et.","bad");return false;}
- const open=state.trades.filter(t=>t.status==="OPEN");
- if(open.length>=MAX_OPEN){if(!automatic)toast("Açık işlem sınırına ulaşıldı.");return false;}
- if(open.some(t=>t.product===PRODUCT)){if(!automatic)toast("Bu piyasada zaten açık işlem var.");return false;}
- if(s>state.balance){if(!automatic)toast("Demo bakiye yetersiz.","bad");return false;}
-
- const t={
-  id:Date.now()+"-"+Math.random().toString(36).slice(2,8),
-  product:PRODUCT,side,stake:s,rate:r,entry:state.price,
-  exit:null,pnl:null,returned:null,openedAt:Date.now(),
-  expiresAt:Date.now()+DURATION,status:"OPEN",automatic
- };
- state.balance-=s;
- if(state.balance<START_BALANCE)state.principalGuardArmed=true;
- state.trades.push(t);
- renderAll();
- if(!automatic)toast(side+" demo işlemi açıldı.","ok");
- return true;
-}
-$("buy").addEventListener("click",()=>openTrade("BUY"));
-$("sell").addEventListener("click",()=>openTrade("SELL"));
-
-function closeTrade(t){
- if(t.status!=="OPEN")return;
- if(!freshQuote()){
-  toast("İşlem süresi doldu; sonucu hesaplamak için yeni OTC fiyatı gir.","bad");
-  return;
- }
- const exit=state.price;
- const tied=Math.abs(exit-t.entry)<=Math.max(Math.abs(t.entry)*1e-10,1e-10);
- const won=t.side==="BUY"?exit>t.entry:exit<t.entry;
- const pnl=tied?0:won?t.stake*t.rate:-t.stake;
- const returned=tied?t.stake:won?t.stake*(1+t.rate):0;
-
- t.exit=exit;t.pnl=pnl;t.returned=returned;
- t.closedAt=Date.now();t.status="CLOSED";
- state.balance+=returned;
- state.totalPnl+=pnl;
- state.history.unshift(t);
- state.history=state.history.slice(0,200);
-
- if(pnl<0)state.consecutiveLosses++;
- else state.consecutiveLosses=0;
-
- if(state.consecutiveLosses>=MAX_CONSECUTIVE_LOSSES){
-  state.lossGuardTriggered=true;state.auto=false;
-  toast("3 ardışık kayıp: yeni işlemler durduruldu.","bad");
- }
- if(state.principalGuardArmed&&state.balance>=START_BALANCE){
-  state.principalGuardTriggered=true;state.auto=false;
-  toast("Ana para koruması: yeni işlemler durduruldu.","bad");
- }
- renderAll();
- toast(PRODUCT+" "+t.side+" kapandı · Dönüş "+money(returned)+" · Net "+precise(pnl),pnl>=0?"ok":"bad");
-}
-
-function settleExpired(){
- for(const t of state.trades){
-  if(t.status==="OPEN"&&Date.now()>=t.expiresAt)closeTrade(t);
- }
-}
-
-function maybeAutoTrade(){
- if(!state.auto||!freshQuote()||state.lossGuardTriggered||state.principalGuardTriggered)return;
- if(!state.lastAnalysis||state.lastSignal==="WAIT")return;
- if(state.lastAnalysis.candleTime===state.autoSeenCandle)return;
- if(state.trades.some(t=>t.status==="OPEN"&&t.product===PRODUCT))return;
- const side=state.lastSignal;
- if(openTrade(side,true))state.autoSeenCandle=state.lastAnalysis.candleTime;
-}
-
-function renderIndicators(){
- const a=state.lastAnalysis;
- $("indicators").textContent=a
-  ?`EMA 9: ${priceText(a.e9)} · EMA 21: ${priceText(a.e21)} · RSI: ${a.rsi.toFixed(1)} · BUY: ${a.buy} · SELL: ${a.sell} · Sinyal: ${state.lastSignal}`
-  :"EMA: — · RSI: — · Sinyal: BEKLE";
-}
-
-function renderSummary(){
- $("balance").textContent=money(state.balance);
- $("totalPnl").textContent=money(state.totalPnl);
- $("totalPnl").className="value "+(state.totalPnl>=0?"green":"red");
- $("closed").textContent=state.history.length;
- const wins=state.history.filter(t=>t.pnl>0).length;
- $("winRate").textContent=state.history.length
-  ?"Kazanma oranı: "+(wins/state.history.length*100).toFixed(1)+"%"
-  :"Kazanma oranı: —";
- $("openCount").textContent=state.trades.filter(t=>t.status==="OPEN").length;
- $("lossStatus").textContent=state.lossGuardTriggered
-  ?"Kayıp koruması aktif":"Ardışık kayıp: "+state.consecutiveLosses+"/3";
- $("auto").textContent="Otomatik: "+(state.auto?"Açık":"Kapalı");
- $("auto").className=state.auto?"buy":"yellow";
- if(state.lossGuardTriggered||state.principalGuardTriggered){
-  $("auto").textContent="Koruma: Aktif";$("auto").className="sell";
- }
-}
-
-function renderOpen(){
- const list=state.trades.filter(t=>t.status==="OPEN");
- $("openTrades").innerHTML=list.length?list.map(t=>{
-  const remain=Math.max(0,Math.ceil((t.expiresAt-Date.now())/1000));
-  return `<tr>
-   <td>${PRODUCT}</td><td class="${t.side==="BUY"?"green":"red"}">${t.side}</td>
-   <td>${priceText(t.entry)}</td><td>${priceText(state.price)}</td>
-   <td>${money(t.stake)}</td><td>${remain} sn</td>
-   <td>${money(t.stake*(1+t.rate))}</td>
-  </tr>`;
- }).join(""):'<tr><td colspan="7">Açık işlem yok.</td></tr>';
-}
-
-function renderHistory(){
- $("history").innerHTML=state.history.length?state.history.map(t=>{
-  const status=t.pnl>0?"KAZANDI":t.pnl<0?"KAYBETTİ":"BERABERE";
-  return `<tr>
-   <td>${new Date(t.closedAt).toLocaleTimeString("tr-TR")}</td>
-   <td>${PRODUCT}</td>
-   <td class="${t.side==="BUY"?"green":"red"}">${t.side}</td>
-   <td>${priceText(t.entry)}</td><td>${priceText(t.exit)}</td>
-   <td>${money(t.stake)}</td><td>${money(t.returned)}</td>
-   <td class="${t.pnl>0?"green":t.pnl<0?"red":""}">${precise(t.pnl)}</td>
-   <td>${status}${t.automatic?" · Otomatik":""}</td>
-  </tr>`;
- }).join(""):'<tr><td colspan="9">Henüz işlem yok.</td></tr>';
-}
-
-/* DÜZELTİLMİŞ MUM GRAFİĞİ */
-function renderChart(){
- const canvas=$("chart");
- if(!canvas)return;
- const ctx=canvas.getContext("2d");
- if(!ctx)return;
-
- const rect=canvas.getBoundingClientRect();
- const w=Math.max(1,rect.width);
- const h=Math.max(1,rect.height);
- const dpr=Math.max(1,window.devicePixelRatio||1);
-
- const pixelW=Math.round(w*dpr);
- const pixelH=Math.round(h*dpr);
- if(canvas.width!==pixelW)canvas.width=pixelW;
- if(canvas.height!==pixelH)canvas.height=pixelH;
-
- ctx.setTransform(dpr,0,0,dpr,0,0);
- ctx.clearRect(0,0,w,h);
- ctx.fillStyle="#0b1323";
- ctx.fillRect(0,0,w,h);
-
- const data=state.candles.slice(-55);
- if(state.currentCandle)data.push(state.currentCandle);
-
- $("chartPrice").textContent=
-  "AUD/USD OTC · Son fiyat: "+priceText(state.price);
-
- if(data.length===0){
-  ctx.fillStyle="#edf3ff";
-  ctx.font="14px Arial";
-  ctx.fillText("İlk mumu görmek için OTC fiyatını gir.",12,30);
-  $("chartStatus").textContent="Fiyat bekleniyor.";
-  return;
- }
-
- let lo=Math.min(...data.map(c=>c.low));
- let hi=Math.max(...data.map(c=>c.high));
-
- if(!Number.isFinite(lo)||!Number.isFinite(hi)){
-  $("chartStatus").textContent="Grafik fiyat verisi geçersiz.";
-  return;
- }
-
- if(hi===lo){
-  const margin=Math.max(Math.abs(hi)*0.0001,0.00005);
-  hi+=margin;
-  lo-=margin;
- }else{
-  const margin=(hi-lo)*0.12;
-  hi+=margin;
-  lo-=margin;
- }
-
- const pad={l:10,r:82,t:25,b:20};
- const cw=Math.max(1,w-pad.l-pad.r);
- const ch=Math.max(1,h-pad.t-pad.b);
- const y=v=>pad.t+(hi-v)/(hi-lo)*ch;
-
- ctx.font="10px Arial";
- for(let j=0;j<=4;j++){
-  const yy=pad.t+ch*j/4;
-  ctx.strokeStyle="#243148";
-  ctx.beginPath();
-  ctx.moveTo(pad.l,yy);
-  ctx.lineTo(w-pad.r,yy);
-  ctx.stroke();
-
-  ctx.fillStyle="#9aabc3";
-  ctx.fillText(priceText(hi-(hi-lo)*j/4),w-pad.r+4,yy+3);
- }
-
- const step=cw/data.length;
- const bw=Math.max(3,Math.min(12,step*0.62));
-
- data.forEach((c,i)=>{
-  const x=pad.l+i*step+step/2;
-  const color=c.close>=c.open?"#28d6a2":"#ff657c";
-
-  ctx.strokeStyle=color;
-  ctx.lineWidth=1.5;
-  ctx.beginPath();
-  ctx.moveTo(x,y(c.high));
-  ctx.lineTo(x,y(c.low));
-  ctx.stroke();
-
-  const top=y(Math.max(c.open,c.close));
-  const bottom=y(Math.min(c.open,c.close));
-  const bodyHeight=Math.max(3,bottom-top);
-
-  ctx.fillStyle=color;
-  ctx.fillRect(
-   x-bw/2,
-   (top+bottom-bodyHeight)/2,
-   bw,
-   bodyHeight
-  );
- });
-
- const closes=data.map(c=>c.close);
- const e9=EMA(closes,9);
- const e21=EMA(closes,21);
-
- function drawLine(values,color){
-  ctx.strokeStyle=color;
-  ctx.lineWidth=1.5;
-  ctx.beginPath();
-  let started=false;
-
-  values.forEach((v,i)=>{
-   if(!Number.isFinite(v))return;
-   const x=pad.l+i*step+step/2;
-   const yy=y(v);
-
-   if(!started){
-    ctx.moveTo(x,yy);
-    started=true;
-   }else{
-    ctx.lineTo(x,yy);
-   }
-  });
-
-  if(started)ctx.stroke();
- }
-
- drawLine(e9,"#5aa9ff");
- drawLine(e21,"#ffb454");
-
- ctx.font="11px Arial";
- ctx.fillStyle="#5aa9ff";
- ctx.fillText("EMA 9",12,15);
- ctx.fillStyle="#ffb454";
- ctx.fillText("EMA 21",68,15);
-
- $("chartStatus").textContent=
-  data.length+" mum · Manuel OTC fiyat verisi";
-}
-
-function renderAll(){
- renderSummary();
- renderOpen();
- renderHistory();
- renderIndicators();
- renderChart();
-}
-
-$("auto").addEventListener("click",()=>{
- if(state.lossGuardTriggered||state.principalGuardTriggered){
-  toast("Koruma aktif. Yeni demo hesabı için sıfırlama yap.","bad");return;
- }
- state.auto=!state.auto;
- renderSummary();
- toast(state.auto?"Otomatik demo sinyal modu açıldı.":"Otomatik demo sinyal modu kapatıldı.",state.auto?"ok":"warn");
- if(state.auto)maybeAutoTrade();
-});
-
-$("reset").addEventListener("click",()=>{
- if(state.trades.some(t=>t.status==="OPEN")){
-  toast("Açık işlem varken hesap sıfırlanamaz.","bad");return;
- }
- state.balance=START_BALANCE;
- state.totalPnl=0;
- state.trades=[];
- state.history=[];
- state.auto=false;
- state.autoSeenCandle=null;
- state.consecutiveLosses=0;
- state.lossGuardTriggered=false;
- state.principalGuardArmed=false;
- state.principalGuardTriggered=false;
- toast("Demo hesap sıfırlandı. Otomatik mod kapalı.","ok");
- renderAll();
-});
-
-window.addEventListener("resize",renderChart);
-window.addEventListener("orientationchange",()=>setTimeout(renderChart,150));
-
-setInterval(()=>{
- settleExpired();
- renderSummary();
- renderOpen();
-},1000);
-
-renderAll();
-</script>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- Üst Bilgi Çubuğu -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <h1 class="text-xl font-bold text-emerald-400">TradePilot</h1>
+            <span class="text-xs bg-slate-700 px-2.5 py-1 rounded-full text-slate-300">AUD/USD OTC</span>
+        </div>
+        <div class="flex items-center space-x-6">
+            <div>
+                <span class="text-xs text-slate-400 block">Demo Bakiye</span>
+                <span id="balance-display" class="text-lg font-semibold text-emerald-400">$1,000.00</span>
+            </div>
+            <div id="connection-status" class="flex items-center space-x-2 text-xs bg-amber-500/10 text-amber-400 px-3 py-1.5 rounded-lg border border-amber-500/20">
+                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Uzantı Bekleniyor...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="flex-1 p-4 grid grid-cols-1 lg:grid-cols-4 gap-4 max-w-7xl mx-auto w-full">
+        
+        <!-- Sol Grafik ve Göstergeler Alanı -->
+        <div class="lg:col-span-3 flex flex-col space-y-4">
+            <!-- Grafik Kartı -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <div class="flex space-x-4 text-sm">
+                        <div>Anlık Fiyat: <span id="current-price" class="font-mono font-bold text-white">-</span></div>
+                        <div>EMA(14): <span id="val-ema" class="font-mono text-blue-400">-</span></div>
+                        <div>RSI(14): <span id="val-rsi" class="font-mono text-purple-400">-</span></div>
+                    </div>
+                </div>
+                <div class="relative flex-1 min-h-[350px]">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Kontrol ve İşlem Paneli -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex flex-col justify-between space-y-4">
+            <div class="space-y-4">
+                <h2 class="text-base font-semibold border-b border-slate-700 pb-2">İşlem Paneli (Demo)</h2>
+                
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Yatırım Tutarı ($)</label>
+                    <input type="number" id="trade-amount" value="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-mono focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 text-xs space-y-1.5 text-slate-300">
+                    <div class="flex justify-between"><span>Ödeme Oranı:</span> <span class="font-semibold text-emerald-400">%80</span></div>
+                    <div class="flex justify-between"><span>Kazanımda Dönüş:</span> <span class="font-semibold text-emerald-400">$180 (+$80)</span></div>
+                    <div class="flex justify-between"><span>Kayıpta Sonuç:</span> <span class="font-semibold text-rose-400">-$100</span></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="executeTrade('CALL')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl transition shadow-lg shadow-emerald-900/20 flex flex-col items-center">
+                        <span class="text-xs opacity-80">YUKARI</span>
+                        <span class="text-lg">CALL</span>
+                    </button>
+                    <button onclick="executeTrade('PUT')" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold py-3 px-4 rounded-xl transition shadow-lg shadow-rose-900/20 flex flex-col items-center">
+                        <span class="text-xs opacity-80">AŞAĞI</span>
+                        <span class="text-lg">PUT</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- İşlem Geçmişi / Log -->
+            <div class="border-t border-slate-700 pt-3">
+                <h3 class="text-xs font-semibold text-slate-400 mb-2">Son İşlem Durumu</h3>
+                <div id="trade-log" class="text-xs font-mono bg-slate-900 p-2.5 rounded-lg h-24 overflow-y-auto text-slate-300">
+                    Henüz işlem yapılmadı.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mantık ve Hesaplama Betiği -->
+    <script>
+        let balance = 1000;
+        let prices = [];
+        let chart;
+        let latestPrice = 0;
+
+        // Chart.js Başlatma
+        function initChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'AUD/USD OTC',
+                        data: [],
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { type: 'time', time: { unit: 'second' }, grid: { color: '#334155' } },
+                        y: { grid: { color: '#334155' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Teknik Göstergeler (EMA ve RSI)
+        function calculateIndicators(dataArray) {
+            if (dataArray.length === 0) return { ema: 0, rsi: 50 };
+            
+            // Basit EMA(14) Hesaplama
+            const k = 2 / (14 + 1);
+            let ema = dataArray[0].y;
+            for (let i = 1; i < dataArray.length; i++) {
+                ema = (dataArray[i].y * k) + (ema * (1 - k));
+            }
+
+            // Basit RSI(14) Hesaplama
+            let gains = 0, losses = 0;
+            for (let i = 1; i < Math.min(dataArray.length, 14); i++) {
+                let diff = dataArray[i].y - dataArray[i-1].y;
+                if (diff >= 0) gains += diff;
+                else losses -= diff;
+            }
+            let rs = losses === 0 ? 100 : (gains / 14) / (losses / 14);
+            let rsi = 100 - (100 / (1 + rs));
+
+            return { ema: ema.toFixed(5), rsi: rsi.toFixed(2) };
+        }
+
+        // Chrome Uzantısından Gelen Verileri Dinleme
+        window.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "TRADEPILOT_PRICE_UPDATE") {
+                latestPrice = event.data.price;
+                const now = luxon.DateTime.now().toISO();
+
+                document.getElementById('current-price').innerText = latestPrice;
+                
+                // Bağlantı durum rozetini güncelle
+                const statusEl = document.getElementById('connection-status');
+                statusEl.className = "flex items-center space-x-2 text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/20";
+                statusEl.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Canlı Bağlı</span>';
+
+                // Veriyi grafiğe ekle (Son 50 veri)
+                prices.push({ x: now, y: latestPrice });
+                if (prices.length > 50) prices.shift();
+
+                chart.data.datasets[0].data = prices;
+                chart.update('none');
+
+                // Göstergeleri hesapla ve yazdır
+                const ind = calculateIndicators(prices);
+                document.getElementById('val-ema').innerText = ind.ema;
+                document.getElementById('val-rsi').innerText = ind.rsi;
+            }
+        });
+
+        // Demo İşlem Yürütme ve Muhasebe Mantığı
+        function executeTrade(direction) {
+            if (latestPrice === 0) {
+                alert("Henüz canlı fiyat verisi alınamadı. Lütfen Pocket Option sekmesinin açık olduğundan emin olun.");
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('trade-amount').value);
+            if (isNaN(amount) || amount <= 0) {
+                alert("Geçerli bir yatırım tutarı girin.");
+                return;
+            }
+
+            if (balance < amount) {
+                alert("Bakiyeniz bu işlem için yetersiz!");
+                return;
+            }
+
+            balance -= amount; // Yatırım tutarı bakiyeden düşülür
+            updateBalanceUI();
+
+            const entryPrice = latestPrice;
+            logMessage(`${direction} açıldı: ${entryPrice}$ (${amount}$)`);
+
+            // 5 Saniye Sonra İşlem Sonucu Simülasyonu
+            setTimeout(() => {
+                const exitPrice = latestPrice;
+                let result = "DRAW";
+
+                if (direction === "CALL" && exitPrice > entryPrice) result = "WIN";
+                else if (direction === "PUT" && exitPrice < entryPrice) result = "WIN";
+                else if (exitPrice === entryPrice) result = "DRAW";
+                else result = "LOSS";
+
+                if (result === "WIN") {
+                    const payout = amount + (amount * 0.80); // Toplam dönüş 180$
+                    balance += payout;
+                    logMessage(`KAZANDI! +$${amount * 0.80} kâr (Toplam: $${payout})`, "text-emerald-400");
+                } else if (result === "LOSS") {
+                    logMessage(`KAYBETTI! -$${amount}`, "text-rose-400");
+                } else {
+                    balance += amount; // Beraberlikte ana para iade
+                    logMessage(`BERABERE. Ana para iade ($${amount})`, "text-amber-400");
+                }
+
+                updateBalanceUI();
+            }, 5000);
+        }
+
+        function updateBalanceUI() {
+            document.getElementById('balance-display').innerText = `$${balance.toFixed(2)}`;
+        }
+
+        function logMessage(text, colorClass = "text-slate-300") {
+            const logBox = document.getElementById('trade-log');
+            const timeStr = luxon.DateTime.now().toFormat('HH:mm:ss');
+            logBox.innerHTML = `<div class="${colorClass}">[${timeStr}] ${text}</div>` + logBox.innerHTML;
+        }
+
+        window.onload = initChart;
+    </script>
 </body>
 </html>
