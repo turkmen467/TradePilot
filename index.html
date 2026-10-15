@@ -7,17 +7,19 @@
 <title>TradePilot PRO — AUD/USD OTC</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root{color-scheme:dark;--muted:#9db0ca}
+:root{color-scheme:dark;--bg:#070d18;--panel:#101b2d;--line:#263954;--muted:#9db0ca;--green:#19d99b;--red:#ff5268;--blue:#46a6ff;--gold:#ffc857;--purple:#b58aff}
 *{box-sizing:border-box}
 body{background:radial-gradient(ellipse at top,#11233b 0%,#080f1d 48%,#060b14 100%);color:#eaf2ff;font-family:Inter,Arial,sans-serif}
 .panel{background:linear-gradient(145deg,rgba(19,32,52,.98),rgba(11,20,35,.98));border:1px solid #2b405e;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .muted{color:var(--muted)}
-.btn{background:#14243a;border:1px solid #334b69;color:#cbdaf0;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700}
+.btn{background:#14243a;border:1px solid #334b69;color:#cbdaf0;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;transition:all .15s}
 .btn:hover{background:#203955;border-color:#52769e}
-.btn.active{background:linear-gradient(135deg,#1d65a9,#21447a);border-color:#58adff;color:white}
+.btn.active{background:linear-gradient(135deg,#1d65a9,#21447a);border-color:#58adff;color:white;box-shadow:0 0 0 1px rgba(70,166,255,.18)}
 .metric{background:linear-gradient(145deg,#0b1728,#101f34);border:1px solid #293e5b;border-radius:11px;padding:12px;min-width:0}
 canvas{display:block;width:100%;height:100%}
 #priceChart,#rsiChart{border-radius:10px}
+#current-price{letter-spacing:.02em;color:#f1f7ff}
+#signal{letter-spacing:.02em}
 @media(max-width:640px){.panel{border-radius:12px}.metric{padding:9px}}
 </style>
 </head>
@@ -38,7 +40,6 @@ canvas{display:block;width:100%;height:100%}
     <div class="text-sm muted">AUD/USD OTC · Anlık fiyat</div>
     <div id="current-price" class="text-2xl font-bold font-mono">—</div>
    </div>
-
    <div class="flex gap-1 flex-wrap" id="timeframes">
     <button class="btn active" data-tf="5">5 sn</button>
     <button class="btn" data-tf="15">15 sn</button>
@@ -75,7 +76,7 @@ canvas{display:block;width:100%;height:100%}
      <div id="signal-bar" class="h-full bg-amber-300" style="width:0%"></div>
     </div>
    </div>
-   <p class="text-xs muted mt-3">Sinyal teknik göstergelere dayanır; kazancı garanti etmez.</p>
+   <p class="text-xs muted mt-3">Sinyal teknik göstergelere dayanır; gelecekteki fiyatı veya kazancı garanti etmez.</p>
   </section>
 
   <section class="panel p-4">
@@ -129,7 +130,7 @@ const state = {
  candles:[],
  priceHistory:[],
  timeframe:5,
- maxCandles:90,
+ maxCandles:180,
  maxStoredTicks:20000
 };
 
@@ -146,11 +147,9 @@ function ema(values,period){
  if(!values.length)return [];
  const k=2/(period+1);
  const result=[values[0]];
-
  for(let i=1;i<values.length;i++){
   result.push(values[i]*k+result[i-1]*(1-k));
  }
-
  return result;
 }
 
@@ -159,7 +158,6 @@ function rsi(values,period=14){
  if(values.length<=period)return out;
 
  let gains=0,losses=0;
-
  for(let i=1;i<=period;i++){
   const d=values[i]-values[i-1];
   gains+=Math.max(d,0);
@@ -169,26 +167,20 @@ function rsi(values,period=14){
  let avgGain=gains/period;
  let avgLoss=losses/period;
 
- out[period]=avgLoss===0
-  ?100
-  :100-100/(1+avgGain/avgLoss);
+ out[period]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
 
  for(let i=period+1;i<values.length;i++){
   const d=values[i]-values[i-1];
-
   avgGain=(avgGain*(period-1)+Math.max(d,0))/period;
   avgLoss=(avgLoss*(period-1)+Math.max(-d,0))/period;
-
-  out[i]=avgLoss===0
-   ?100
-   :100-100/(1+avgGain/avgLoss);
+  out[i]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
  }
-
  return out;
 }
 
-function timeframeLabel(s){
- return s<60?s+" saniye":(s/60)+" dakika";
+function timeframeLabel(seconds){
+ if(seconds<60)return seconds+" saniye";
+ return (seconds/60)+" dakika";
 }
 
 function buildCandlesFromHistory(){
@@ -197,21 +189,21 @@ function buildCandlesFromHistory(){
 
  for(const tick of state.priceHistory){
   const candleTime=Math.floor(tick.time/interval)*interval;
-  let c=candles[candles.length-1];
+  let candle=candles[candles.length-1];
 
-  if(!c||c.time!==candleTime){
-   c={
+  if(!candle||candle.time!==candleTime){
+   candle={
     time:candleTime,
     open:tick.price,
     high:tick.price,
     low:tick.price,
     close:tick.price
    };
-   candles.push(c);
+   candles.push(candle);
   }else{
-   c.high=Math.max(c.high,tick.price);
-   c.low=Math.min(c.low,tick.price);
-   c.close=tick.price;
+   candle.high=Math.max(candle.high,tick.price);
+   candle.low=Math.min(candle.low,tick.price);
+   candle.close=tick.price;
   }
  }
 
@@ -239,10 +231,7 @@ function receivePrice(rawPrice,timestamp){
  state.priceHistory.push({time:ts,price});
 
  if(state.priceHistory.length>state.maxStoredTicks){
-  state.priceHistory.splice(
-   0,
-   state.priceHistory.length-state.maxStoredTicks
-  );
+  state.priceHistory.splice(0,state.priceHistory.length-state.maxStoredTicks);
  }
 
  const interval=state.timeframe*1000;
@@ -257,9 +246,7 @@ function receivePrice(rawPrice,timestamp){
    low:price,
    close:price
   };
-
   state.candles.push(last);
-
   if(state.candles.length>1000)state.candles.shift();
  }else{
   last.high=Math.max(last.high,price);
@@ -273,7 +260,6 @@ function receivePrice(rawPrice,timestamp){
  $("current-price").textContent=fmt(price);
  $("tick-count").textContent=state.ticks.toLocaleString("tr-TR");
  $("candle-count").textContent=state.candles.length.toLocaleString("tr-TR");
-
  $("connection-status").textContent="● Canlı bağlı";
  $("connection-status").className="text-sm text-emerald-400";
 
@@ -292,32 +278,25 @@ function updateIndicators(){
  const e9=ema(closes,9);
  const e21=ema(closes,21);
  const rs=rsi(closes,14);
-
  const n=candles.length;
  const last=candles[n-1];
  const rv=rs.length?rs[rs.length-1]:null;
 
  $("ema9").textContent=fmt(e9[e9.length-1]);
  $("ema21").textContent=fmt(e21[e21.length-1]);
-
  $("rsi-value").textContent=rv==null?"—":rv.toFixed(1);
 
  $("rsi-hint").textContent=rv==null
   ?"Veri birikiyor"
-  :rv>=70
-   ?"Aşırı alım"
-   :rv<=30
-    ?"Aşırı satım"
-    :"Nötr bölge";
+  :rv>=70?"Aşırı alım"
+  :rv<=30?"Aşırı satım"
+  :"Nötr bölge";
 
  if(last){
   const up=last.close>=last.open;
-
   $("candle-direction").textContent=up?"YÜKSELİŞ":"DÜŞÜŞ";
   $("candle-direction").style.color=up?"#20d6a0":"#ff647c";
-
-  $("candle-range").textContent=
-   "H "+fmt(last.high)+" · L "+fmt(last.low);
+  $("candle-range").textContent="H "+fmt(last.high)+" · L "+fmt(last.low);
  }else{
   $("candle-direction").textContent="—";
   $("candle-range").textContent="OHLC";
@@ -325,42 +304,35 @@ function updateIndicators(){
 
  let signal="WAIT";
  let confidence=0;
- let desc="Küçük hareketler sinyal sayılmaz; net yön bekleniyor.";
+ let desc="Küçük fiyat hareketleri sinyal sayılmaz; net yön bekleniyor.";
 
  if(n>=28&&rv!=null){
   const trendUp=e9[n-1]>e21[n-1];
   const trendDown=e9[n-1]<e21[n-1];
-  const gap=Math.abs(e9[n-1]-e21[n-1]);
+  const emaGap=Math.abs(e9[n-1]-e21[n-1]);
 
-  const slopeUp=
-   e9[n-1]>e9[n-3]&&e21[n-1]>=e21[n-3];
+  const emaSlopeUp=e9[n-1]>e9[n-3]&&e21[n-1]>=e21[n-3];
+  const emaSlopeDown=e9[n-1]<e9[n-3]&&e21[n-1]<=e21[n-3];
 
-  const slopeDown=
-   e9[n-1]<e9[n-3]&&e21[n-1]<=e21[n-3];
-
-  const up3=
+  const last3Up=
    candles[n-1].close>candles[n-2].close&&
    candles[n-2].close>candles[n-3].close;
 
-  const down3=
+  const last3Down=
    candles[n-1].close<candles[n-2].close&&
    candles[n-2].close<candles[n-3].close;
 
   const recent=candles.slice(-8);
-
-  const avgRange=
-   recent.reduce((s,c)=>s+Math.max(c.high-c.low,0),0)/
-   recent.length;
-
+  const avgRange=recent.reduce((sum,c)=>sum+Math.max(c.high-c.low,0),0)/recent.length;
   const body=Math.abs(last.close-last.open);
-  const strong=avgRange>0&&body>=avgRange*.22;
-  const separated=avgRange>0&&gap>=avgRange*.18;
+  const strongBody=avgRange>0&&body>=avgRange*.22;
+  const trendSeparated=avgRange>0&&emaGap>=avgRange*.18;
 
-  if(trendUp&&slopeUp&&up3&&separated&&strong&&rv>=53&&rv<=68){
+  if(trendUp&&emaSlopeUp&&last3Up&&trendSeparated&&strongBody&&rv>=53&&rv<=68){
    signal="BUY";
    confidence=78;
    desc="Yükseliş EMA eğimi, art arda kapanışlar ve RSI ile doğrulandı.";
-  }else if(trendDown&&slopeDown&&down3&&separated&&strong&&rv<=47&&rv>=32){
+  }else if(trendDown&&emaSlopeDown&&last3Down&&trendSeparated&&strongBody&&rv<=47&&rv>=32){
    signal="SELL";
    confidence=78;
    desc="Düşüş EMA eğimi, art arda kapanışlar ve RSI ile doğrulandı.";
@@ -372,23 +344,11 @@ function updateIndicators(){
   desc="Gösterge kararı için en az 28 mum ve yeterli RSI verisi bekleniyor.";
  }
 
- $("signal").textContent=
-  signal==="BUY"?"BUY · AL":
-  signal==="SELL"?"SELL · SAT":
-  "BEKLE";
-
- $("signal").style.color=
-  signal==="BUY"?"#20d6a0":
-  signal==="SELL"?"#ff647c":
-  "#ffc66d";
-
+ $("signal").textContent=signal==="BUY"?"BUY · AL":signal==="SELL"?"SELL · SAT":"BEKLE";
+ $("signal").style.color=signal==="BUY"?"#20d6a0":signal==="SELL"?"#ff647c":"#ffc66d";
  $("signal-desc").textContent=desc;
  $("signal-bar").style.width=confidence+"%";
-
- $("signal-bar").style.background=
-  signal==="BUY"?"#20d6a0":
-  signal==="SELL"?"#ff647c":
-  "#ffc66d";
+ $("signal-bar").style.background=signal==="BUY"?"#20d6a0":signal==="SELL"?"#ff647c":"#ffc66d";
 }
 
 function canvasSetup(id){
@@ -401,7 +361,6 @@ function canvasSetup(id){
 
  const ctx=canvas.getContext("2d");
  ctx.setTransform(dpr,0,0,dpr,0,0);
-
  return {ctx,w:rect.width,h:rect.height};
 }
 
@@ -414,7 +373,6 @@ function drawCandles(){
  const bg=ctx.createLinearGradient(0,0,0,h);
  bg.addColorStop(0,"#0b1729");
  bg.addColorStop(1,"#08111f");
-
  ctx.fillStyle=bg;
  ctx.fillRect(0,0,w,h);
 
@@ -431,7 +389,6 @@ function drawCandles(){
 
  let min=Math.min(...candles.map(c=>c.low));
  let max=Math.max(...candles.map(c=>c.high));
-
  let spread=max-min;
  if(!spread)spread=Math.max(Math.abs(max)*.0001,.0001);
 
@@ -439,12 +396,11 @@ function drawCandles(){
  max+=spread*.12;
 
  const y=p=>pad.top+(max-p)/(max-min)*plotH;
-
  const step=plotW/candles.length;
 
- // SADECE MUM GÖVDESİ KÜÇÜLTÜLDÜ.
- // Mumların merkez aralıkları ve grafik yerleşimi aynı.
- const bodyW=Math.max(1,step*.55);
+ // TEK DEĞİŞİKLİK: Mum gövdeleri çok daha dar.
+ // Mumların zaman aralıkları ve merkez konumları değişmez.
+ const bodyW=Math.max(2,Math.min(10,step*.18));
 
  ctx.save();
  ctx.beginPath();
@@ -471,26 +427,20 @@ function drawCandles(){
  }
 
  candles.forEach((c,i)=>{
-  const x=pad.left+(i+.5)*step;
+  const x=pad.left+i*step+step/2;
   const up=c.close>=c.open;
   const color=up?"#19d99b":"#ff5268";
-
   const top=y(Math.max(c.open,c.close));
   const bottom=y(Math.min(c.open,c.close));
-
-  // Mum gövdesi dikeyde en az 1 piksel.
   const bodyH=Math.max(1,bottom-top);
 
   ctx.strokeStyle=color;
-  ctx.lineWidth=Math.max(1,Math.min(1.5,step*.12));
-
-  // Fitil genişliği ve mum merkezleri değiştirilmedi.
+  ctx.lineWidth=1.2;
   ctx.beginPath();
   ctx.moveTo(x,y(c.high));
   ctx.lineTo(x,y(c.low));
   ctx.stroke();
 
-  // Daha ince gövde.
   ctx.fillStyle=color;
   ctx.fillRect(x-bodyW/2,top,bodyW,bodyH);
  });
@@ -499,11 +449,10 @@ function drawCandles(){
 
  function drawEma(values,color,width){
   if(!values.length)return;
-
   ctx.beginPath();
 
   values.forEach((v,i)=>{
-   const x=pad.left+(i+.5)*step;
+   const x=pad.left+i*step+step/2;
    if(i===0)ctx.moveTo(x,y(v));
    else ctx.lineTo(x,y(v));
   });
@@ -513,7 +462,7 @@ function drawCandles(){
   ctx.lineJoin="round";
   ctx.lineCap="round";
   ctx.shadowColor=color;
-  ctx.shadowBlur=4;
+  ctx.shadowBlur=5;
   ctx.stroke();
   ctx.shadowBlur=0;
  }
@@ -537,7 +486,6 @@ function drawCandles(){
 
  ctx.fillStyle="#0b1729";
  ctx.fillRect(w-pad.right,pad.top,pad.right,plotH);
-
  ctx.font="11px Arial";
  ctx.textAlign="left";
  ctx.textBaseline="middle";
@@ -557,14 +505,10 @@ function drawCandles(){
  }
 
  const tagH=23;
- const tagY=Math.max(
-  pad.top,
-  Math.min(pad.top+plotH-tagH,cy-tagH/2)
- );
+ const tagY=Math.max(pad.top,Math.min(pad.top+plotH-tagH,cy-tagH/2));
 
  ctx.fillStyle="#1878e8";
  ctx.fillRect(w-pad.right+2,tagY,pad.right-4,tagH);
-
  ctx.fillStyle="#fff";
  ctx.font="bold 11px Arial";
  ctx.fillText(fmt(last),w-pad.right+7,tagY+tagH/2);
@@ -575,23 +519,13 @@ function drawCandles(){
  ctx.fillStyle="#9db4d2";
 
  const labelCount=Math.min(6,candles.length);
-
  for(let i=0;i<labelCount;i++){
-  const index=labelCount===1
-   ?candles.length-1
-   :Math.round(i*(candles.length-1)/(labelCount-1));
-
+  const index=labelCount===1?candles.length-1:Math.round(i*(candles.length-1)/(labelCount-1));
   const c=candles[index];
-  const x=pad.left+(index+.5)*step;
-
+  const x=pad.left+index*step+step/2;
   const opts={hour:"2-digit",minute:"2-digit"};
   if(state.timeframe<60)opts.second="2-digit";
-
-  ctx.fillText(
-   new Date(c.time).toLocaleTimeString("tr-TR",opts),
-   x,
-   h-8
-  );
+  ctx.fillText(new Date(c.time).toLocaleTimeString("tr-TR",opts),x,h-8);
  }
 
  ctx.strokeStyle="#314966";
@@ -608,7 +542,6 @@ function drawRsi(){
  const bg=ctx.createLinearGradient(0,0,0,h);
  bg.addColorStop(0,"#111b35");
  bg.addColorStop(1,"#091326");
-
  ctx.fillStyle=bg;
  ctx.fillRect(0,0,w,h);
 
@@ -616,22 +549,18 @@ function drawRsi(){
  if(!candles.length)return;
 
  const values=rsi(candles.map(c=>c.close));
-
  const pad={left:14,right:82,top:8,bottom:8};
  const plotW=Math.max(1,w-pad.left-pad.right);
  const plotH=Math.max(1,h-pad.top-pad.bottom);
-
  const y=v=>pad.top+(100-v)/100*plotH;
 
  ctx.fillStyle="rgba(255,82,104,.13)";
  ctx.fillRect(pad.left,y(100),plotW,y(70)-y(100));
-
  ctx.fillStyle="rgba(25,217,155,.11)";
  ctx.fillRect(pad.left,y(30),plotW,y(0)-y(30));
 
  [30,50,70].forEach(v=>{
   const yy=y(v);
-
   ctx.beginPath();
   ctx.setLineDash(v===50?[]:[4,4]);
   ctx.strokeStyle=v===50?"#647b9b":"#435572";
@@ -657,10 +586,8 @@ function drawRsi(){
    started=false;
    return;
   }
-
   const x=pad.left+i*step;
   const yy=y(v);
-
   if(!started){
    ctx.moveTo(x,yy);
    started=true;
@@ -679,11 +606,9 @@ function drawRsi(){
  ctx.shadowBlur=0;
 
  const last=values[values.length-1];
-
  if(last!==null&&Number.isFinite(last)){
   const x=pad.left+(values.length-1)*step;
   const yy=y(last);
-
   ctx.fillStyle="#e1d1ff";
   ctx.beginPath();
   ctx.arc(x,yy,3.5,0,Math.PI*2);
@@ -702,13 +627,10 @@ function drawCharts(){
  drawRsi();
 }
 
-// Mevcut fiyat köprüsü korunmuştur.
-// Yeni WebSocket bağlantısı açılmaz.
+// Mevcut köprü mesajı korunmuştur.
 window.addEventListener("message",event=>{
  const data=event.data;
-
  if(!data||data.type!=="TRADEPILOT_PRICE_UPDATE")return;
-
  receivePrice(data.price,data.timestamp||Date.now());
 });
 
@@ -721,11 +643,10 @@ $("timeframes").addEventListener("click",event=>{
  const button=event.target.closest("[data-tf]");
  if(!button)return;
 
- const tf=Number(button.dataset.tf);
+ const newTimeframe=Number(button.dataset.tf);
+ if(![5,15,30,60,300].includes(newTimeframe))return;
 
- if(![5,15,30,60,300].includes(tf))return;
-
- state.timeframe=tf;
+ state.timeframe=newTimeframe;
 
  document.querySelectorAll("#timeframes [data-tf]").forEach(b=>{
   b.classList.toggle("active",b===button);
@@ -735,7 +656,6 @@ $("timeframes").addEventListener("click",event=>{
 });
 
 window.addEventListener("resize",drawCharts);
-
 drawCharts();
 
 })();
