@@ -234,106 +234,296 @@ canvas{display:block;width:100%;height:100%}
     return {ctx,w:rect.width,h:rect.height};
   }
 
+  // İYİLEŞTİRİLDİ: Mum grafiği, fiyat ölçeği, ızgara ve EMA çizgileri.
   function drawCandles() {
     const {ctx,w,h}=canvasSetup("priceChart");
     ctx.clearRect(0,0,w,h);
-    const candles=state.candles.slice(-state.maxCandles);
 
-    if (!candles.length) {
+    const candles=state.candles.slice(-state.maxCandles);
+    const bg=ctx.createLinearGradient(0,0,0,h);
+    bg.addColorStop(0,"#0b172a");
+    bg.addColorStop(1,"#071120");
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,w,h);
+
+    const pad={left:12,right:76,top:18,bottom:30};
+    const plotW=w-pad.left-pad.right;
+    const plotH=h-pad.top-pad.bottom;
+
+    if(!candles.length) {
       ctx.fillStyle="#91a4bf";
       ctx.font="14px Arial";
-      ctx.fillText("Pocket Option fiyat akışı bekleniyor…",18,28);
+      ctx.fillText("Pocket Option fiyat akışı bekleniyor…",20,35);
       return;
     }
 
-    const pad={left:8,right:72,top:12,bottom:22};
-    const plotW=w-pad.left-pad.right, plotH=h-pad.top-pad.bottom;
     let min=Math.min(...candles.map(c=>c.low));
     let max=Math.max(...candles.map(c=>c.high));
     const spread=max-min || Math.max(Math.abs(max)*0.0001,0.0001);
-    min-=spread*.12; max+=spread*.12;
+    min-=spread*0.10;
+    max+=spread*0.10;
 
     const y=p=>pad.top+(max-p)/(max-min)*plotH;
     const step=plotW/candles.length;
-    const bodyW=Math.max(2,Math.min(13,step*.65));
+    const bodyW=Math.max(1.5,Math.min(14,step*0.72));
 
-    ctx.font="10px Arial";
-    for(let i=0;i<=5;i++){
-      const yy=pad.top+plotH*i/5;
-      ctx.strokeStyle="#26364d";
-      ctx.beginPath();ctx.moveTo(pad.left,yy);
-      ctx.lineTo(w-pad.right,yy);ctx.stroke();
-      ctx.fillStyle="#91a4bf";
-      ctx.fillText((max-(max-min)*i/5).toFixed(5),w-pad.right+5,yy+3);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(pad.left,pad.top,plotW,plotH);
+    ctx.clip();
+
+    // Yatay fiyat ızgarası
+    ctx.font="11px Arial";
+    for(let i=0;i<=6;i++) {
+      const yy=pad.top+plotH*i/6;
+      ctx.strokeStyle="#1b2d46";
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left,yy);
+      ctx.lineTo(pad.left+plotW,yy);
+      ctx.stroke();
     }
 
+    // Dikey zaman ızgarası
+    for(let i=0;i<=8;i++) {
+      const xx=pad.left+plotW*i/8;
+      ctx.strokeStyle="#14263e";
+      ctx.beginPath();
+      ctx.moveTo(xx,pad.top);
+      ctx.lineTo(xx,pad.top+plotH);
+      ctx.stroke();
+    }
+
+    // Mumlar ve fitiller
     candles.forEach((c,i)=>{
       const x=pad.left+i*step+step/2;
       const up=c.close>=c.open;
-      const color=up?"#20d6a0":"#ff647c";
-      ctx.strokeStyle=color;ctx.lineWidth=1.2;
-      ctx.beginPath();ctx.moveTo(x,y(c.high));ctx.lineTo(x,y(c.low));ctx.stroke();
+      const color=up?"#16c784":"#ea3943";
+      const wick=up?"#21d9a0":"#ff5964";
+
+      ctx.strokeStyle=wick;
+      ctx.lineWidth=Math.max(1,Math.min(1.5,step*0.12));
+      ctx.beginPath();
+      ctx.moveTo(x,y(c.high));
+      ctx.lineTo(x,y(c.low));
+      ctx.stroke();
+
       const top=y(Math.max(c.open,c.close));
       const bottom=y(Math.min(c.open,c.close));
+      const bodyH=Math.max(1.2,bottom-top);
+
       ctx.fillStyle=color;
-      ctx.fillRect(x-bodyW/2,top,bodyW,Math.max(1,bottom-top));
+      ctx.fillRect(x-bodyW/2,top,bodyW,bodyH);
+
+      ctx.strokeStyle=color;
+      ctx.lineWidth=0.7;
+      ctx.strokeRect(x-bodyW/2,top,bodyW,bodyH);
     });
 
+    // EMA 9 ve EMA 21
     const closes=candles.map(c=>c.close);
-    const line=(values,color)=>{
+
+    function drawEma(values,color,width) {
       ctx.beginPath();
       values.forEach((v,i)=>{
         const x=pad.left+i*step+step/2;
-        if(i===0)ctx.moveTo(x,y(v));else ctx.lineTo(x,y(v));
+        if(i===0) ctx.moveTo(x,y(v));
+        else ctx.lineTo(x,y(v));
       });
-      ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
-    };
-    line(ema(closes,9),"#60a5fa");
-    line(ema(closes,21),"#fbbf24");
+      ctx.strokeStyle=color;
+      ctx.lineWidth=width;
+      ctx.lineJoin="round";
+      ctx.lineCap="round";
+      ctx.stroke();
+    }
 
-    const last=candles[candles.length-1].close, yy=y(last);
-    ctx.setLineDash([4,3]);ctx.strokeStyle="#cbd5e1";
-    ctx.beginPath();ctx.moveTo(pad.left,yy);
-    ctx.lineTo(w-pad.right,yy);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle="#263f60";
-    ctx.fillRect(w-pad.right+2,yy-9,pad.right-4,18);
-    ctx.fillStyle="#fff";ctx.fillText(fmt(last),w-pad.right+5,yy+3);
+    drawEma(ema(closes,21),"#f5b82e",2);
+    drawEma(ema(closes,9),"#2997ff",2);
 
-    ctx.fillStyle="#91a4bf";
-    ctx.fillText(new Date(candles[0].time).toLocaleTimeString("tr-TR"),pad.left,h-5);
+    // Güncel fiyat çizgisi
+    const last=candles[candles.length-1].close;
+    const currentY=y(last);
+
+    ctx.setLineDash([5,4]);
+    ctx.strokeStyle="#2997ff";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left,currentY);
+    ctx.lineTo(pad.left+plotW,currentY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.restore();
+
+    // Sağ fiyat ölçeği
+    ctx.fillStyle="#0a1729";
+    ctx.fillRect(w-pad.right,pad.top,pad.right,plotH);
+
+    ctx.font="11px Arial";
+    ctx.textAlign="left";
+    ctx.textBaseline="middle";
+
+    for(let i=0;i<=6;i++) {
+      const value=max-(max-min)*i/6;
+      const yy=pad.top+plotH*i/6;
+
+      ctx.strokeStyle="#20334d";
+      ctx.beginPath();
+      ctx.moveTo(w-pad.right,yy);
+      ctx.lineTo(w-4,yy);
+      ctx.stroke();
+
+      ctx.fillStyle="#a8bdd9";
+      ctx.fillText(value.toFixed(5),w-pad.right+7,yy);
+    }
+
+    // Güncel fiyat etiketi
+    const badgeH=22;
+    const badgeY=Math.max(
+      pad.top,
+      Math.min(pad.top+plotH-badgeH,currentY-badgeH/2)
+    );
+
+    ctx.fillStyle="#1677e8";
+    if(typeof ctx.roundRect==="function") {
+      ctx.beginPath();
+      ctx.roundRect(w-pad.right+2,badgeY,pad.right-4,badgeH,4);
+      ctx.fill();
+    } else {
+      ctx.fillRect(w-pad.right+2,badgeY,pad.right-4,badgeH);
+    }
+
+    ctx.fillStyle="#ffffff";
+    ctx.font="bold 11px Arial";
+    ctx.textBaseline="middle";
+    ctx.fillText(fmt(last),w-pad.right+7,badgeY+badgeH/2);
+
+    // Alt zaman ekseni
+    ctx.textAlign="center";
+    ctx.textBaseline="alphabetic";
+    ctx.font="10px Arial";
+    ctx.fillStyle="#91a9c8";
+
+    const labelCount=Math.min(6,candles.length);
+    for(let i=0;i<labelCount;i++) {
+      const index=labelCount===1
+        ? candles.length-1
+        : Math.round(i*(candles.length-1)/(labelCount-1));
+
+      const c=candles[index];
+      const x=pad.left+index*step+step/2;
+      const options={
+        hour:"2-digit",
+        minute:"2-digit"
+      };
+      if(state.timeframe<60) options.second="2-digit";
+
+      const label=new Date(c.time).toLocaleTimeString("tr-TR",options);
+      ctx.fillText(label,x,h-8);
+    }
+
+    // Eksen ayrımı
+    ctx.strokeStyle="#2b405c";
+    ctx.beginPath();
+    ctx.moveTo(w-pad.right,pad.top);
+    ctx.lineTo(w-pad.right,pad.top+plotH);
+    ctx.stroke();
   }
 
+  // İYİLEŞTİRİLDİ: RSI bölgeleri, kesikli seviyeler ve son değer işareti.
   function drawRsi() {
     const {ctx,w,h}=canvasSetup("rsiChart");
     ctx.clearRect(0,0,w,h);
+
+    const bg=ctx.createLinearGradient(0,0,0,h);
+    bg.addColorStop(0,"#101a36");
+    bg.addColorStop(1,"#091326");
+    ctx.fillStyle=bg;
+    ctx.fillRect(0,0,w,h);
+
     const candles=state.candles.slice(-state.maxCandles);
-    if (!candles.length) return;
+    if(!candles.length) return;
 
     const values=rsi(candles.map(c=>c.close));
-    const pad={left:8,right:72,top:5,bottom:5};
-    const plotW=w-pad.left-pad.right,plotH=h-pad.top-pad.bottom;
-    const step=plotW/Math.max(1,values.length-1);
+    const pad={left:12,right:76,top:8,bottom:8};
+    const plotW=w-pad.left-pad.right;
+    const plotH=h-pad.top-pad.bottom;
     const y=v=>pad.top+(100-v)/100*plotH;
 
+    // Aşırı alım ve aşırı satım bölgeleri
+    ctx.fillStyle="rgba(234,57,67,0.07)";
+    ctx.fillRect(pad.left,y(70),plotW,y(100)-y(70));
+
+    ctx.fillStyle="rgba(22,199,132,0.06)";
+    ctx.fillRect(pad.left,y(0),plotW,y(30)-y(0));
+
+    // RSI 30 / 50 / 70 seviyeleri
     [30,50,70].forEach(v=>{
+      const yy=y(v);
+
       ctx.beginPath();
-      ctx.setLineDash(v===50?[]:[3,4]);
-      ctx.strokeStyle="#42536b";
-      ctx.moveTo(pad.left,y(v));ctx.lineTo(w-pad.right,y(v));ctx.stroke();
+      ctx.setLineDash(v===50?[]:[4,4]);
+      ctx.strokeStyle=v===50?"#596c91":"#344967";
+      ctx.lineWidth=1;
+      ctx.moveTo(pad.left,yy);
+      ctx.lineTo(pad.left+plotW,yy);
+      ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle="#91a4bf";ctx.font="10px Arial";
-      ctx.fillText(String(v),w-pad.right+5,y(v)+3);
+
+      ctx.fillStyle="#a8bdd9";
+      ctx.font="11px Arial";
+      ctx.textAlign="left";
+      ctx.textBaseline="middle";
+      ctx.fillText(String(v),w-pad.right+9,yy);
     });
 
+    // RSI çizgisi
+    const step=plotW/Math.max(1,values.length-1);
     ctx.beginPath();
+
     let started=false;
     values.forEach((v,i)=>{
-      if(v==null)return;
-      const x=pad.left+i*step,yy=y(v);
-      if(!started){ctx.moveTo(x,yy);started=true;}
-      else ctx.lineTo(x,yy);
+      if(v===null || !Number.isFinite(v)) {
+        started=false;
+        return;
+      }
+
+      const x=pad.left+i*step;
+      const yy=y(v);
+
+      if(!started) {
+        ctx.moveTo(x,yy);
+        started=true;
+      } else {
+        ctx.lineTo(x,yy);
+      }
     });
-    ctx.strokeStyle="#b49aff";ctx.lineWidth=1.7;ctx.stroke();
+
+    ctx.strokeStyle="#a879ff";
+    ctx.lineWidth=2;
+    ctx.lineJoin="round";
+    ctx.lineCap="round";
+    ctx.stroke();
+
+    // Son RSI değerini vurgula
+    const last=values[values.length-1];
+
+    if(last!==null && Number.isFinite(last)) {
+      const x=pad.left+(values.length-1)*step;
+      const yy=y(last);
+
+      ctx.fillStyle="#c4a5ff";
+      ctx.beginPath();
+      ctx.arc(x,yy,3,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // Sağ eksen ayrımı
+    ctx.strokeStyle="#2b405c";
+    ctx.beginPath();
+    ctx.moveTo(w-pad.right,pad.top);
+    ctx.lineTo(w-pad.right,h-pad.bottom);
+    ctx.stroke();
   }
 
   function drawCharts() {
