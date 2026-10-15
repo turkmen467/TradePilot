@@ -3,489 +3,684 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TradePilot PRO</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TradePilot PRO — AUD/USD OTC</title>
+<script src="https://cdn.tailwindcss.com"></script>
 <style>
-:root{color-scheme:dark;--bg:#07111f;--panel:#0d1a2b;--border:#1d3049;--text:#e5edf8;--muted:#91a4bf;--green:#20d6a0;--red:#ff647c;--yellow:#ffc66d}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-h1{font-size:23px;margin:0;font-weight:800}
-.sub{font-size:12px;color:var(--muted);margin-top:5px}
-main{max-width:1250px;margin:auto;padding:18px;display:grid;gap:16px}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:16px;min-width:0}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.metric-label{font-size:12px;color:var(--muted);margin-bottom:9px}
-.metric-value{font-size:clamp(17px,2.5vw,26px);font-weight:750;overflow-wrap:anywhere}
-.status{font-size:12px;color:var(--yellow);margin-top:7px}
-.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-h2{font-size:16px;margin:0}
-.buttons{display:flex;gap:6px;flex-wrap:wrap}
-button{background:#14243a;border:1px solid #2a405c;border-radius:7px;padding:8px 11px;color:var(--text);cursor:pointer}
-button:hover,button.active{background:#1d3c59;border-color:#6598c8}
-canvas{display:block;width:100%;height:310px}
-#rsiChart{height:115px}
-.chart-note{color:var(--muted);font-size:11px;margin-top:10px;line-height:1.5}
-.signal-layout{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.signal-main{font-size:28px;font-weight:800;margin:12px 0}
-.signal-desc{color:var(--muted);font-size:13px;line-height:1.6}
-.bar{height:8px;background:#1c2a3e;border-radius:8px;overflow:hidden;margin-top:14px}
-#signalBar{height:100%;width:0;background:var(--yellow);transition:width .2s}
-.indicators{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px}
-.indicator{background:#091525;padding:12px;border-radius:8px}
-.indicator small{color:var(--muted);display:block;margin-bottom:8px}
-.indicator strong{font-size:17px}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:5px 15px 22px}
-@media(max-width:650px){main{padding:10px}.panel{padding:12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.signal-layout{grid-template-columns:1fr}canvas{height:260px}#rsiChart{height:100px}header{padding:15px}}
+:root{color-scheme:dark}
+body{background:#080f1d;color:#e5edf9;font-family:Arial,sans-serif}
+.panel{background:#111c2e;border:1px solid #283952;border-radius:14px}
+.muted{color:#91a4bf}
+.btn{background:#192941;border:1px solid #334964;padding:7px 11px;border-radius:7px;font-size:12px}
+.btn.active{background:#275184;border-color:#5797e8}
+.metric{background:#0b1525;border:1px solid #24354c;border-radius:10px;padding:12px}
+canvas{display:block;width:100%;height:100%}
 </style>
 </head>
-<body>
-<header>
-  <div>
-    <h1>TradePilot <span style="color:var(--green)">PRO</span></h1>
-    <div class="sub">Canlı fiyat analizi · BUY / SELL · Mum grafiği</div>
-  </div>
-  <div id="connection" class="status">● Fiyat bağlantısı bekleniyor</div>
+<body class="min-h-screen">
+<header class="p-4 border-b border-slate-700 flex justify-between items-center flex-wrap gap-3">
+ <div>
+  <h1 class="text-2xl font-bold text-emerald-400">TradePilot PRO</h1>
+  <div class="text-xs muted mt-1">AUD/USD OTC · Canlı teknik analiz</div>
+ </div>
+ <div id="connection-status" class="text-sm text-amber-300">● Fiyat bağlantısı bekleniyor</div>
 </header>
 
-<main>
-  <section class="metrics">
-    <div class="panel">
-      <div class="metric-label">CANLI FİYAT</div>
-      <div id="price" class="metric-value">—</div>
-      <div id="symbol" class="status">Sembol bekleniyor</div>
+<main class="max-w-screen-2xl mx-auto p-3 md:p-5 grid grid-cols-1 lg:grid-cols-4 gap-4">
+ <section class="panel p-3 md:p-4 lg:col-span-3">
+  <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
+   <div>
+    <div class="text-sm muted">AUD/USD OTC · Anlık fiyat</div>
+    <div id="current-price" class="text-2xl font-bold font-mono">—</div>
+   </div>
+   <div class="flex gap-1 flex-wrap" id="timeframes">
+    <button class="btn active" data-tf="5">5 sn</button>
+    <button class="btn" data-tf="15">15 sn</button>
+    <button class="btn" data-tf="30">30 sn</button>
+    <button class="btn" data-tf="60">1 dk</button>
+    <button class="btn" data-tf="300">5 dk</button>
+   </div>
+  </div>
+
+  <div style="height:430px;position:relative">
+   <canvas id="priceChart"></canvas>
+  </div>
+
+  <div class="flex flex-wrap gap-4 text-xs muted mt-3">
+   <span><b style="color:#20d6a0">■</b> Yükseliş</span>
+   <span><b style="color:#ff647c">■</b> Düşüş</span>
+   <span><b style="color:#60a5fa">━</b> EMA 9</span>
+   <span><b style="color:#fbbf24">━</b> EMA 21</span>
+  </div>
+
+  <div class="border-t border-slate-700 mt-4 pt-3">
+   <div class="text-xs muted mb-2">RSI (14) · 30 / 50 / 70 seviyeleri</div>
+   <div style="height:105px"><canvas id="rsiChart"></canvas></div>
+  </div>
+ </section>
+
+ <aside class="flex flex-col gap-4">
+  <section class="panel p-4">
+   <h2 class="text-xs muted tracking-widest mb-3">SİNYAL KARARI</h2>
+   <div class="bg-slate-950/60 border border-slate-700 rounded-xl p-4">
+    <div id="signal" class="text-3xl font-black text-amber-300">BEKLE</div>
+    <p id="signal-desc" class="text-sm muted mt-2">Analiz için fiyat verisi bekleniyor.</p>
+    <div class="h-1.5 rounded bg-slate-700 mt-4 overflow-hidden">
+     <div id="signal-bar" class="h-full bg-amber-300" style="width:0%"></div>
     </div>
-    <div class="panel">
-      <div class="metric-label">GRAFİK MUMU</div>
-      <div id="candleDirection" class="metric-value">—</div>
-      <div id="candleRange" class="status">OHLC bekleniyor</div>
-    </div>
-    <div class="panel">
-      <div class="metric-label">ALINAN FİYAT GÜNCELLEMESİ</div>
-      <div id="tickCount" class="metric-value">0</div>
-      <div class="status">Bağlantıdan gelen güncellemeler</div>
-    </div>
-    <div class="panel">
-      <div class="metric-label">OLUŞAN MUM SAYISI</div>
-      <div id="candleCount" class="metric-value">0</div>
-      <div class="status">Seçili zaman aralığı</div>
-    </div>
+   </div>
+   <p class="text-xs muted mt-3">Sinyal teknik göstergelere dayanır; gelecekteki fiyatı veya kazancı garanti etmez.</p>
   </section>
 
-  <section class="panel">
-    <div class="section-head">
-      <h2>Fiyat Grafiği</h2>
-      <div class="buttons">
-        <button data-timeframe="5" class="active">5 sn</button>
-        <button data-timeframe="15">15 sn</button>
-        <button data-timeframe="30">30 sn</button>
-        <button data-timeframe="60">1 dk</button>
-        <button data-timeframe="300">5 dk</button>
-      </div>
+  <section class="panel p-4">
+   <h2 class="text-xs muted tracking-widest mb-3">TEKNİK GÖSTERGELER</h2>
+   <div class="grid grid-cols-2 gap-2">
+    <div class="metric">
+     <div class="text-xs muted">EMA 9</div>
+     <div id="ema9" class="text-lg font-bold mt-1">—</div>
     </div>
-    <canvas id="priceChart"></canvas>
-    <div class="chart-note" id="chartNote">Canlı fiyat akışı bekleniyor. Grafik, gelen fiyatlardan mum oluşturur; gerçek OHLC verisi değildir.</div>
+    <div class="metric">
+     <div class="text-xs muted">EMA 21</div>
+     <div id="ema21" class="text-lg font-bold mt-1">—</div>
+    </div>
+    <div class="metric">
+     <div class="text-xs muted">RSI 14</div>
+     <div id="rsi-value" class="text-lg font-bold mt-1">—</div>
+     <div id="rsi-hint" class="text-xs muted">Momentum</div>
+    </div>
+    <div class="metric">
+     <div class="text-xs muted">Son mum</div>
+     <div id="candle-direction" class="text-sm font-bold mt-1">—</div>
+     <div id="candle-range" class="text-xs muted mt-1">OHLC</div>
+    </div>
+   </div>
   </section>
 
-  <section class="panel">
-    <div class="section-head">
-      <h2>RSI (14)</h2>
-      <span id="rsiLabel" class="status">Veri bekleniyor</span>
-    </div>
-    <canvas id="rsiChart"></canvas>
+  <section class="panel p-4">
+   <h2 class="text-xs muted tracking-widest mb-3">VERİ DURUMU</h2>
+   <div class="flex justify-between text-sm py-2 border-b border-slate-700">
+    <span class="muted">Fiyat güncellemesi</span>
+    <b id="tick-count">0</b>
+   </div>
+   <div class="flex justify-between text-sm py-2">
+    <span class="muted">Oluşan mum</span>
+    <b id="candle-count">0</b>
+   </div>
+   <p id="history-status" class="text-xs muted mt-3">Canlı fiyat akışı bekleniyor.</p>
   </section>
-
-  <section class="panel">
-    <div class="section-head"><h2>İşlem Sinyali</h2><span class="status">Analiz amaçlı · Otomatik işlem yok</span></div>
-    <div class="signal-layout">
-      <div>
-        <div class="metric-label">MEVCUT SİNYAL</div>
-        <div id="signal" class="signal-main" style="color:var(--yellow)">VERİ BEKLENİYOR</div>
-        <div id="signalDesc" class="signal-desc">Yeterli fiyat ve gösterge verisi birikiyor.</div>
-        <div class="bar"><div id="signalBar"></div></div>
-        <div id="confidence" class="status">Doğrulama: —</div>
-      </div>
-      <div class="indicators">
-        <div class="indicator"><small>EMA 9</small><strong id="ema9">—</strong></div>
-        <div class="indicator"><small>EMA 21</small><strong id="ema21">—</strong></div>
-        <div class="indicator"><small>RSI 14</small><strong id="rsiValue">—</strong></div>
-      </div>
-    </div>
-  </section>
+ </aside>
 </main>
 
-<footer>TradePilot PRO · Canlı veri bağlantısı uzantıya bağlıdır. Sinyaller kâr garantisi vermez.</footer>
-
 <script>
-(function(){
-"use strict";
+(() => {
+  "use strict";
 
-const $ = id => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-const state = {
-  price:null,
-  symbol:"",
-  ticks:0,
-  timeframe:5,
-  candles:[],
-  history:[],
-  maxHistory:30000,
-  maxCandles:180,
-  lastUpdate:0,
-  seenMessages:new Set()
-};
+  const state = {
+    price: null,
+    ticks: 0,
+    candles: [],
+    priceHistory: [],
+    timeframe: 5,
+    maxCandles: 180,
+    maxStoredTicks: 20000
+  };
 
-function formatPrice(n){
-  if(!Number.isFinite(n)) return "—";
-  return n.toFixed(5);
-}
+  const fmt = n =>
+    Number.isFinite(n) ? n.toFixed(5) : "—";
 
-function normalizeTimestamp(value){
-  let t=Number(value);
-  if(!Number.isFinite(t)||t<=0) return Date.now();
-  if(t<1e12) t*=1000;
-  return t;
-}
+  function normalizeTimestamp(timestamp) {
+    let ts = Number(timestamp);
 
-function ema(values,period){
-  if(!values.length) return [];
-  const k=2/(period+1);
-  let result=[values[0]];
-  for(let i=1;i<values.length;i++){
-    result.push(values[i]*k+result[i-1]*(1-k));
+    if (!Number.isFinite(ts) || ts <= 0) ts = Date.now();
+    if (ts < 1e12) ts *= 1000;
+
+    return ts;
   }
-  return result;
-}
 
-function rsi(values,period){
-  const out=Array(values.length).fill(null);
-  if(values.length<=period) return out;
+  function ema(values, period) {
+    if (!values.length) return [];
 
-  let gain=0,loss=0;
-  for(let i=1;i<=period;i++){
-    const d=values[i]-values[i-1];
-    if(d>0) gain+=d;
-    else loss-=d;
-  }
-  let avgGain=gain/period;
-  let avgLoss=loss/period;
-  out[period]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
+    const k = 2 / (period + 1);
+    const result = [values[0]];
 
-  for(let i=period+1;i<values.length;i++){
-    const d=values[i]-values[i-1];
-    avgGain=(avgGain*(period-1)+Math.max(d,0))/period;
-    avgLoss=(avgLoss*(period-1)+Math.max(-d,0))/period;
-    out[i]=avgLoss===0?100:100-100/(1+avgGain/avgLoss);
-  }
-  return out;
-}
-
-function rebuildCandles(){
-  const map=new Map();
-  const interval=state.timeframe*1000;
-
-  for(const tick of state.history){
-    const bucket=Math.floor(tick.time/interval)*interval;
-    let c=map.get(bucket);
-    if(!c){
-      c={time:bucket,open:tick.price,high:tick.price,low:tick.price,close:tick.price};
-      map.set(bucket,c);
-    }else{
-      c.high=Math.max(c.high,tick.price);
-      c.low=Math.min(c.low,tick.price);
-      c.close=tick.price;
+    for (let i = 1; i < values.length; i++) {
+      result.push(values[i] * k + result[i - 1] * (1 - k));
     }
+
+    return result;
   }
 
-  state.candles=Array.from(map.values()).sort((a,b)=>a.time-b.time).slice(-1000);
-  updateUI();
-}
+  function rsi(values, period = 14) {
+    const out = Array(values.length).fill(null);
+    if (values.length <= period) return out;
 
-function receivePrice(rawPrice,timestamp,symbol){
-  const price=Number(rawPrice);
-  if(!Number.isFinite(price)||price<=0) return;
+    let gains = 0;
+    let losses = 0;
 
-  const time=normalizeTimestamp(timestamp);
-  state.price=price;
-  state.symbol=symbol||state.symbol||"Pocket Option";
-  state.ticks++;
-  state.lastUpdate=Date.now();
-
-  state.history.push({time,price});
-  if(state.history.length>state.maxHistory){
-    state.history.splice(0,state.history.length-state.maxHistory);
-  }
-
-  const interval=state.timeframe*1000;
-  const bucket=Math.floor(time/interval)*interval;
-  let last=state.candles[state.candles.length-1];
-
-  if(!last||last.time!==bucket){
-    last={time:bucket,open:price,high:price,low:price,close:price};
-    state.candles.push(last);
-  }else{
-    last.high=Math.max(last.high,price);
-    last.low=Math.min(last.low,price);
-    last.close=price;
-  }
-
-  if(state.candles.length>1000) state.candles.shift();
-  updateUI();
-}
-
-function updateUI(){
-  $("price").textContent=formatPrice(state.price);
-  $("symbol").textContent=state.symbol||"Sembol bekleniyor";
-  $("tickCount").textContent=state.ticks.toLocaleString("tr-TR");
-  $("candleCount").textContent=state.candles.length.toLocaleString("tr-TR");
-
-  if(state.lastUpdate&&Date.now()-state.lastUpdate<10000){
-    $("connection").textContent="● Canlı fiyat alınıyor";
-    $("connection").style.color="var(--green)";
-  }else{
-    $("connection").textContent="● Fiyat bağlantısı bekleniyor";
-    $("connection").style.color="var(--yellow)";
-  }
-
-  const c=state.candles[state.candles.length-1];
-  if(c){
-    const up=c.close>=c.open;
-    $("candleDirection").textContent=up?"YÜKSELİŞ":"DÜŞÜŞ";
-    $("candleDirection").style.color=up?"var(--green)":"var(--red)";
-    $("candleRange").textContent="H "+formatPrice(c.high)+" · L "+formatPrice(c.low);
-  }
-
-  updateIndicators();
-  drawCharts();
-}
-
-function updateIndicators(){
-  const closes=state.candles.map(c=>c.close);
-  const e9=ema(closes,9);
-  const e21=ema(closes,21);
-  const rs=rsi(closes,14);
-  const rv=rs.length?rs[rs.length-1]:null;
-
-  $("ema9").textContent=e9.length?formatPrice(e9[e9.length-1]):"—";
-  $("ema21").textContent=e21.length?formatPrice(e21[e21.length-1]):"—";
-  $("rsiValue").textContent=rv==null?"—":rv.toFixed(1);
-  $("rsiLabel").textContent=rv==null?"Veri birikiyor":rv>=70?"Aşırı alım":rv<=30?"Aşırı satım":"Nötr bölge";
-
-  let signal="VERİ BEKLENİYOR";
-  let color="var(--yellow)";
-  let confidence=0;
-  let desc="Sinyal üretmek için en az 25 mum gerekiyor.";
-
-  if(closes.length>=25&&rv!==null){
-    const a=e9[e9.length-1];
-    const b=e21[e21.length-1];
-    const previous=closes[closes.length-2];
-    const current=closes[closes.length-1];
-    const trendUp=a>b;
-    const trendDown=a<b;
-    const momentumUp=current>previous;
-    const momentumDown=current<previous;
-
-    if(trendUp&&momentumUp&&rv>=50&&rv<70){
-      signal="BUY · AL";
-      color="var(--green)";
-      confidence=70;
-      desc="EMA 9, EMA 21 üzerinde. Yukarı yönlü momentum ve RSI koşulları uyumlu.";
-    }else if(trendDown&&momentumDown&&rv<=50&&rv>30){
-      signal="SELL · SAT";
-      color="var(--red)";
-      confidence=70;
-      desc="EMA 9, EMA 21 altında. Aşağı yönlü momentum ve RSI koşulları uyumlu.";
-    }else{
-      signal="BEKLE";
-      confidence=25;
-      desc="Göstergeler aynı yönü yeterince doğrulamıyor.";
+    for (let i = 1; i <= period; i++) {
+      const d = values[i] - values[i - 1];
+      gains += Math.max(d, 0);
+      losses += Math.max(-d, 0);
     }
+
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+
+    out[period] = avgLoss === 0
+      ? 100
+      : 100 - 100 / (1 + avgGain / avgLoss);
+
+    for (let i = period + 1; i < values.length; i++) {
+      const d = values[i] - values[i - 1];
+
+      avgGain = (avgGain * (period - 1) + Math.max(d, 0)) / period;
+      avgLoss = (avgLoss * (period - 1) + Math.max(-d, 0)) / period;
+
+      out[i] = avgLoss === 0
+        ? 100
+        : 100 - 100 / (1 + avgGain / avgLoss);
+    }
+
+    return out;
   }
 
-  $("signal").textContent=signal;
-  $("signal").style.color=color;
-  $("signalDesc").textContent=desc;
-  $("signalBar").style.width=confidence+"%";
-  $("signalBar").style.background=color;
-  $("confidence").textContent="Gösterge uyumu: "+(confidence||0)+"%";
-}
+  function buildCandlesFromHistory() {
+    const interval = state.timeframe * 1000;
+    const candles = [];
 
-function setupCanvas(id){
-  const canvas=$(id);
-  const rect=canvas.getBoundingClientRect();
-  const dpr=window.devicePixelRatio||1;
-  const width=Math.max(1,rect.width);
-  const height=Math.max(1,rect.height);
-  if(canvas.width!==Math.floor(width*dpr)||canvas.height!==Math.floor(height*dpr)){
-    canvas.width=Math.floor(width*dpr);
-    canvas.height=Math.floor(height*dpr);
-  }
-  const ctx=canvas.getContext("2d");
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return {ctx,w:width,h:height};
-}
+    for (const tick of state.priceHistory) {
+      const candleTime = Math.floor(tick.time / interval) * interval;
+      let candle = candles[candles.length - 1];
 
-function drawCandles(){
-  const {ctx,w,h}=setupCanvas("priceChart");
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle="#081423";
-  ctx.fillRect(0,0,w,h);
+      if (!candle || candle.time !== candleTime) {
+        candle = {
+          time: candleTime,
+          open: tick.price,
+          high: tick.price,
+          low: tick.price,
+          close: tick.price
+        };
+        candles.push(candle);
+      } else {
+        candle.high = Math.max(candle.high, tick.price);
+        candle.low = Math.min(candle.low, tick.price);
+        candle.close = tick.price;
+      }
+    }
 
-  const candles=state.candles.slice(-state.maxCandles);
-  const pad={left:12,right:78,top:18,bottom:25};
-  const plotW=Math.max(1,w-pad.left-pad.right);
-  const plotH=Math.max(1,h-pad.top-pad.bottom);
-
-  if(!candles.length){
-    ctx.fillStyle="#91a4bf";
-    ctx.font="14px Arial";
-    ctx.fillText("Canlı fiyat akışı bekleniyor…",20,35);
-    return;
+    state.candles = candles.slice(-1000);
+    $("candle-count").textContent = state.candles.length.toLocaleString("tr-TR");
   }
 
-  let min=Math.min(...candles.map(c=>c.low));
-  let max=Math.max(...candles.map(c=>c.high));
-  let spread=max-min;
-  if(spread===0) spread=Math.max(Math.abs(max)*0.0001,0.0001);
-  min-=spread*0.1;
-  max+=spread*0.1;
+  function timeframeLabel(seconds) {
+    if (seconds < 60) return seconds + " saniye";
+    return (seconds / 60) + " dakika";
+  }
 
-  const y=p=>pad.top+(max-p)/(max-min)*plotH;
-  const step=plotW/candles.length;
-  const bodyW=Math.max(1,Math.min(13,step*0.7));
+  function rebuildCandles() {
+    buildCandlesFromHistory();
+    updateIndicators();
+    drawCharts();
 
-  ctx.strokeStyle="#1b2d46";
-  ctx.fillStyle="#91a4bf";
-  ctx.font="10px Arial";
-  ctx.textAlign="right";
+    $("history-status").textContent =
+      "Seçili grafik: " + timeframeLabel(state.timeframe) +
+      " · Saklanan fiyat güncellemesi: " +
+      state.priceHistory.length.toLocaleString("tr-TR");
+  }
 
-  for(let i=0;i<=5;i++){
-    const yy=pad.top+plotH*i/5;
+  function receivePrice(rawPrice, timestamp) {
+    const price = Number(rawPrice);
+    if (!Number.isFinite(price) || price <= 0) return;
+
+    const ts = normalizeTimestamp(timestamp);
+
+    state.priceHistory.push({ time: ts, price });
+
+    if (state.priceHistory.length > state.maxStoredTicks) {
+      state.priceHistory.splice(0, state.priceHistory.length - state.maxStoredTicks);
+    }
+
+    const interval = state.timeframe * 1000;
+    const candleTime = Math.floor(ts / interval) * interval;
+    let last = state.candles[state.candles.length - 1];
+
+    if (!last || last.time !== candleTime) {
+      last = {
+        time: candleTime,
+        open: price,
+        high: price,
+        low: price,
+        close: price
+      };
+
+      state.candles.push(last);
+      if (state.candles.length > 1000) state.candles.shift();
+    } else {
+      last.high = Math.max(last.high, price);
+      last.low = Math.min(last.low, price);
+      last.close = price;
+    }
+
+    state.price = price;
+    state.ticks++;
+
+    $("current-price").textContent = fmt(price);
+    $("tick-count").textContent = state.ticks.toLocaleString("tr-TR");
+    $("candle-count").textContent = state.candles.length.toLocaleString("tr-TR");
+
+    $("connection-status").textContent = "● Canlı bağlı";
+    $("connection-status").className = "text-sm text-emerald-400";
+
+    $("history-status").textContent =
+      "Seçili grafik: " + timeframeLabel(state.timeframe) +
+      " · Saklanan fiyat güncellemesi: " +
+      state.priceHistory.length.toLocaleString("tr-TR");
+
+    updateIndicators();
+    drawCharts();
+  }
+
+  function updateIndicators() {
+    const candles = state.candles;
+    const closes = candles.map(c => c.close);
+    const e9 = ema(closes, 9);
+    const e21 = ema(closes, 21);
+    const rs = rsi(closes, 14);
+
+    const last = candles[candles.length - 1];
+    const rv = rs.length ? rs[rs.length - 1] : null;
+
+    $("ema9").textContent = fmt(e9[e9.length - 1]);
+    $("ema21").textContent = fmt(e21[e21.length - 1]);
+    $("rsi-value").textContent = rv == null ? "—" : rv.toFixed(1);
+
+    $("rsi-hint").textContent = rv == null
+      ? "Veri birikiyor"
+      : rv >= 70
+        ? "Aşırı alım"
+        : rv <= 30
+          ? "Aşırı satım"
+          : "Nötr bölge";
+
+    if (last) {
+      const up = last.close >= last.open;
+      $("candle-direction").textContent = up ? "YÜKSELİŞ" : "DÜŞÜŞ";
+      $("candle-direction").style.color = up ? "#20d6a0" : "#ff647c";
+      $("candle-range").textContent = "H " + fmt(last.high) + " · L " + fmt(last.low);
+    } else {
+      $("candle-direction").textContent = "—";
+      $("candle-range").textContent = "OHLC";
+    }
+
+    let signal = "WAIT";
+    let confidence = 0;
+    let desc = "Sinyal için yeterli doğrulama yok; bekle.";
+
+    if (candles.length >= 25 && rv != null) {
+      const trendUp = e9.at(-1) > e21.at(-1);
+      const trendDown = e9.at(-1) < e21.at(-1);
+      const momentumUp = closes.at(-1) > closes.at(-2);
+      const momentumDown = closes.at(-1) < closes.at(-2);
+
+      if (trendUp && momentumUp && rv >= 50 && rv < 70) {
+        signal = "BUY";
+        confidence = 70;
+        desc = "EMA 9, EMA 21 üzerinde; momentum ve RSI yukarı yönü destekliyor.";
+      } else if (trendDown && momentumDown && rv <= 50 && rv > 30) {
+        signal = "SELL";
+        confidence = 70;
+        desc = "EMA 9, EMA 21 altında; momentum ve RSI aşağı yönü destekliyor.";
+      } else {
+        confidence = 25;
+        desc = "Göstergeler aynı yönde yeterince onay vermiyor; bekle.";
+      }
+    } else {
+      desc = "En az 25 mum ve yeterli RSI verisi birikiyor.";
+    }
+
+    $("signal").textContent =
+      signal === "BUY" ? "BUY · AL" :
+      signal === "SELL" ? "SELL · SAT" : "BEKLE";
+
+    $("signal").style.color =
+      signal === "BUY" ? "#20d6a0" :
+      signal === "SELL" ? "#ff647c" : "#ffc66d";
+
+    $("signal-desc").textContent = desc;
+    $("signal-bar").style.width = confidence + "%";
+    $("signal-bar").style.background =
+      signal === "BUY" ? "#20d6a0" :
+      signal === "SELL" ? "#ff647c" : "#ffc66d";
+  }
+
+  function canvasSetup(id) {
+    const canvas = $(id);
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    return { ctx, w: rect.width, h: rect.height };
+  }
+
+  function drawCandles() {
+    const { ctx, w, h } = canvasSetup("priceChart");
+    ctx.clearRect(0, 0, w, h);
+
+    const candles = state.candles.slice(-state.maxCandles);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, "#0b172a");
+    bg.addColorStop(1, "#071120");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const pad = { left: 12, right: 76, top: 18, bottom: 30 };
+    const plotW = Math.max(1, w - pad.left - pad.right);
+    const plotH = Math.max(1, h - pad.top - pad.bottom);
+
+    if (!candles.length) {
+      ctx.fillStyle = "#91a4bf";
+      ctx.font = "14px Arial";
+      ctx.fillText("Pocket Option fiyat akışı bekleniyor…", 20, 35);
+      return;
+    }
+
+    let min = Math.min(...candles.map(c => c.low));
+    let max = Math.max(...candles.map(c => c.high));
+    const spread = max - min || Math.max(Math.abs(max) * 0.0001, 0.0001);
+
+    min -= spread * 0.10;
+    max += spread * 0.10;
+
+    const y = p => pad.top + (max - p) / (max - min) * plotH;
+    const step = plotW / candles.length;
+    const bodyW = Math.max(1.5, Math.min(14, step * 0.72));
+
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(pad.left,yy);
-    ctx.lineTo(pad.left+plotW,yy);
-    ctx.stroke();
-    ctx.fillText((max-(max-min)*i/5).toFixed(5),w-5,yy-3);
-  }
+    ctx.rect(pad.left, pad.top, plotW, plotH);
+    ctx.clip();
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(pad.left,pad.top,plotW,plotH);
-  ctx.clip();
+    for (let i = 0; i <= 6; i++) {
+      const yy = pad.top + plotH * i / 6;
+      ctx.strokeStyle = "#1b2d46";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, yy);
+      ctx.lineTo(pad.left + plotW, yy);
+      ctx.stroke();
+    }
 
-  candles.forEach((c,i)=>{
-    const x=pad.left+step*i+step/2;
-    const up=c.close>=c.open;
-    const color=up?"#20d6a0":"#ff647c";
-    ctx.strokeStyle=color;
-    ctx.fillStyle=color;
-    ctx.lineWidth=1;
-    ctx.beginPath();
-    ctx.moveTo(x,y(c.high));
-    ctx.lineTo(x,y(c.low));
-    ctx.stroke();
+    for (let i = 0; i <= 8; i++) {
+      const xx = pad.left + plotW * i / 8;
+      ctx.strokeStyle = "#14263e";
+      ctx.beginPath();
+      ctx.moveTo(xx, pad.top);
+      ctx.lineTo(xx, pad.top + plotH);
+      ctx.stroke();
+    }
 
-    const top=y(Math.max(c.open,c.close));
-    const bottom=y(Math.min(c.open,c.close));
-    ctx.fillRect(x-bodyW/2,top,bodyW,Math.max(1,bottom-top));
-  });
+    candles.forEach((c, i) => {
+      const x = pad.left + i * step + step / 2;
+      const up = c.close >= c.open;
+      const color = up ? "#16c784" : "#ea3943";
+      const wick = up ? "#21d9a0" : "#ff5964";
 
-  const last=candles[candles.length-1];
-  const lastY=y(last.close);
-  ctx.strokeStyle=last.close>=last.open?"#20d6a0":"#ff647c";
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();
-  ctx.moveTo(pad.left,lastY);
-  ctx.lineTo(pad.left+plotW,lastY);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
+      ctx.strokeStyle = wick;
+      ctx.lineWidth = Math.max(1, Math.min(1.5, step * 0.12));
+      ctx.beginPath();
+      ctx.moveTo(x, y(c.high));
+      ctx.lineTo(x, y(c.low));
+      ctx.stroke();
 
-  $("chartNote").textContent=
-    "Aralık: "+state.timeframe+" saniye · Mum sayısı: "+candles.length+
-    " · Fiyatlardan oluşturulan mumlar; Pocket Option OHLC verisiyle birebir eşleşme garanti değildir.";
-}
+      const top = y(Math.max(c.open, c.close));
+      const bottom = y(Math.min(c.open, c.close));
+      const bodyH = Math.max(1.2, bottom - top);
 
-function drawRSI(){
-  const {ctx,w,h}=setupCanvas("rsiChart");
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle="#081423";
-  ctx.fillRect(0,0,w,h);
-
-  const closes=state.candles.slice(-state.maxCandles).map(c=>c.close);
-  const values=rsi(closes,14);
-  const pad={left:12,right:25,top:10,bottom:10};
-  const pw=Math.max(1,w-pad.left-pad.right);
-  const ph=Math.max(1,h-pad.top-pad.bottom);
-  const y=v=>pad.top+(100-v)/100*ph;
-
-  [30,50,70].forEach(v=>{
-    ctx.strokeStyle=v===50?"#293d58":"#563b50";
-    ctx.setLineDash(v===50?[]:[4,4]);
-    ctx.beginPath();
-    ctx.moveTo(pad.left,y(v));
-    ctx.lineTo(w-pad.right,y(v));
-    ctx.stroke();
-    ctx.fillStyle="#91a4bf";
-    ctx.font="10px Arial";
-    ctx.fillText(String(v),w-pad.right+3,y(v)+3);
-  });
-  ctx.setLineDash([]);
-
-  ctx.strokeStyle="#83a9ff";
-  ctx.lineWidth=1.5;
-  ctx.beginPath();
-  let started=false;
-  values.forEach((v,i)=>{
-    if(v===null)return;
-    const x=pad.left+i/Math.max(1,values.length-1)*pw;
-    if(!started){ctx.moveTo(x,y(v));started=true;}
-    else ctx.lineTo(x,y(v));
-  });
-  if(started)ctx.stroke();
-}
-
-function drawCharts(){
-  drawCandles();
-  drawRSI();
-}
-
-document.querySelectorAll("[data-timeframe]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    state.timeframe=Number(button.dataset.timeframe);
-    document.querySelectorAll("[data-timeframe]").forEach(b=>{
-      b.classList.toggle("active",b===button);
+      ctx.fillStyle = color;
+      ctx.fillRect(x - bodyW / 2, top, bodyW, bodyH);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.7;
+      ctx.strokeRect(x - bodyW / 2, top, bodyW, bodyH);
     });
+
+    const closes = candles.map(c => c.close);
+
+    function drawEma(values, color, width) {
+      if (!values.length) return;
+      ctx.beginPath();
+
+      values.forEach((v, i) => {
+        const x = pad.left + i * step + step / 2;
+        if (i === 0) ctx.moveTo(x, y(v));
+        else ctx.lineTo(x, y(v));
+      });
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+
+    drawEma(ema(closes, 21), "#f5b82e", 2);
+    drawEma(ema(closes, 9), "#2997ff", 2);
+
+    const last = candles[candles.length - 1].close;
+    const currentY = y(last);
+
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = "#2997ff";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, currentY);
+    ctx.lineTo(pad.left + plotW, currentY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    ctx.fillStyle = "#0a1729";
+    ctx.fillRect(w - pad.right, pad.top, pad.right, plotH);
+    ctx.font = "11px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+
+    for (let i = 0; i <= 6; i++) {
+      const value = max - (max - min) * i / 6;
+      const yy = pad.top + plotH * i / 6;
+
+      ctx.strokeStyle = "#20334d";
+      ctx.beginPath();
+      ctx.moveTo(w - pad.right, yy);
+      ctx.lineTo(w - 4, yy);
+      ctx.stroke();
+
+      ctx.fillStyle = "#a8bdd9";
+      ctx.fillText(value.toFixed(5), w - pad.right + 7, yy);
+    }
+
+    const badgeH = 22;
+    const badgeY = Math.max(pad.top, Math.min(pad.top + plotH - badgeH, currentY - badgeH / 2));
+
+    ctx.fillStyle = "#1677e8";
+
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(w - pad.right + 2, badgeY, pad.right - 4, badgeH, 4);
+      ctx.fill();
+    } else {
+      ctx.fillRect(w - pad.right + 2, badgeY, pad.right - 4, badgeH);
+    }
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px Arial";
+    ctx.textBaseline = "middle";
+    ctx.fillText(fmt(last), w - pad.right + 7, badgeY + badgeH / 2);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#91a9c8";
+
+    const labelCount = Math.min(6, candles.length);
+
+    for (let i = 0; i < labelCount; i++) {
+      const index = labelCount === 1
+        ? candles.length - 1
+        : Math.round(i * (candles.length - 1) / (labelCount - 1));
+
+      const c = candles[index];
+      const x = pad.left + index * step + step / 2;
+      const options = { hour: "2-digit", minute: "2-digit" };
+
+      if (state.timeframe < 60) options.second = "2-digit";
+
+      const label = new Date(c.time).toLocaleTimeString("tr-TR", options);
+      ctx.fillText(label, x, h - 8);
+    }
+
+    ctx.strokeStyle = "#2b405c";
+    ctx.beginPath();
+    ctx.moveTo(w - pad.right, pad.top);
+    ctx.lineTo(w - pad.right, pad.top + plotH);
+    ctx.stroke();
+  }
+
+  function drawRsi() {
+    const { ctx, w, h } = canvasSetup("rsiChart");
+    ctx.clearRect(0, 0, w, h);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, "#101a36");
+    bg.addColorStop(1, "#091326");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    const candles = state.candles.slice(-state.maxCandles);
+    if (!candles.length) return;
+
+    const values = rsi(candles.map(c => c.close));
+    const pad = { left: 12, right: 76, top: 8, bottom: 8 };
+    const plotW = Math.max(1, w - pad.left - pad.right);
+    const plotH = Math.max(1, h - pad.top - pad.bottom);
+    const y = v => pad.top + (100 - v) / 100 * plotH;
+
+    ctx.fillStyle = "rgba(234,57,67,0.07)";
+    ctx.fillRect(pad.left, y(70), plotW, y(100) - y(70));
+
+    ctx.fillStyle = "rgba(22,199,132,0.06)";
+    ctx.fillRect(pad.left, y(0), plotW, y(30) - y(0));
+
+    [30, 50, 70].forEach(v => {
+      const yy = y(v);
+
+      ctx.beginPath();
+      ctx.setLineDash(v === 50 ? [] : [4, 4]);
+      ctx.strokeStyle = v === 50 ? "#596c91" : "#344967";
+      ctx.lineWidth = 1;
+      ctx.moveTo(pad.left, yy);
+      ctx.lineTo(pad.left + plotW, yy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#a8bdd9";
+      ctx.font = "11px Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String(v), w - pad.right + 9, yy);
+    });
+
+    const step = plotW / Math.max(1, values.length - 1);
+    ctx.beginPath();
+    let started = false;
+
+    values.forEach((v, i) => {
+      if (v === null || !Number.isFinite(v)) {
+        started = false;
+        return;
+      }
+
+      const x = pad.left + i * step;
+      const yy = y(v);
+
+      if (!started) {
+        ctx.moveTo(x, yy);
+        started = true;
+      } else {
+        ctx.lineTo(x, yy);
+      }
+    });
+
+    ctx.strokeStyle = "#a879ff";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.stroke();
+
+    const last = values[values.length - 1];
+
+    if (last !== null && Number.isFinite(last)) {
+      const x = pad.left + (values.length - 1) * step;
+      const yy = y(last);
+
+      ctx.fillStyle = "#c4a5ff";
+      ctx.beginPath();
+      ctx.arc(x, yy, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle = "#2b405c";
+    ctx.beginPath();
+    ctx.moveTo(w - pad.right, pad.top);
+    ctx.lineTo(w - pad.right, h - pad.bottom);
+    ctx.stroke();
+  }
+
+  function drawCharts() {
+    drawCandles();
+    drawRsi();
+  }
+
+  // Mevcut fiyat köprüsü korunmuştur.
+  // Bu sayfa yeni WebSocket açmaz ve otomatik işlem yapmaz.
+  window.addEventListener("message", event => {
+    const data = event.data;
+
+    if (!data || data.type !== "TRADEPILOT_PRICE_UPDATE") return;
+
+    receivePrice(data.price, data.timestamp || Date.now());
+  });
+
+  window.addEventListener("TRADEPILOT_PRICE_UPDATE", event => {
+    const data = event.detail || {};
+    receivePrice(data.price, data.timestamp || Date.now());
+  });
+
+  $("timeframes").addEventListener("click", event => {
+    const button = event.target.closest("[data-tf]");
+    if (!button) return;
+
+    const newTimeframe = Number(button.dataset.tf);
+    if (![5, 15, 30, 60, 300].includes(newTimeframe)) return;
+
+    state.timeframe = newTimeframe;
+
+    document.querySelectorAll("#timeframes [data-tf]").forEach(b => {
+      b.classList.toggle("active", b === button);
+    });
+
     rebuildCandles();
   });
-});
 
-function handlePriceMessage(data){
-  if(!data||data.type!=="TRADEPILOT_PRICE_UPDATE")return;
-  receivePrice(data.price,data.timestamp||Date.now(),data.symbol);
-}
-
-window.addEventListener("message",event=>{
-  if(event.source!==window)return;
-  handlePriceMessage(event.data);
-});
-
-window.addEventListener("TRADEPILOT_PRICE_UPDATE",event=>{
-  handlePriceMessage(event.detail||{});
-});
-
-window.addEventListener("resize",drawCharts);
-
-setInterval(()=>{
-  if(state.lastUpdate&&Date.now()-state.lastUpdate>10000){
-    $("connection").textContent="● Fiyat akışı durdu; uzantıyı kontrol et";
-    $("connection").style.color="var(--yellow)";
-  }
-},2000);
-
-drawCharts();
-updateUI();
+  window.addEventListener("resize", drawCharts);
+  drawCharts();
 })();
 </script>
 </body>
