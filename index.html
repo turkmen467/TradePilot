@@ -132,7 +132,6 @@ canvas{display:block;width:100%;height:100%}
   const fmt = n =>
     Number.isFinite(n) ? n.toFixed(5) : "—";
 
-  // Bazı fiyat kaynakları zamanı saniye, bazıları milisaniye gönderir.
   function normalizeTimestamp(timestamp) {
     let ts = Number(timestamp);
 
@@ -140,7 +139,6 @@ canvas{display:block;width:100%;height:100%}
       ts = Date.now();
     }
 
-    // Unix saniyesini milisaniyeye dönüştür.
     if (ts < 1e12) {
       ts *= 1000;
     }
@@ -202,52 +200,10 @@ canvas{display:block;width:100%;height:100%}
 
     return out;
   }
+</script>
+</body>
+</html>
 
-  /*
-   * Fiyat geçmişini seçili zaman dilimine göre mumlara çevirir.
-   * Her mumun açılış, en yüksek, en düşük ve kapanış fiyatı
-   * saklanan gerçek fiyat güncellemelerinden hesaplanır.
-   */
-  function buildCandlesFromHistory() {
-    const interval = state.timeframe * 1000;
-    const candles = [];
-
-    for (const tick of state.priceHistory) {
-      const candleTime =
-        Math.floor(tick.time / interval) * interval;
-
-      let candle = candles[candles.length - 1];
-
-      if (!candle || candle.time !== candleTime) {
-        candle = {
-          time: candleTime,
-          open: tick.price,
-          high: tick.price,
-          low: tick.price,
-          close: tick.price
-        };
-
-        candles.push(candle);
-      } else {
-        candle.high = Math.max(candle.high, tick.price);
-        candle.low = Math.min(candle.low, tick.price);
-        candle.close = tick.price;
-      }
-    }
-
-    state.candles = candles.slice(-1000);
-
-    $("candle-count").textContent =
-      state.candles.length.toLocaleString("tr-TR");
-  }
-
-  /*
-   * Zaman dilimi değişince geçmişte toplanmış fiyatları
-   * yeniden gruplar ve göstergeleri tekrar hesaplar.
-   */
-  function rebuildCandles() {
-    buildCandlesFromHistory();
-    updateIndicators();
     drawCharts();
 
     $("history-status").textContent =
@@ -263,18 +219,12 @@ canvas{display:block;width:100%;height:100%}
 
   function receivePrice(rawPrice, timestamp) {
     const price = Number(rawPrice);
-
     if (!Number.isFinite(price) || price <= 0) return;
 
     const ts = normalizeTimestamp(timestamp);
 
-    // Fiyat geçmişine ekle.
-    state.priceHistory.push({
-      time: ts,
-      price
-    });
+    state.priceHistory.push({ time: ts, price });
 
-    // Belleğin sınırsız büyümesini önle.
     if (state.priceHistory.length > state.maxStoredTicks) {
       state.priceHistory.splice(
         0,
@@ -282,10 +232,8 @@ canvas{display:block;width:100%;height:100%}
       );
     }
 
-    // Normal canlı akışta yalnızca son mumu güncelle.
     const interval = state.timeframe * 1000;
     const candleTime = Math.floor(ts / interval) * interval;
-
     let last = state.candles[state.candles.length - 1];
 
     if (!last || last.time !== candleTime) {
@@ -296,12 +244,9 @@ canvas{display:block;width:100%;height:100%}
         low: price,
         close: price
       };
-
       state.candles.push(last);
 
-      if (state.candles.length > 1000) {
-        state.candles.shift();
-      }
+      if (state.candles.length > 1000) state.candles.shift();
     } else {
       last.high = Math.max(last.high, price);
       last.low = Math.min(last.low, price);
@@ -312,14 +257,10 @@ canvas{display:block;width:100%;height:100%}
     state.ticks++;
 
     $("current-price").textContent = fmt(price);
-    $("tick-count").textContent =
-      state.ticks.toLocaleString("tr-TR");
-    $("candle-count").textContent =
-      state.candles.length.toLocaleString("tr-TR");
-
+    $("tick-count").textContent = state.ticks.toLocaleString("tr-TR");
+    $("candle-count").textContent = state.candles.length.toLocaleString("tr-TR");
     $("connection-status").textContent = "● Canlı bağlı";
-    $("connection-status").className =
-      "text-sm text-emerald-400";
+    $("connection-status").className = "text-sm text-emerald-400";
 
     $("history-status").textContent =
       "Seçili grafik: " + timeframeLabel(state.timeframe) +
@@ -342,27 +283,18 @@ canvas{display:block;width:100%;height:100%}
 
     $("ema9").textContent = fmt(e9[e9.length - 1]);
     $("ema21").textContent = fmt(e21[e21.length - 1]);
-
-    $("rsi-value").textContent =
-      rv == null ? "—" : rv.toFixed(1);
+    $("rsi-value").textContent = rv == null ? "—" : rv.toFixed(1);
 
     $("rsi-hint").textContent = rv == null
       ? "Veri birikiyor"
-      : rv >= 70
-        ? "Aşırı alım"
-        : rv <= 30
-          ? "Aşırı satım"
-          : "Nötr bölge";
+      : rv >= 70 ? "Aşırı alım"
+      : rv <= 30 ? "Aşırı satım"
+      : "Nötr bölge";
 
     if (last) {
       const up = last.close >= last.open;
-
-      $("candle-direction").textContent =
-        up ? "YÜKSELİŞ" : "DÜŞÜŞ";
-
-      $("candle-direction").style.color =
-        up ? "#20d6a0" : "#ff647c";
-
+      $("candle-direction").textContent = up ? "YÜKSELİŞ" : "DÜŞÜŞ";
+      $("candle-direction").style.color = up ? "#20d6a0" : "#ff647c";
       $("candle-range").textContent =
         "H " + fmt(last.high) + " · L " + fmt(last.low);
     } else {
@@ -394,12 +326,10 @@ canvas{display:block;width:100%;height:100%}
           "EMA 9, EMA 21 altında; momentum ve RSI aşağı yönü destekliyor.";
       } else {
         confidence = 25;
-        desc =
-          "Göstergeler aynı yönde yeterince onay vermiyor; bekle.";
+        desc = "Göstergeler aynı yönde yeterince onay vermiyor; bekle.";
       }
     } else {
-      desc =
-        "En az 25 mum ve yeterli RSI verisi birikiyor.";
+      desc = "En az 25 mum ve yeterli RSI verisi birikiyor.";
     }
 
     $("signal").textContent =
@@ -414,7 +344,6 @@ canvas{display:block;width:100%;height:100%}
 
     $("signal-desc").textContent = desc;
     $("signal-bar").style.width = confidence + "%";
-
     $("signal-bar").style.background =
       signal === "BUY" ? "#20d6a0"
       : signal === "SELL" ? "#ff647c"
@@ -437,25 +366,16 @@ canvas{display:block;width:100%;height:100%}
 
   function drawCandles() {
     const { ctx, w, h } = canvasSetup("priceChart");
-
     ctx.clearRect(0, 0, w, h);
 
     const candles = state.candles.slice(-state.maxCandles);
-
     const bg = ctx.createLinearGradient(0, 0, 0, h);
     bg.addColorStop(0, "#0b172a");
     bg.addColorStop(1, "#071120");
-
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, w, h);
 
-    const pad = {
-      left: 12,
-      right: 76,
-      top: 18,
-      bottom: 30
-    };
-
+    const pad = { left: 12, right: 76, top: 18, bottom: 30 };
     const plotW = Math.max(1, w - pad.left - pad.right);
     const plotH = Math.max(1, h - pad.top - pad.bottom);
 
@@ -468,16 +388,11 @@ canvas{display:block;width:100%;height:100%}
 
     let min = Math.min(...candles.map(c => c.low));
     let max = Math.max(...candles.map(c => c.high));
-
-    const spread =
-      max - min || Math.max(Math.abs(max) * 0.0001, 0.0001);
-
+    const spread = max - min || Math.max(Math.abs(max) * 0.0001, 0.0001);
     min -= spread * 0.10;
     max += spread * 0.10;
 
-    const y = p =>
-      pad.top + (max - p) / (max - min) * plotH;
-
+    const y = p => pad.top + (max - p) / (max - min) * plotH;
     const step = plotW / candles.length;
     const bodyW = Math.max(1.5, Math.min(14, step * 0.72));
 
@@ -486,10 +401,8 @@ canvas{display:block;width:100%;height:100%}
     ctx.rect(pad.left, pad.top, plotW, plotH);
     ctx.clip();
 
-    // Yatay ızgara
     for (let i = 0; i <= 6; i++) {
       const yy = pad.top + plotH * i / 6;
-
       ctx.strokeStyle = "#1b2d46";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -498,26 +411,14 @@ canvas{display:block;width:100%;height:100%}
       ctx.stroke();
     }
 
-    // Dikey ızgara
-    for (let i = 0; i <= 8; i++) {
-      const xx = pad.left + plotW * i / 8;
-
-      ctx.strokeStyle = "#14263e";
-      ctx.beginPath();
-      ctx.moveTo(xx, pad.top);
-      ctx.lineTo(xx, pad.top + plotH);
-      ctx.stroke();
-    }
-
-    // Mumlar
-    candles.forEach((c, i) => {
-      const x = pad.left + i * step + step / 2;
+    for (let i = 0; i < candles.length; i++) {
+      const c = candles[i];
+      const x = pad.left + step * i + step / 2;
       const up = c.close >= c.open;
-      const color = up ? "#16c784" : "#ea3943";
-      const wick = up ? "#21d9a0" : "#ff5964";
+      const color = up ? "#20d6a0" : "#ff647c";
 
-      ctx.strokeStyle = wick;
-      ctx.lineWidth = Math.max(1, Math.min(1.5, step * 0.12));
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(1, Math.min(2, step * 0.12));
       ctx.beginPath();
       ctx.moveTo(x, y(c.high));
       ctx.lineTo(x, y(c.low));
@@ -525,306 +426,160 @@ canvas{display:block;width:100%;height:100%}
 
       const top = y(Math.max(c.open, c.close));
       const bottom = y(Math.min(c.open, c.close));
-      const bodyH = Math.max(1.2, bottom - top);
+      const bodyH = Math.max(1, bottom - top);
 
       ctx.fillStyle = color;
       ctx.fillRect(x - bodyW / 2, top, bodyW, bodyH);
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 0.7;
-      ctx.strokeRect(x - bodyW / 2, top, bodyW, bodyH);
-    });
-
-    // EMA çizgileri
-    const closes = candles.map(c => c.close);
-
-    function drawEma(values, color, width) {
-      if (!values.length) return;
-
-      ctx.beginPath();
-
-      values.forEach((v, i) => {
-        const x = pad.left + i * step + step / 2;
-
-        if (i === 0) ctx.moveTo(x, y(v));
-        else ctx.lineTo(x, y(v));
-      });
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = width;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
     }
-
-    drawEma(ema(closes, 21), "#f5b82e", 2);
-    drawEma(ema(closes, 9), "#2997ff", 2);
-
-    // Güncel fiyat çizgisi
-    const last = candles[candles.length - 1].close;
-    const currentY = y(last);
-
-    ctx.setLineDash([5, 4]);
-    ctx.strokeStyle = "#2997ff";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, currentY);
-    ctx.lineTo(pad.left + plotW, currentY);
-    ctx.stroke();
-    ctx.setLineDash([]);
 
     ctx.restore();
 
-    // Sağ fiyat ölçeği
-    ctx.fillStyle = "#0a1729";
-    ctx.fillRect(w - pad.right, pad.top, pad.right, plotH);
-
+    ctx.fillStyle = "#9fb0c9";
     ctx.font = "11px Arial";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
+    ctx.textAlign = "right";
 
     for (let i = 0; i <= 6; i++) {
-      const value = max - (max - min) * i / 6;
+      const price = max - (max - min) * i / 6;
       const yy = pad.top + plotH * i / 6;
-
-      ctx.strokeStyle = "#20334d";
-      ctx.beginPath();
-      ctx.moveTo(w - pad.right, yy);
-      ctx.lineTo(w - 4, yy);
-      ctx.stroke();
-
-      ctx.fillStyle = "#a8bdd9";
-      ctx.fillText(value.toFixed(5), w - pad.right + 7, yy);
+      ctx.fillText(price.toFixed(5), w - 8, yy + 4);
     }
 
-    // Güncel fiyat etiketi
-    const badgeH = 22;
-    const badgeY = Math.max(
-      pad.top,
-      Math.min(pad.top + plotH - badgeH, currentY - badgeH / 2)
-    );
+    const last = candles[candles.length - 1];
+    const lastY = y(last.close);
 
-    ctx.fillStyle = "#1677e8";
-
-    if (typeof ctx.roundRect === "function") {
-      ctx.beginPath();
-      ctx.roundRect(
-        w - pad.right + 2,
-        badgeY,
-        pad.right - 4,
-        badgeH,
-        4
-      );
-      ctx.fill();
-    } else {
-      ctx.fillRect(
-        w - pad.right + 2,
-        badgeY,
-        pad.right - 4,
-        badgeH
-      );
-    }
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px Arial";
-    ctx.textBaseline = "middle";
-    ctx.fillText(fmt(last), w - pad.right + 7, badgeY + badgeH / 2);
-
-    // Zaman ekseni
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = "10px Arial";
-    ctx.fillStyle = "#91a9c8";
-
-    const labelCount = Math.min(6, candles.length);
-
-    for (let i = 0; i < labelCount; i++) {
-      const index = labelCount === 1
-        ? candles.length - 1
-        : Math.round(i * (candles.length - 1) / (labelCount - 1));
-
-      const c = candles[index];
-      const x = pad.left + index * step + step / 2;
-
-      const options = {
-        hour: "2-digit",
-        minute: "2-digit"
-      };
-
-      if (state.timeframe < 60) {
-        options.second = "2-digit";
-      }
-
-      const label = new Date(c.time).toLocaleTimeString(
-        "tr-TR",
-        options
-      );
-
-      ctx.fillText(label, x, h - 8);
-    }
-
-    ctx.strokeStyle = "#2b405c";
+    ctx.strokeStyle = last.close >= last.open ? "#20d6a0" : "#ff647c";
+    ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(w - pad.right, pad.top);
-    ctx.lineTo(w - pad.right, pad.top + plotH);
+    ctx.moveTo(pad.left, lastY);
+    ctx.lineTo(pad.left + plotW, lastY);
     ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = last.close >= last.open ? "#20d6a0" : "#ff647c";
+    ctx.fillRect(pad.left + plotW + 4, lastY - 9, pad.right - 8, 18);
+    ctx.fillStyle = "#071120";
+    ctx.textAlign = "center";
+    ctx.font = "bold 10px Arial";
+    ctx.fillText(last.close.toFixed(5), pad.left + plotW + pad.right / 2, lastY + 3);
   }
 
-  function drawRsi() {
+  function drawRSI() {
     const { ctx, w, h } = canvasSetup("rsiChart");
-
     ctx.clearRect(0, 0, w, h);
-
-    const bg = ctx.createLinearGradient(0, 0, 0, h);
-    bg.addColorStop(0, "#101a36");
-    bg.addColorStop(1, "#091326");
-
-    ctx.fillStyle = bg;
+    ctx.fillStyle = "#0a1424";
     ctx.fillRect(0, 0, w, h);
 
     const candles = state.candles.slice(-state.maxCandles);
-    if (!candles.length) return;
+    if (candles.length < 2) {
+      ctx.fillStyle = "#91a4bf";
+      ctx.font = "12px Arial";
+      ctx.fillText("RSI verisi bekleniyor…", 12, 22);
+      return;
+    }
 
-    const values = rsi(candles.map(c => c.close));
-
-    const pad = {
-      left: 12,
-      right: 76,
-      top: 8,
-      bottom: 8
-    };
-
-    const plotW = Math.max(1, w - pad.left - pad.right);
-    const plotH = Math.max(1, h - pad.top - pad.bottom);
-
+    const values = rsi(candles.map(c => c.close), 14);
+    const pad = { left: 12, right: 12, top: 10, bottom: 10 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
     const y = v => pad.top + (100 - v) / 100 * plotH;
 
-    // Aşırı alım ve satım bölgeleri
-    ctx.fillStyle = "rgba(234,57,67,0.07)";
-    ctx.fillRect(pad.left, y(70), plotW, y(100) - y(70));
-
-    ctx.fillStyle = "rgba(22,199,132,0.06)";
-    ctx.fillRect(pad.left, y(0), plotW, y(30) - y(0));
-
-    // RSI seviyeleri
-    [30, 50, 70].forEach(v => {
-      const yy = y(v);
-
+    [30, 50, 70].forEach(level => {
+      ctx.strokeStyle = level === 50 ? "#293d58" : "#563b50";
+      ctx.setLineDash(level === 50 ? [] : [4, 4]);
       ctx.beginPath();
-      ctx.setLineDash(v === 50 ? [] : [4, 4]);
-      ctx.strokeStyle = v === 50 ? "#596c91" : "#344967";
-      ctx.lineWidth = 1;
-      ctx.moveTo(pad.left, yy);
-      ctx.lineTo(pad.left + plotW, yy);
+      ctx.moveTo(pad.left, y(level));
+      ctx.lineTo(w - pad.right, y(level));
       ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.fillStyle = "#a8bdd9";
-      ctx.font = "11px Arial";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(String(v), w - pad.right + 9, yy);
     });
+    ctx.setLineDash([]);
 
-    // RSI çizgisi
-    const step = plotW / Math.max(1, values.length - 1);
-
+    ctx.strokeStyle = "#83a9ff";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
 
     let started = false;
-
-    values.forEach((v, i) => {
-      if (v === null || !Number.isFinite(v)) {
-        started = false;
-        return;
-      }
-
-      const x = pad.left + i * step;
-      const yy = y(v);
-
+    values.forEach((value, i) => {
+      if (value == null) return;
+      const x = pad.left + i / Math.max(1, values.length - 1) * plotW;
       if (!started) {
-        ctx.moveTo(x, yy);
+        ctx.moveTo(x, y(value));
         started = true;
       } else {
-        ctx.lineTo(x, yy);
+        ctx.lineTo(x, y(value));
       }
     });
 
-    ctx.strokeStyle = "#a879ff";
-    ctx.lineWidth = 2;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
     ctx.stroke();
 
-    // Son RSI noktası
-    const last = values[values.length - 1];
-
-    if (last !== null && Number.isFinite(last)) {
-      const x = pad.left + (values.length - 1) * step;
-      const yy = y(last);
-
-      ctx.fillStyle = "#c4a5ff";
-      ctx.beginPath();
-      ctx.arc(x, yy, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.strokeStyle = "#2b405c";
-    ctx.beginPath();
-    ctx.moveTo(w - pad.right, pad.top);
-    ctx.lineTo(w - pad.right, h - pad.bottom);
-    ctx.stroke();
+    ctx.fillStyle = "#a8bbd8";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("70", w - 2, y(70) - 2);
+    ctx.fillText("50", w - 2, y(50) - 2);
+    ctx.fillText("30", w - 2, y(30) - 2);
   }
 
   function drawCharts() {
     drawCandles();
-    drawRsi();
+    drawRSI();
   }
 
-  /*
-   * Mevcut fiyat köprüsü korunmuştur.
-   * Yeni WebSocket açılmaz ve otomatik işlem yapılmaz.
-   */
+  function rebuildCandles() {
+    state.candles = [];
+
+    const interval = state.timeframe * 1000;
+    for (const tick of state.priceHistory) {
+      const candleTime = Math.floor(tick.time / interval) * interval;
+      let candle = state.candles[state.candles.length - 1];
+
+      if (!candle || candle.time !== candleTime) {
+        candle = {
+          time: candleTime,
+          open: tick.price,
+          high: tick.price,
+          low: tick.price,
+          close: tick.price
+        };
+        state.candles.push(candle);
+      } else {
+        candle.high = Math.max(candle.high, tick.price);
+        candle.low = Math.min(candle.low, tick.price);
+        candle.close = tick.price;
+      }
+    }
+
+    state.candles = state.candles.slice(-1000);
+    updateIndicators();
+    drawCharts();
+  }
+
+  document.querySelectorAll("[data-timeframe]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.timeframe = Number(button.dataset.timeframe);
+      document.querySelectorAll("[data-timeframe]").forEach(b => {
+        b.classList.toggle("active", b === button);
+      });
+      rebuildCandles();
+      $("history-status").textContent =
+        "Grafik aralığı: " + timeframeLabel(state.timeframe);
+    });
+  });
+
   window.addEventListener("message", event => {
     const data = event.data;
-
-    if (!data || data.type !== "TRADEPILOT_PRICE_UPDATE") {
-      return;
-    }
-
+    if (!data || data.type !== "TRADEPILOT_PRICE_UPDATE") return;
     receivePrice(data.price, data.timestamp || Date.now());
   });
 
-  // CustomEvent kullanan mevcut köprülerle uyumluluk.
   window.addEventListener("TRADEPILOT_PRICE_UPDATE", event => {
     const data = event.detail || {};
-
     receivePrice(data.price, data.timestamp || Date.now());
-  });
-
-  // Zaman dilimi geçişi: geçmiş fiyatları yeniden grupla.
-  $("timeframes").addEventListener("click", event => {
-    const button = event.target.closest("[data-tf]");
-    if (!button) return;
-
-    const newTimeframe = Number(button.dataset.tf);
-
-    if (![5, 15, 30, 60, 300].includes(newTimeframe)) {
-      return;
-    }
-
-    state.timeframe = newTimeframe;
-
-    document.querySelectorAll("#timeframes [data-tf]").forEach(b => {
-      b.classList.toggle("active", b === button);
-    });
-
-    rebuildCandles();
   });
 
   window.addEventListener("resize", drawCharts);
 
   drawCharts();
+  updateIndicators();
 })();
 </script>
 </body>
