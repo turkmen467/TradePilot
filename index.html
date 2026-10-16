@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -84,7 +83,7 @@ aside{display:flex;flex-direction:column;gap:14px}
         <div class="bar"><div id="signal-bar"></div></div>
         <div id="score-label" class="small" style="margin-top:8px">Sinyal puanı: —</div>
       </div>
-      <p class="notice">Sinyal göstergesinin rengi sinyal yönünü gösterir. Mum rengi ise mumun açılış ve kapanış fiyatına göre belirlenir. Sinyaller garanti değildir.</p>
+      <p class="notice">Sinyal rengi işlem yönünü, mum rengi ise açılış-kapanış farkını gösterir. Sinyaller garanti değildir ve yalnızca demo analiz içindir.</p>
     </section>
 
     <section class="panel">
@@ -111,6 +110,14 @@ aside{display:flex;flex-direction:column;gap:14px}
 "use strict";
 
 const $ = id => document.getElementById(id);
+
+/*
+  ÖNEMLİ VERİ KORUMA:
+  Mevcut localStorage anahtarı korunmuştur.
+  Kayıt formatı {time, price} olarak kalır.
+  Mevcut geçmişi silen veya sıfırlayan kod yoktur.
+*/
+const HISTORY_KEY = "tradepilot_price_history";
 
 const state = {
   price:null,
@@ -170,24 +177,31 @@ function rsi(values, period = 14) {
   return out;
 }
 
-function saveHistory() {
+/*
+  Geçmiş veriyi aynı anahtara kaydeder.
+  5 saniyelik normal kayıt aralığı korunur.
+  Sayfa kapanırken ayrıca son kayıt zorlanır.
+*/
+function saveHistory(force = false) {
   const now = Date.now();
-  if (now - state.lastSavedAt < 5000) return;
-  state.lastSavedAt = now;
+  if (!force && now - state.lastSavedAt < 5000) return;
 
   try {
-    localStorage.setItem(
-      "tradepilot_price_history",
-      JSON.stringify(state.priceHistory.slice(-5000))
-    );
-  } catch (_) {}
+    const data = state.priceHistory.slice(-state.maxStoredTicks);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(data));
+    state.lastSavedAt = now;
+  } catch (error) {
+    $("history-status").textContent =
+      "Tarayıcı depolama alanı dolu veya erişilemiyor; mevcut kayıtlar korunuyor.";
+  }
 }
 
 function loadHistory() {
   try {
-    const saved = JSON.parse(
-      localStorage.getItem("tradepilot_price_history") || "[]"
-    );
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return;
+
+    const saved = JSON.parse(raw);
 
     if (Array.isArray(saved)) {
       state.priceHistory = saved
@@ -197,16 +211,21 @@ function loadHistory() {
           Number(x.price) > 0 &&
           Number.isFinite(Number(x.time))
         )
+        .map(x => ({
+          time:Number(x.time),
+          price:Number(x.price)
+        }))
         .slice(-state.maxStoredTicks);
 
       if (state.priceHistory.length) {
-        state.price = Number(
-          state.priceHistory[state.priceHistory.length - 1].price
-        );
+        state.price = state.priceHistory[state.priceHistory.length - 1].price;
         $("current-price").textContent = fmt(state.price);
       }
     }
-  } catch (_) {}
+  } catch (_) {
+    $("history-status").textContent =
+      "Geçmiş veri okunamadı; kayıt anahtarı değiştirilmedi.";
+  }
 }
 
 function timeframeLabel(seconds) {
@@ -296,17 +315,19 @@ function receivePrice(rawPrice, timestamp) {
   drawCharts();
 }
 
-/* Sinyal puanı gerçek başarı olasılığı değildir.
-   BUY/SELL yalnızca kapanmış mum ve trend teyidiyle değerlendirilir. */
+/*
+  DENGELİ SİNYAL MANTIĞI
+  - BUY ve SELL ayrı ayrı puanlanır.
+  - Tek bir küçük yukarı/aşağı hareket yön değişimi sayılmaz.
+  - EMA trendi, RSI, mum yönü ve mum gövdesi birlikte değerlendirilir.
+  - Sinyal son kapanmış mum üzerinden hesaplanır.
+  - Sinyal puanı başarı olasılığı değildir.
+*/
 function updateIndicators() {
   const candles = state.candles;
 
-  if (candles.length < 35) {
-    setSignal(
-      "WAIT",
-      0,
-      "Yeterli geçmiş bekleniyor. En az 35 mum gerekli."
-    );
+  if (candles.length < 25) {
+    setSignal("WAIT", 0, "Geçmiş mumlar birikiyor. Analiz için en az 25 mum gerekli.");
     $("ema9").textContent = "—";
     $("ema21").textContent = "—";
     $("rsi-value").textContent = "—";
@@ -320,23 +341,18 @@ function updateIndicators() {
   const e21 = ema(closes, 21);
   const rs = rsi(closes, 14);
 
-  // Son mum hâlâ oluşuyor olabilir. Sadece önceki kapanmış mum analiz edilir.
+  // En son mum oluşmaya devam edebileceğinden bir önceki mum analiz edilir.
   const i = candles.length - 2;
   const p = i - 1;
 
-  if (i < 21 || p < 0) {
-    setSignal("WAIT", 0, "Kapanmış mum verisi bekleniyor.");
+  if (i < 15 || p < 0 || rs[i] == null) {
+    setSignal("WAIT", 0, "Kapanmış mum ve RSI teyidi bekleniyor.");
     return;
   }
 
   const c = candles[i];
   const prev = candles[p];
   const r = rs[i];
-
-  if (r == null || !Number.isFinite(r)) {
-    setSignal("WAIT", 0, "RSI hesaplaması için veri bekleniyor.");
-    return;
-  }
 
   const range = Math.max(c.high - c.low, 1e-12);
   const body = Math.abs(c.close - c.open);
@@ -350,42 +366,60 @@ function updateIndicators() {
     0
   ) / recent.length;
 
+  const emaGap = Math.abs(e9[i] - e21[i]);
+  const trendBuffer = Math.max(avgRange * 0.025, 0.000001);
+
+  // EMA yönü ve eğimi: tek mumluk ters hareket trendi hemen değiştirmez.
   const upTrend =
     e9[i] > e21[i] &&
-    e9[i] >= e9[p] &&
-    c.close > e9[i];
+    e9[i] >= e9[p] - trendBuffer &&
+    c.close >= e21[i];
 
   const downTrend =
     e9[i] < e21[i] &&
-    e9[i] <= e9[p] &&
-    c.close < e9[i];
+    e9[i] <= e9[p] + trendBuffer &&
+    c.close <= e21[i];
 
-  // Kırılımı tek başına yeterli sayma; trend ve mum gövdesi de aranır.
-  const buyBreak = c.close > prev.high;
-  const sellBreak = c.close < prev.low;
+  // Kırılımda küçük fiyat farklarını tek başına güçlü teyit sayma.
+  const buyBreak = c.close > prev.high + trendBuffer * 0.15;
+  const sellBreak = c.close < prev.low - trendBuffer * 0.15;
 
-  const buyMomentum = r >= 50 && r <= 72;
-  const sellMomentum = r >= 28 && r <= 50;
+  const bodyOK = bodyRatio >= 0.38;
+  const strongBody = bodyRatio >= 0.58;
+  const movementOK = avgRange > 0 && range >= avgRange * 0.40;
+  const strongMovement = avgRange > 0 && range >= avgRange * 0.70;
 
-  const movementOK = avgRange > 0 && range >= avgRange * 0.45;
-  const bodyOK = bodyRatio >= 0.40;
+  const buyMomentum = r >= 51 && r <= 74;
+  const sellMomentum = r >= 26 && r <= 49;
+
+  // Aşırı alım/satım bölgesinde hareketin peşinden koşmayı azalt.
+  const buyTooLate = r > 74;
+  const sellTooLate = r < 26;
 
   let buyScore = 0;
   let sellScore = 0;
 
   if (upTrend) buyScore += 2;
+  if (e9[i] > e21[i]) buyScore += 1;
   if (bullish) buyScore += 1;
   if (buyBreak) buyScore += 2;
-  if (buyMomentum) buyScore += 1;
+  if (buyMomentum) buyScore += 2;
   if (bodyOK) buyScore += 1;
+  if (strongBody) buyScore += 1;
   if (movementOK) buyScore += 1;
+  if (strongMovement) buyScore += 1;
+  if (r > 50 && r >= rs[p]) buyScore += 1;
 
   if (downTrend) sellScore += 2;
+  if (e9[i] < e21[i]) sellScore += 1;
   if (bearish) sellScore += 1;
   if (sellBreak) sellScore += 2;
-  if (sellMomentum) sellScore += 1;
+  if (sellMomentum) sellScore += 2;
   if (bodyOK) sellScore += 1;
+  if (strongBody) sellScore += 1;
   if (movementOK) sellScore += 1;
+  if (strongMovement) sellScore += 1;
+  if (r < 50 && r <= rs[p]) sellScore += 1;
 
   $("ema9").textContent = fmt(e9[i]);
   $("ema21").textContent = fmt(e21[i]);
@@ -403,43 +437,55 @@ function updateIndicators() {
 
   $("candle-range").textContent = fmt(c.low) + " – " + fmt(c.high);
 
-  // Güçlü düşüşten sonra RSI çok düşükse yeni SELL'i kovalamamak için bekle.
-  const sellTooLate = r < 28;
-
-  if (
+  // Trend tersine dönmeden yalnızca bir yeşil/kırmızı mumla sinyal verme.
+  const buyConfirmed =
     upTrend &&
+    bullish &&
+    !buyTooLate &&
     buyMomentum &&
-    buyScore >= 5 &&
-    (buyBreak || (bullish && bodyOK && movementOK))
-  ) {
+    buyScore >= 6 &&
+    (buyBreak || (strongBody && movementOK));
+
+  const sellConfirmed =
+    downTrend &&
+    bearish &&
+    !sellTooLate &&
+    sellMomentum &&
+    sellScore >= 6 &&
+    (sellBreak || (strongBody && movementOK));
+
+  if (buyConfirmed && (!sellConfirmed || buyScore >= sellScore)) {
     setSignal(
       "BUY",
-      Math.min(90, 60 + buyScore * 4),
-      "Yukarı trend ve momentum teyidi var. Sonuç garanti değildir."
+      Math.min(90, 58 + buyScore * 3),
+      "Yukarı trend, kapanmış mum ve momentum uyumlu. Demo sinyali; sonuç garanti değildir."
     );
     return;
   }
 
-  if (
-    downTrend &&
-    sellMomentum &&
-    !sellTooLate &&
-    sellScore >= 5 &&
-    (sellBreak || (bearish && bodyOK && movementOK))
-  ) {
+  if (sellConfirmed && (!buyConfirmed || sellScore > buyScore)) {
     setSignal(
       "SELL",
-      Math.min(90, 60 + sellScore * 4),
-      "Aşağı trend ve momentum teyidi var. Sonuç garanti değildir."
+      Math.min(90, 58 + sellScore * 3),
+      "Aşağı trend, kapanmış mum ve momentum uyumlu. Demo sinyali; sonuç garanti değildir."
     );
     return;
   }
 
-  setSignal(
-    "WAIT",
-    Math.min(55, Math.max(buyScore, sellScore) * 6),
-    "Yeterli yön teyidi yok. Küçük ters hareketlerde acele sinyal verilmedi."
-  );
+  const bestScore = Math.max(buyScore, sellScore);
+  let reason = "Yön teyidi henüz yeterli değil; bekle.";
+
+  if (upTrend && bearish) {
+    reason = "Yukarı trendde kısa düşüş görüldü; hemen SELL sinyali verilmedi.";
+  } else if (downTrend && bullish) {
+    reason = "Aşağı trendde kısa yükseliş görüldü; hemen BUY sinyali verilmedi.";
+  } else if (buyTooLate || sellTooLate) {
+    reason = "Momentum uç bölgede; hareketin peşinden koşmamak için bekle.";
+  } else if (emaGap < trendBuffer * 0.20) {
+    reason = "Trend zayıf veya yatay; daha net yön bekleniyor.";
+  }
+
+  setSignal("WAIT", Math.min(55, bestScore * 4), reason);
 }
 
 function setSignal(signal, score, description) {
@@ -530,7 +576,7 @@ function drawCandles() {
     ctx.fillText(val.toFixed(5), w - pad.r + 7, yy + 4);
   }
 
-  // Mum rengi sadece OHLC verisine bağlıdır; sinyal renginden bağımsızdır.
+  // Mum renkleri sinyal renginden bağımsız olarak OHLC'ye göre çizilir.
   candles.forEach((c, i) => {
     const xx = x(i);
     const up = c.close >= c.open;
@@ -633,12 +679,16 @@ document.querySelectorAll("[data-tf]").forEach(btn => {
     document.querySelectorAll("[data-tf]").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     state.timeframe = Number(btn.dataset.tf);
+
+    // Zaman dilimi değişirken kayıtlı fiyat geçmişi silinmez.
     rebuildCandles();
   });
 });
 
-/* Mevcut köprü eklentisinden gelen fiyat mesajlarını al.
-   manifest.json, content.js, background.js ve page-hook.js değiştirilmez. */
+/*
+  Mevcut köprü eklentisinin fiyat mesajları dinlenir.
+  manifest.json, content.js, background.js ve page-hook.js değiştirilmez.
+*/
 function handleIncomingMessage(input) {
   if (!input || typeof input !== "object") return;
 
@@ -664,7 +714,6 @@ function handleIncomingMessage(input) {
 
   if (!looksLikePrice) return;
 
-  // Bazı köprü mesajları veriyi payload/data içine yerleştirebilir.
   const packet = data.payload && typeof data.payload === "object"
     ? data.payload
     : data;
@@ -698,12 +747,22 @@ document.addEventListener("TRADEPILOT_PRICE_UPDATE", event => {
   handleIncomingMessage(event.detail);
 });
 
+// Tarayıcı kapanırken son fiyatları da mevcut kayıt anahtarına yaz.
+window.addEventListener("pagehide", () => saveHistory(true));
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveHistory(true);
+});
+
 loadHistory();
 rebuildCandles();
 
 if (state.priceHistory.length) {
   state.ticks = state.priceHistory.length;
   $("tick-count").textContent = state.ticks.toLocaleString("tr-TR");
+  $("history-status").textContent =
+    "Kayıtlı geçmiş yüklendi: " +
+    state.priceHistory.length.toLocaleString("tr-TR") +
+    " fiyat · Yeni fiyatlar geldikçe kayıt sürer.";
 }
 
 window.addEventListener("resize", drawCharts);
