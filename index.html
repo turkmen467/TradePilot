@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -23,6 +24,7 @@ canvas{display:block;width:100%;height:100%}
 </style>
 </head>
 <body class="min-h-screen">
+
 <header class="p-4 border-b border-slate-700 flex justify-between items-center flex-wrap gap-3">
  <div>
   <h1 class="text-2xl font-bold text-emerald-400">TradePilot PRO</h1>
@@ -261,6 +263,7 @@ canvas{display:block;width:100%;height:100%}
   drawCharts();
  }
 
+ // BUY / SELL değerlendirmesi
  function updateIndicators() {
   const candles = state.candles;
   const closes = candles.map(c => c.close);
@@ -288,40 +291,68 @@ canvas{display:block;width:100%;height:100%}
 
   let signal = "WAIT";
   let confidence = 0;
-  let desc = "Küçük fiyat hareketleri sinyal sayılmaz; net yön bekleniyor.";
+  let desc = "Net yön oluşması bekleniyor.";
 
   if (candles.length >= 28 && rv != null) {
    const n = candles.length;
+   const lastCandle = candles[n-1];
+   const prev = candles[n-2];
+
    const trendUp = e9[n-1] > e21[n-1];
    const trendDown = e9[n-1] < e21[n-1];
-   const emaGap = Math.abs(e9[n-1] - e21[n-1]);
-   const emaSlopeUp = e9[n-1] > e9[n-3] && e21[n-1] >= e21[n-3];
-   const emaSlopeDown = e9[n-1] < e9[n-3] && e21[n-1] <= e21[n-3];
-   const last3Up = candles[n-1].close > candles[n-2].close &&
-                    candles[n-2].close > candles[n-3].close;
-   const last3Down = candles[n-1].close < candles[n-2].close &&
-                     candles[n-2].close < candles[n-3].close;
-   const recent = candles.slice(-8);
-   const avgRange = recent.reduce((sum,c) => sum + Math.max(c.high-c.low,0),0) / recent.length;
-   const lastCandle = candles[n-1];
-   const body = Math.abs(lastCandle.close - lastCandle.open);
-   const strongBody = avgRange > 0 && body >= avgRange * 0.22;
-   const trendSeparated = avgRange > 0 && emaGap >= avgRange * 0.18;
 
-   if (trendUp && emaSlopeUp && last3Up && trendSeparated && strongBody && rv >= 53 && rv <= 68) {
-    signal = "BUY";
-    confidence = 78;
-    desc = "Yükseliş EMA eğimi, art arda kapanışlar ve RSI ile doğrulandı.";
-   } else if (trendDown && emaSlopeDown && last3Down && trendSeparated && strongBody && rv <= 47 && rv >= 32) {
+   const slopeUp = e9[n-1] > e9[n-3];
+   const slopeDown = e9[n-1] < e9[n-3];
+
+   const recent = candles.slice(-6);
+   const avgRange = recent.reduce(
+    (sum,c) => sum + Math.max(c.high-c.low,0),0
+   ) / recent.length;
+
+   const body = Math.abs(lastCandle.close-lastCandle.open);
+   const strongBody = avgRange > 0 && body >= avgRange*0.18;
+   const bearishCandle = lastCandle.close < lastCandle.open;
+   const bullishCandle = lastCandle.close > lastCandle.open;
+
+   const downCloses = recent.slice(1).filter(
+    (c,i) => c.close < recent[i].close
+   ).length;
+
+   const upCloses = recent.slice(1).filter(
+    (c,i) => c.close > recent[i].close
+   ).length;
+
+   const emaGap = Math.abs(e9[n-1]-e21[n-1]);
+   const separated = avgRange > 0 && emaGap >= avgRange*0.10;
+
+   const sellMomentum =
+    bearishCandle &&
+    lastCandle.close < prev.close &&
+    downCloses >= 3 &&
+    rv >= 25 && rv <= 55;
+
+   const buyMomentum =
+    bullishCandle &&
+    lastCandle.close > prev.close &&
+    upCloses >= 3 &&
+    rv >= 45 && rv <= 75;
+
+   if (trendDown && slopeDown && separated && sellMomentum) {
     signal = "SELL";
-    confidence = 78;
-    desc = "Düşüş EMA eğimi, art arda kapanışlar ve RSI ile doğrulandı.";
+    confidence = strongBody ? 82 : 70;
+    desc = "Aşağı yön EMA, RSI ve son mum hareketiyle destekleniyor.";
+   } else if (
+    trendUp && slopeUp && separated && buyMomentum
+   ) {
+    signal = "BUY";
+    confidence = strongBody ? 82 : 70;
+    desc = "Yukarı yön EMA, RSI ve son mum hareketiyle destekleniyor.";
    } else {
-    confidence = 18;
-    desc = "Yön yeterince güçlü değil veya göstergeler uyuşmuyor; BEKLE.";
+    confidence = 15;
+    desc = "Yön veya momentum yeterince doğrulanmadı; BEKLE.";
    }
   } else {
-   desc = "Gösterge kararı için en az 28 mum ve yeterli RSI verisi bekleniyor.";
+   desc = "Sinyal değerlendirmesi için en az 28 mum bekleniyor.";
   }
 
   $("signal").textContent = signal === "BUY" ? "BUY · AL" :
@@ -334,21 +365,7 @@ canvas{display:block;width:100%;height:100%}
    signal === "SELL" ? "#ff647c" : "#ffc66d";
  }
 
- function canvasSetup(id) {
-  const canvas = $(id);
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return {ctx, w:rect.width, h:rect.height};
- }
-
- /*
-  * Pocket Option tarzı dolgun mum görünümü için güncellendi:
-  * slotWidth ve bodyW oranları artırılarak mumlar kalınlaştırıldı ve aralarındaki boşluk azaltıldı.
-  */
+ // İnce mumlar ve kayan grafik görünümü
  function drawCandles() {
   const {ctx,w,h} = canvasSetup("priceChart");
   ctx.clearRect(0,0,w,h);
@@ -363,8 +380,7 @@ canvas{display:block;width:100%;height:100%}
   const plotW = Math.max(1,w-pad.left-pad.right);
   const plotH = Math.max(1,h-pad.top-pad.bottom);
 
-  // Pocket Option görünümü için slot genişliği artırıldı (daha kalın mumlar ve dar aralıklar)
-  const slotWidth = 18;
+  const slotWidth = 12;
   const visibleSlots = Math.max(1,Math.floor(plotW/slotWidth));
   const candles = state.candles.slice(-visibleSlots);
 
@@ -383,9 +399,8 @@ canvas{display:block;width:100%;height:100%}
   max += spread*0.12;
 
   const y = p => pad.top+(max-p)/(max-min)*plotH;
-  const step = plotW/visibleSlots;
-  // Mum gövdesini dolgun tutmak için oran yükseltildi
-  const bodyW = Math.max(6, Math.min(13, step * 0.82));
+  const step = plotW/candles.length;
+  const bodyW = Math.max(2,Math.min(8,step*0.48));
 
   ctx.save();
   ctx.beginPath();
@@ -402,8 +417,10 @@ canvas{display:block;width:100%;height:100%}
    ctx.stroke();
   }
 
-  for (let i=0;i<=8;i++) {
-   const xx=pad.left+plotW*i/8;
+  // Izgara, fiyat geldikçe hafifçe kayar.
+  const gridStep=Math.max(8,step);
+  const gridOffset=(Date.now()%3000)/3000*gridStep;
+  for (let xx=pad.left-gridOffset;xx<pad.left+plotW;xx+=gridStep) {
    ctx.strokeStyle="#13243a";
    ctx.beginPath();
    ctx.moveTo(xx,pad.top);
@@ -415,12 +432,10 @@ canvas{display:block;width:100%;height:100%}
    const x=pad.left+i*step+step/2;
    const up=c.close>=c.open;
    const color=up?"#19d99b":"#ff5268";
-   const glow=up?"rgba(25,217,155,.13)":"rgba(255,82,104,.13)";
    const top=y(Math.max(c.open,c.close));
    const bottom=y(Math.min(c.open,c.close));
-   const bh=Math.max(2,bottom-top);
+   const bh=Math.max(1,bottom-top);
 
-   // Fitiller ince tutuldu
    ctx.strokeStyle=color;
    ctx.lineWidth=1;
    ctx.beginPath();
@@ -428,8 +443,6 @@ canvas{display:block;width:100%;height:100%}
    ctx.lineTo(x,y(c.low));
    ctx.stroke();
 
-   ctx.fillStyle=glow;
-   ctx.fillRect(x-bodyW/2-0.5,top-0.5,bodyW+1,bh+1);
    ctx.fillStyle=color;
    ctx.fillRect(x-bodyW/2,top,bodyW,bh);
   });
@@ -448,14 +461,11 @@ canvas{display:block;width:100%;height:100%}
    ctx.lineWidth=width;
    ctx.lineJoin="round";
    ctx.lineCap="round";
-   ctx.shadowColor=color;
-   ctx.shadowBlur=5;
    ctx.stroke();
-   ctx.shadowBlur=0;
   }
 
-  drawEma(ema(closes,21),"#ffc857",2.3);
-  drawEma(ema(closes,9),"#46a6ff",2.5);
+  drawEma(ema(closes,21),"#ffc857",2);
+  drawEma(ema(closes,9),"#46a6ff",2);
 
   const last=candles[candles.length-1].close;
   const cy=y(last);
@@ -531,7 +541,7 @@ canvas{display:block;width:100%;height:100%}
   const pad={left:14,right:82,top:8,bottom:8};
   const plotW=Math.max(1,w-pad.left-pad.right);
   const plotH=Math.max(1,h-pad.top-pad.bottom);
-  const visibleSlots=Math.max(1,Math.floor(plotW/18));
+  const visibleSlots=Math.max(1,Math.floor(plotW/12));
   const candles=state.candles.slice(-visibleSlots);
   if (!candles.length) return;
 
@@ -609,6 +619,7 @@ canvas{display:block;width:100%;height:100%}
   drawRsi();
  }
 
+ // CANLI BAĞLANTI: Mevcut mesaj dinleyicileri korunmuştur.
  window.addEventListener("message", event => {
   const data=event.data;
   if (!data||data.type!=="TRADEPILOT_PRICE_UPDATE") return;
