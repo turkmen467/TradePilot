@@ -83,7 +83,7 @@ aside{display:flex;flex-direction:column;gap:14px}
         <div class="bar"><div id="signal-bar"></div></div>
         <div id="score-label" class="small" style="margin-top:8px">Sinyal puanı: —</div>
       </div>
-      <p class="notice">Sinyal rengi işlem yönünü, mum rengi ise açılış-kapanış farkını gösterir. Sinyaller garanti değildir ve yalnızca demo analiz içindir.</p>
+      <p class="notice">Mum rengi açılış ve kapanışa, sinyal ise trend ve momentum teyidine dayanır. Sinyaller garanti değildir.</p>
     </section>
 
     <section class="panel">
@@ -110,13 +110,6 @@ aside{display:flex;flex-direction:column;gap:14px}
 "use strict";
 
 const $ = id => document.getElementById(id);
-
-/*
-  ÖNEMLİ VERİ KORUMA:
-  Mevcut localStorage anahtarı korunmuştur.
-  Kayıt formatı {time, price} olarak kalır.
-  Mevcut geçmişi silen veya sıfırlayan kod yoktur.
-*/
 const HISTORY_KEY = "tradepilot_price_history";
 
 const state = {
@@ -173,54 +166,44 @@ function rsi(values, period = 14) {
     out[i] = avgLoss === 0 ? 100 :
       100 - 100 / (1 + avgGain / avgLoss);
   }
-
   return out;
 }
 
-/*
-  Geçmiş veriyi aynı anahtara kaydeder.
-  5 saniyelik normal kayıt aralığı korunur.
-  Sayfa kapanırken ayrıca son kayıt zorlanır.
-*/
+/* Aynı geçmiş veri anahtarı ve aynı {time, price} kayıt biçimi korunur. */
 function saveHistory(force = false) {
   const now = Date.now();
   if (!force && now - state.lastSavedAt < 5000) return;
 
   try {
-    const data = state.priceHistory.slice(-state.maxStoredTicks);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(data));
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(state.priceHistory.slice(-state.maxStoredTicks))
+    );
     state.lastSavedAt = now;
-  } catch (error) {
+  } catch (_) {
     $("history-status").textContent =
-      "Tarayıcı depolama alanı dolu veya erişilemiyor; mevcut kayıtlar korunuyor.";
+      "Tarayıcı kayıt alanına erişilemiyor. Mevcut kayıtlar silinmedi.";
   }
 }
 
 function loadHistory() {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    if (!raw) return;
+    const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    if (!Array.isArray(saved)) return;
 
-    const saved = JSON.parse(raw);
+    state.priceHistory = saved
+      .filter(x =>
+        x &&
+        Number.isFinite(Number(x.price)) &&
+        Number(x.price) > 0 &&
+        Number.isFinite(Number(x.time))
+      )
+      .map(x => ({time:Number(x.time),price:Number(x.price)}))
+      .slice(-state.maxStoredTicks);
 
-    if (Array.isArray(saved)) {
-      state.priceHistory = saved
-        .filter(x =>
-          x &&
-          Number.isFinite(Number(x.price)) &&
-          Number(x.price) > 0 &&
-          Number.isFinite(Number(x.time))
-        )
-        .map(x => ({
-          time:Number(x.time),
-          price:Number(x.price)
-        }))
-        .slice(-state.maxStoredTicks);
-
-      if (state.priceHistory.length) {
-        state.price = state.priceHistory[state.priceHistory.length - 1].price;
-        $("current-price").textContent = fmt(state.price);
-      }
+    if (state.priceHistory.length) {
+      state.price = state.priceHistory[state.priceHistory.length - 1].price;
+      $("current-price").textContent = fmt(state.price);
     }
   } catch (_) {
     $("history-status").textContent =
@@ -242,17 +225,11 @@ function buildCandlesFromHistory() {
     let candle = result[result.length - 1];
 
     if (!candle || candle.time !== time) {
-      candle = {
-        time,
-        open:price,
-        high:price,
-        low:price,
-        close:price
-      };
+      candle = {time,open:price,high:price,low:price,close:price};
       result.push(candle);
     } else {
-      candle.high = Math.max(candle.high, price);
-      candle.low = Math.min(candle.low, price);
+      candle.high = Math.max(candle.high,price);
+      candle.low = Math.min(candle.low,price);
       candle.close = price;
     }
   }
@@ -266,16 +243,11 @@ function receivePrice(rawPrice, timestamp) {
   if (!Number.isFinite(price) || price <= 0) return;
 
   const ts = normalizeTimestamp(timestamp);
-
-  state.priceHistory.push({time:ts, price});
+  state.priceHistory.push({time:ts,price});
 
   if (state.priceHistory.length > state.maxStoredTicks) {
-    state.priceHistory.splice(
-      0,
-      state.priceHistory.length - state.maxStoredTicks
-    );
+    state.priceHistory.splice(0,state.priceHistory.length-state.maxStoredTicks);
   }
-
   saveHistory();
 
   const interval = state.timeframe * 1000;
@@ -283,18 +255,12 @@ function receivePrice(rawPrice, timestamp) {
   let last = state.candles[state.candles.length - 1];
 
   if (!last || last.time !== candleTime) {
-    last = {
-      time:candleTime,
-      open:price,
-      high:price,
-      low:price,
-      close:price
-    };
+    last = {time:candleTime,open:price,high:price,low:price,close:price};
     state.candles.push(last);
     if (state.candles.length > 1000) state.candles.shift();
   } else {
-    last.high = Math.max(last.high, price);
-    last.low = Math.min(last.low, price);
+    last.high = Math.max(last.high,price);
+    last.low = Math.min(last.low,price);
     last.close = price;
   }
 
@@ -307,8 +273,7 @@ function receivePrice(rawPrice, timestamp) {
   $("connection-status").textContent = "● Canlı fiyat alınıyor";
   $("connection-status").style.color = "#19d99b";
   $("history-status").textContent =
-    timeframeLabel(state.timeframe) +
-    " mumları · Kaydedilmiş fiyat sayısı: " +
+    timeframeLabel(state.timeframe) + " mumları · Kaydedilmiş fiyat sayısı: " +
     state.priceHistory.length.toLocaleString("tr-TR");
 
   updateIndicators();
@@ -316,18 +281,18 @@ function receivePrice(rawPrice, timestamp) {
 }
 
 /*
-  DENGELİ SİNYAL MANTIĞI
-  - BUY ve SELL ayrı ayrı puanlanır.
-  - Tek bir küçük yukarı/aşağı hareket yön değişimi sayılmaz.
-  - EMA trendi, RSI, mum yönü ve mum gövdesi birlikte değerlendirilir.
-  - Sinyal son kapanmış mum üzerinden hesaplanır.
-  - Sinyal puanı başarı olasılığı değildir.
+  SİNYAL MANTIĞI:
+  1. Yalnızca kapanmış mumlar kullanılır.
+  2. Trend EMA9/EMA21 ve EMA21 eğimiyle belirlenir.
+  3. Düşüşteki küçük yeşil mum BUY oluşturmaz.
+  4. Yükselişteki küçük kırmızı mum SELL oluşturmaz.
+  5. Trend, mum yapısı, RSI ve kırılım aynı yönü desteklemelidir.
 */
 function updateIndicators() {
   const candles = state.candles;
 
-  if (candles.length < 25) {
-    setSignal("WAIT", 0, "Geçmiş mumlar birikiyor. Analiz için en az 25 mum gerekli.");
+  if (candles.length < 35) {
+    setSignal("WAIT",0,"Yeterli geçmiş bekleniyor. En az 35 mum gerekli.");
     $("ema9").textContent = "—";
     $("ema21").textContent = "—";
     $("rsi-value").textContent = "—";
@@ -337,89 +302,92 @@ function updateIndicators() {
   }
 
   const closes = candles.map(c => c.close);
-  const e9 = ema(closes, 9);
-  const e21 = ema(closes, 21);
-  const rs = rsi(closes, 14);
+  const e9 = ema(closes,9);
+  const e21 = ema(closes,21);
+  const rs = rsi(closes,14);
 
-  // En son mum oluşmaya devam edebileceğinden bir önceki mum analiz edilir.
   const i = candles.length - 2;
   const p = i - 1;
+  const older = i - 4;
 
-  if (i < 15 || p < 0 || rs[i] == null) {
-    setSignal("WAIT", 0, "Kapanmış mum ve RSI teyidi bekleniyor.");
+  if (older < 21 || rs[i] == null || rs[p] == null) {
+    setSignal("WAIT",0,"Trendin oturması ve kapanmış mum teyidi bekleniyor.");
     return;
   }
 
   const c = candles[i];
   const prev = candles[p];
   const r = rs[i];
+  const rPrev = rs[p];
 
-  const range = Math.max(c.high - c.low, 1e-12);
-  const body = Math.abs(c.close - c.open);
-  const bodyRatio = body / range;
+  const range = Math.max(c.high-c.low,1e-12);
+  const body = Math.abs(c.close-c.open);
+  const bodyRatio = body/range;
   const bullish = c.close > c.open;
   const bearish = c.close < c.open;
 
-  const recent = candles.slice(Math.max(0, i - 9), i + 1);
+  const recent = candles.slice(i-4,i+1);
   const avgRange = recent.reduce(
-    (sum, x) => sum + Math.max(x.high - x.low, 0),
-    0
-  ) / recent.length;
+    (sum,x) => sum+Math.max(x.high-x.low,0),0
+  )/recent.length;
 
-  const emaGap = Math.abs(e9[i] - e21[i]);
-  const trendBuffer = Math.max(avgRange * 0.025, 0.000001);
-
-  // EMA yönü ve eğimi: tek mumluk ters hareket trendi hemen değiştirmez.
-  const upTrend =
-    e9[i] > e21[i] &&
-    e9[i] >= e9[p] - trendBuffer &&
-    c.close >= e21[i];
+  const ema21Slope = e21[i]-e21[older];
+  const ema9Slope = e9[i]-e9[older];
+  const trendBuffer = Math.max(avgRange*0.08,Math.abs(c.close)*0.000002);
 
   const downTrend =
     e9[i] < e21[i] &&
-    e9[i] <= e9[p] + trendBuffer &&
-    c.close <= e21[i];
+    ema21Slope < -trendBuffer &&
+    ema9Slope < 0 &&
+    c.close < e21[i];
 
-  // Kırılımda küçük fiyat farklarını tek başına güçlü teyit sayma.
-  const buyBreak = c.close > prev.high + trendBuffer * 0.15;
-  const sellBreak = c.close < prev.low - trendBuffer * 0.15;
+  const upTrend =
+    e9[i] > e21[i] &&
+    ema21Slope > trendBuffer &&
+    ema9Slope > 0 &&
+    c.close > e21[i];
 
-  const bodyOK = bodyRatio >= 0.38;
-  const strongBody = bodyRatio >= 0.58;
-  const movementOK = avgRange > 0 && range >= avgRange * 0.40;
-  const strongMovement = avgRange > 0 && range >= avgRange * 0.70;
+  const structure = candles.slice(i-3,i+1);
+  let lowerHighs = true;
+  let lowerLows = true;
+  let higherHighs = true;
+  let higherLows = true;
 
-  const buyMomentum = r >= 51 && r <= 74;
-  const sellMomentum = r >= 26 && r <= 49;
+  for (let j=1;j<structure.length;j++) {
+    if (structure[j].high >= structure[j-1].high) lowerHighs=false;
+    if (structure[j].low >= structure[j-1].low) lowerLows=false;
+    if (structure[j].high <= structure[j-1].high) higherHighs=false;
+    if (structure[j].low <= structure[j-1].low) higherLows=false;
+  }
 
-  // Aşırı alım/satım bölgesinde hareketin peşinden koşmayı azalt.
-  const buyTooLate = r > 74;
-  const sellTooLate = r < 26;
+  const bearishStructure = lowerHighs || lowerLows;
+  const bullishStructure = higherHighs || higherLows;
 
-  let buyScore = 0;
-  let sellScore = 0;
+  const buyBreak = c.close > prev.high;
+  const sellBreak = c.close < prev.low;
+  const bodyOK = bodyRatio >= 0.45;
+  const movementOK = avgRange > 0 && range >= avgRange*0.45;
 
-  if (upTrend) buyScore += 2;
-  if (e9[i] > e21[i]) buyScore += 1;
-  if (bullish) buyScore += 1;
-  if (buyBreak) buyScore += 2;
-  if (buyMomentum) buyScore += 2;
-  if (bodyOK) buyScore += 1;
-  if (strongBody) buyScore += 1;
-  if (movementOK) buyScore += 1;
-  if (strongMovement) buyScore += 1;
-  if (r > 50 && r >= rs[p]) buyScore += 1;
+  const buyMomentum = r >= 53 && r <= 70 && r >= rPrev;
+  const sellMomentum = r <= 47 && r >= 30 && r <= rPrev;
 
-  if (downTrend) sellScore += 2;
-  if (e9[i] < e21[i]) sellScore += 1;
-  if (bearish) sellScore += 1;
-  if (sellBreak) sellScore += 2;
-  if (sellMomentum) sellScore += 2;
-  if (bodyOK) sellScore += 1;
-  if (strongBody) sellScore += 1;
-  if (movementOK) sellScore += 1;
-  if (strongMovement) sellScore += 1;
-  if (r < 50 && r <= rs[p]) sellScore += 1;
+  const buyConfirmed =
+    upTrend &&
+    !bearishStructure &&
+    bullish &&
+    buyMomentum &&
+    bodyOK &&
+    movementOK &&
+    (buyBreak || (higherHighs && higherLows));
+
+  const sellConfirmed =
+    downTrend &&
+    !bullishStructure &&
+    bearish &&
+    sellMomentum &&
+    bodyOK &&
+    movementOK &&
+    (sellBreak || (lowerHighs && lowerLows));
 
   $("ema9").textContent = fmt(e9[i]);
   $("ema21").textContent = fmt(e21[i]);
@@ -431,96 +399,73 @@ function updateIndicators() {
 
   $("candle-direction").textContent =
     bullish ? "YÜKSELİŞ" : bearish ? "DÜŞÜŞ" : "NÖTR";
-
   $("candle-direction").style.color =
     bullish ? "#19d99b" : bearish ? "#ff5268" : "#ffc857";
+  $("candle-range").textContent = fmt(c.low)+" – "+fmt(c.high);
 
-  $("candle-range").textContent = fmt(c.low) + " – " + fmt(c.high);
-
-  // Trend tersine dönmeden yalnızca bir yeşil/kırmızı mumla sinyal verme.
-  const buyConfirmed =
-    upTrend &&
-    bullish &&
-    !buyTooLate &&
-    buyMomentum &&
-    buyScore >= 6 &&
-    (buyBreak || (strongBody && movementOK));
-
-  const sellConfirmed =
-    downTrend &&
-    bearish &&
-    !sellTooLate &&
-    sellMomentum &&
-    sellScore >= 6 &&
-    (sellBreak || (strongBody && movementOK));
-
-  if (buyConfirmed && (!sellConfirmed || buyScore >= sellScore)) {
-    setSignal(
-      "BUY",
-      Math.min(90, 58 + buyScore * 3),
-      "Yukarı trend, kapanmış mum ve momentum uyumlu. Demo sinyali; sonuç garanti değildir."
-    );
+  if (buyConfirmed) {
+    const score = 65 +
+      (buyBreak ? 8 : 0) +
+      (higherHighs && higherLows ? 7 : 0) +
+      (bodyRatio >= 0.65 ? 5 : 0);
+    setSignal("BUY",Math.min(85,score),
+      "Yükseliş trendi, piyasa yapısı ve kapanmış mum aynı yönü teyit ediyor. Demo sinyali; garanti değildir.");
     return;
   }
 
-  if (sellConfirmed && (!buyConfirmed || sellScore > buyScore)) {
-    setSignal(
-      "SELL",
-      Math.min(90, 58 + sellScore * 3),
-      "Aşağı trend, kapanmış mum ve momentum uyumlu. Demo sinyali; sonuç garanti değildir."
-    );
+  if (sellConfirmed) {
+    const score = 65 +
+      (sellBreak ? 8 : 0) +
+      (lowerHighs && lowerLows ? 7 : 0) +
+      (bodyRatio >= 0.65 ? 5 : 0);
+    setSignal("SELL",Math.min(85,score),
+      "Düşüş trendi, piyasa yapısı ve kapanmış mum aynı yönü teyit ediyor. Demo sinyali; garanti değildir.");
     return;
   }
 
-  const bestScore = Math.max(buyScore, sellScore);
-  let reason = "Yön teyidi henüz yeterli değil; bekle.";
-
-  if (upTrend && bearish) {
-    reason = "Yukarı trendde kısa düşüş görüldü; hemen SELL sinyali verilmedi.";
-  } else if (downTrend && bullish) {
-    reason = "Aşağı trendde kısa yükseliş görüldü; hemen BUY sinyali verilmedi.";
-  } else if (buyTooLate || sellTooLate) {
-    reason = "Momentum uç bölgede; hareketin peşinden koşmamak için bekle.";
-  } else if (emaGap < trendBuffer * 0.20) {
-    reason = "Trend zayıf veya yatay; daha net yön bekleniyor.";
+  let reason = "Trend ve mum teyitleri aynı yönde değil; BEKLE.";
+  if (downTrend && bullish) {
+    reason = "Ana trend aşağı. Bu yeşil mum kısa tepki olabilir; BUY verilmedi.";
+  } else if (upTrend && bearish) {
+    reason = "Ana trend yukarı. Bu kırmızı mum geri çekilme olabilir; SELL verilmedi.";
+  } else if (!upTrend && !downTrend) {
+    reason = "Net trend yok veya EMA21 eğimi zayıf; ters yönde acele sinyal yok.";
+  } else if (downTrend && !sellMomentum) {
+    reason = "Düşüş var ancak RSI aşağı yönü teyit etmiyor; SELL için bekle.";
+  } else if (upTrend && !buyMomentum) {
+    reason = "Yükseliş var ancak RSI yukarı yönü teyit etmiyor; BUY için bekle.";
   }
-
-  setSignal("WAIT", Math.min(55, bestScore * 4), reason);
+  setSignal("WAIT",0,reason);
 }
 
-function setSignal(signal, score, description) {
+function setSignal(signal,score,description) {
   const el = $("signal");
   const bar = $("signal-bar");
 
   state.lastSignal = signal;
-
   el.textContent = signal === "WAIT" ? "BEKLE" : signal;
   el.style.color =
     signal === "BUY" ? "#19d99b" :
     signal === "SELL" ? "#ff5268" : "#ffc857";
 
-  bar.style.width = Math.max(0, Math.min(100, score)) + "%";
+  bar.style.width = Math.max(0,Math.min(100,score))+"%";
   bar.style.background =
     signal === "BUY" ? "#19d99b" :
     signal === "SELL" ? "#ff5268" : "#ffc857";
 
   $("signal-desc").textContent = description;
   $("score-label").textContent =
-    "Sinyal puanı: " + Math.round(score) +
-    "/100 · Başarı olasılığı değildir";
+    "Sinyal puanı: "+Math.round(score)+"/100 · Başarı olasılığı değildir";
 }
 
 function setupCanvas(canvas) {
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-
-  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-
+  canvas.width = Math.max(1,Math.floor(rect.width*dpr));
+  canvas.height = Math.max(1,Math.floor(rect.height*dpr));
   const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  return {ctx, w:rect.width, h:rect.height};
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:rect.width,h:rect.height};
 }
 
 function drawCharts() {
@@ -530,137 +475,117 @@ function drawCharts() {
 
 function drawCandles() {
   const canvas = $("priceChart");
-  const {ctx, w, h} = setupCanvas(canvas);
-  ctx.clearRect(0, 0, w, h);
+  const {ctx,w,h} = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
 
   const candles = state.candles.slice(-state.maxCandles);
-
   if (candles.length < 2) {
-    ctx.fillStyle = "#9aadc6";
-    ctx.font = "14px Arial";
-    ctx.fillText("Grafik için fiyat verisi bekleniyor…", 12, 28);
+    ctx.fillStyle="#9aadc6";
+    ctx.font="14px Arial";
+    ctx.fillText("Grafik için fiyat verisi bekleniyor…",12,28);
     return;
   }
 
-  const all = candles.flatMap(c => [c.high, c.low]);
-  let min = Math.min(...all);
-  let max = Math.max(...all);
+  const all = candles.flatMap(c=>[c.high,c.low]);
+  let min=Math.min(...all),max=Math.max(...all);
+  if (max===min) {max+=0.0001;min-=0.0001;}
 
-  if (max === min) {
-    max += 0.0001;
-    min -= 0.0001;
+  const pad={l:10,r:67,t:15,b:20};
+  const plotW=Math.max(1,w-pad.l-pad.r);
+  const plotH=Math.max(1,h-pad.t-pad.b);
+  const y=v=>pad.t+(max-v)/(max-min)*plotH;
+  const x=i=>pad.l+(i+0.5)*plotW/candles.length;
+  const step=plotW/candles.length;
+  const bodyW=Math.max(2,Math.min(12,step*0.62));
+
+  ctx.font="11px Arial";
+  for(let k=0;k<=4;k++) {
+    const val=min+(max-min)*k/4;
+    const yy=y(val);
+    ctx.strokeStyle="#203149";
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l,yy);
+    ctx.lineTo(w-pad.r+4,yy);
+    ctx.stroke();
+    ctx.fillStyle="#9aadc6";
+    ctx.fillText(val.toFixed(5),w-pad.r+7,yy+4);
   }
 
-  const pad = {l:10, r:67, t:15, b:20};
-  const plotW = Math.max(1, w - pad.l - pad.r);
-  const plotH = Math.max(1, h - pad.t - pad.b);
-  const y = v => pad.t + (max - v) / (max - min) * plotH;
-  const x = i => pad.l + (i + 0.5) * plotW / candles.length;
-  const step = plotW / candles.length;
-  const bodyW = Math.max(2, Math.min(12, step * 0.62));
+  candles.forEach((c,i)=>{
+    const xx=x(i);
+    const up=c.close>=c.open;
+    const color=up?"#19d99b":"#ff5268";
 
-  ctx.font = "11px Arial";
-
-  for (let k = 0; k <= 4; k++) {
-    const val = min + (max - min) * k / 4;
-    const yy = y(val);
-
-    ctx.strokeStyle = "#203149";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1;
     ctx.beginPath();
-    ctx.moveTo(pad.l, yy);
-    ctx.lineTo(w - pad.r + 4, yy);
+    ctx.moveTo(xx,y(c.high));
+    ctx.lineTo(xx,y(c.low));
     ctx.stroke();
 
-    ctx.fillStyle = "#9aadc6";
-    ctx.fillText(val.toFixed(5), w - pad.r + 7, yy + 4);
-  }
-
-  // Mum renkleri sinyal renginden bağımsız olarak OHLC'ye göre çizilir.
-  candles.forEach((c, i) => {
-    const xx = x(i);
-    const up = c.close >= c.open;
-    const color = up ? "#19d99b" : "#ff5268";
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(xx, y(c.high));
-    ctx.lineTo(xx, y(c.low));
-    ctx.stroke();
-
-    const top = y(Math.max(c.open, c.close));
-    const bodyHeight = Math.max(1, Math.abs(y(c.open) - y(c.close)));
-
-    ctx.fillStyle = color;
-    ctx.fillRect(xx - bodyW / 2, top, bodyW, bodyHeight);
+    const top=y(Math.max(c.open,c.close));
+    const bodyHeight=Math.max(1,Math.abs(y(c.open)-y(c.close)));
+    ctx.fillStyle=color;
+    ctx.fillRect(xx-bodyW/2,top,bodyW,bodyHeight);
   });
 
-  const closes = candles.map(c => c.close);
-  const e9 = ema(closes, 9);
-  const e21 = ema(closes, 21);
+  const closes=candles.map(c=>c.close);
+  const e9=ema(closes,9);
+  const e21=ema(closes,21);
 
-  function drawLine(values, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
+  function drawLine(values,color) {
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1.5;
     ctx.beginPath();
-
-    values.forEach((v, i) => {
-      if (i === 0) ctx.moveTo(x(i), y(v));
-      else ctx.lineTo(x(i), y(v));
+    values.forEach((v,i)=>{
+      if(i===0)ctx.moveTo(x(i),y(v));
+      else ctx.lineTo(x(i),y(v));
     });
-
     ctx.stroke();
   }
 
-  drawLine(e9, "#60a5fa");
-  drawLine(e21, "#ffc857");
+  drawLine(e9,"#60a5fa");
+  drawLine(e21,"#ffc857");
 }
 
 function drawRsi() {
-  const canvas = $("rsiChart");
-  const {ctx, w, h} = setupCanvas(canvas);
-  ctx.clearRect(0, 0, w, h);
+  const canvas=$("rsiChart");
+  const {ctx,w,h}=setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
 
-  const candles = state.candles.slice(-state.maxCandles);
-  if (candles.length < 16) return;
+  const candles=state.candles.slice(-state.maxCandles);
+  if(candles.length<16)return;
 
-  const values = rsi(candles.map(c => c.close), 14);
-  const left = 10, right = 10, top = 8, bottom = 8;
-  const pw = Math.max(1, w - left - right);
-  const ph = Math.max(1, h - top - bottom);
-  const x = i => left + i * pw / Math.max(1, values.length - 1);
-  const y = v => top + (100 - v) / 100 * ph;
+  const values=rsi(candles.map(c=>c.close),14);
+  const left=10,right=10,top=8,bottom=8;
+  const pw=Math.max(1,w-left-right);
+  const ph=Math.max(1,h-top-bottom);
+  const x=i=>left+i*pw/Math.max(1,values.length-1);
+  const y=v=>top+(100-v)/100*ph;
 
-  [30, 50, 70].forEach(level => {
-    ctx.strokeStyle = level === 50 ? "#53657e" : "#263954";
-    ctx.setLineDash(level === 50 ? [] : [4, 4]);
+  [30,50,70].forEach(level=>{
+    ctx.strokeStyle=level===50?"#53657e":"#263954";
+    ctx.setLineDash(level===50?[]:[4,4]);
     ctx.beginPath();
-    ctx.moveTo(left, y(level));
-    ctx.lineTo(w - right, y(level));
+    ctx.moveTo(left,y(level));
+    ctx.lineTo(w-right,y(level));
     ctx.stroke();
     ctx.setLineDash([]);
-
-    ctx.fillStyle = "#9aadc6";
-    ctx.font = "10px Arial";
-    ctx.fillText(String(level), left + 3, y(level) - 3);
+    ctx.fillStyle="#9aadc6";
+    ctx.font="10px Arial";
+    ctx.fillText(String(level),left+3,y(level)-3);
   });
 
-  ctx.strokeStyle = "#b58aff";
-  ctx.lineWidth = 1.8;
+  ctx.strokeStyle="#b58aff";
+  ctx.lineWidth=1.8;
   ctx.beginPath();
-
-  let started = false;
-  values.forEach((v, i) => {
-    if (v == null) return;
-    if (!started) {
-      ctx.moveTo(x(i), y(v));
-      started = true;
-    } else {
-      ctx.lineTo(x(i), y(v));
-    }
+  let started=false;
+  values.forEach((v,i)=>{
+    if(v==null)return;
+    if(!started){ctx.moveTo(x(i),y(v));started=true;}
+    else ctx.lineTo(x(i),y(v));
   });
-
   ctx.stroke();
 }
 
@@ -668,105 +593,79 @@ function rebuildCandles() {
   buildCandlesFromHistory();
   updateIndicators();
   drawCharts();
-
   $("history-status").textContent =
-    "Grafik: " + timeframeLabel(state.timeframe) +
-    " · Saklanan fiyat: " + state.priceHistory.length.toLocaleString("tr-TR");
+    "Grafik: "+timeframeLabel(state.timeframe)+
+    " · Saklanan fiyat: "+state.priceHistory.length.toLocaleString("tr-TR");
 }
 
-document.querySelectorAll("[data-tf]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("[data-tf]").forEach(b => b.classList.remove("active"));
+document.querySelectorAll("[data-tf]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("[data-tf]").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
-    state.timeframe = Number(btn.dataset.tf);
-
-    // Zaman dilimi değişirken kayıtlı fiyat geçmişi silinmez.
+    state.timeframe=Number(btn.dataset.tf);
     rebuildCandles();
   });
 });
 
-/*
-  Mevcut köprü eklentisinin fiyat mesajları dinlenir.
-  manifest.json, content.js, background.js ve page-hook.js değiştirilmez.
-*/
+/* Mevcut uzantı köprüsü dinleyicileri korunur. */
 function handleIncomingMessage(input) {
-  if (!input || typeof input !== "object") return;
+  if(!input||typeof input!=="object")return;
+  let data=input.detail||input.data||input;
 
-  let data = input.detail || input.data || input;
-
-  if (typeof data === "string") {
-    try { data = JSON.parse(data); } catch (_) { return; }
+  if(typeof data==="string"){
+    try{data=JSON.parse(data);}catch(_){return;}
   }
+  if(!data||typeof data!=="object")return;
 
-  if (!data || typeof data !== "object") return;
+  const type=String(data.type||data.event||data.action||"").toUpperCase();
+  const looksLikePrice=
+    type.includes("PRICE")||
+    type.includes("TICK")||
+    type.includes("TRADEPILOT")||
+    data.price!==undefined||
+    data.rate!==undefined||
+    data.value!==undefined;
 
-  const type = String(
-    data.type || data.event || data.action || ""
-  ).toUpperCase();
+  if(!looksLikePrice)return;
 
-  const looksLikePrice =
-    type.includes("PRICE") ||
-    type.includes("TICK") ||
-    type.includes("TRADEPILOT") ||
-    data.price !== undefined ||
-    data.rate !== undefined ||
-    data.value !== undefined;
+  const packet=data.payload&&typeof data.payload==="object"?data.payload:data;
+  const price=packet.price??packet.rate??packet.value??packet.close??packet.last;
+  const timestamp=packet.timestamp??packet.time??packet.ts??Date.now();
 
-  if (!looksLikePrice) return;
-
-  const packet = data.payload && typeof data.payload === "object"
-    ? data.payload
-    : data;
-
-  const price =
-    packet.price ??
-    packet.rate ??
-    packet.value ??
-    packet.close ??
-    packet.last;
-
-  const timestamp =
-    packet.timestamp ??
-    packet.time ??
-    packet.ts ??
-    Date.now();
-
-  if (price !== undefined) receivePrice(price, timestamp);
+  if(price!==undefined)receivePrice(price,timestamp);
 }
 
-window.addEventListener("message", event => {
-  if (event.source !== window) return;
+window.addEventListener("message",event=>{
+  if(event.source!==window)return;
   handleIncomingMessage(event.data);
 });
 
-window.addEventListener("TRADEPILOT_PRICE_UPDATE", event => {
+window.addEventListener("TRADEPILOT_PRICE_UPDATE",event=>{
   handleIncomingMessage(event.detail);
 });
 
-document.addEventListener("TRADEPILOT_PRICE_UPDATE", event => {
+document.addEventListener("TRADEPILOT_PRICE_UPDATE",event=>{
   handleIncomingMessage(event.detail);
 });
 
-// Tarayıcı kapanırken son fiyatları da mevcut kayıt anahtarına yaz.
-window.addEventListener("pagehide", () => saveHistory(true));
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") saveHistory(true);
+window.addEventListener("pagehide",()=>saveHistory(true));
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden")saveHistory(true);
 });
 
 loadHistory();
 rebuildCandles();
 
-if (state.priceHistory.length) {
-  state.ticks = state.priceHistory.length;
-  $("tick-count").textContent = state.ticks.toLocaleString("tr-TR");
-  $("history-status").textContent =
-    "Kayıtlı geçmiş yüklendi: " +
-    state.priceHistory.length.toLocaleString("tr-TR") +
+if(state.priceHistory.length){
+  state.ticks=state.priceHistory.length;
+  $("tick-count").textContent=state.ticks.toLocaleString("tr-TR");
+  $("history-status").textContent=
+    "Kayıtlı geçmiş yüklendi: "+
+    state.priceHistory.length.toLocaleString("tr-TR")+
     " fiyat · Yeni fiyatlar geldikçe kayıt sürer.";
 }
 
-window.addEventListener("resize", drawCharts);
-
+window.addEventListener("resize",drawCharts);
 })();
 </script>
 </body>
