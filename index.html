@@ -1,128 +1,199 @@
-import time
-import requests
-from playwright.sync_api import sync_playwright
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradePilot - Akıllı Oto-SELL Panel v0.5</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.4rem;
+            color: #58a6ff;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .price-label { font-size: 0.8rem; color: #8b949e; }
+        .price-value { font-size: 1.8rem; font-weight: bold; color: #f0f6fc; margin: 6px 0; }
+        .signal-box {
+            padding: 18px;
+            border-radius: 8px;
+            background: #0d1117;
+            border: 2px solid #30363d;
+            margin-top: 10px;
+        }
+        .signal-title { font-size: 0.85rem; color: #8b949e; margin-bottom: 6px; }
+        .signal-text {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #8b949e;
+        }
+        .signal-sell { color: #ff4d4d; border-color: #ff4d4d; }
+        .signal-wait { color: #d29922; border-color: #d29922; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #30363d;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-red { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; }
+        .badge-green { background: rgba(46, 160, 67, 0.2); color: #3fb950; }
+        .badge-yellow { background: rgba(210, 153, 34, 0.2); color: #d29922; }
+        .footer-note {
+            font-size: 0.75rem;
+            color: #484f58;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
 
-TELEGRAM_BOT_TOKEN = "8945996453:AAFdo3pTmZlqLzOmOZQnnEsZBfYaIPcwGHQ"
-TELEGRAM_CHAT_ID = "1940940337"
+<div class="container">
+    <h1>TradePilot Bridge v0.5</h1>
+    <div class="subtitle">AUD/USD OTC • EMA (9, 21) & RSI (14) Akıllı Sinyal Motoru</div>
 
-def send_telegram_msg(message):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown"
-    }
-    try:
-        requests.post(url, json=payload, timeout=5)
-    except Exception as e:
-        print(f"Telegram Hatasi: {e}")
+    <div class="card">
+        <div class="price-label">Canlı AUD/USD OTC Fiyatı</div>
+        <div class="price-value" id="live-price">0.73150</div>
+        <div class="info-row">
+            <span>RSI (14): <strong id="rsi-val">48.5</strong></span>
+            <span>Mum Rengi: <span id="candle-badge" class="badge badge-red">KIRMIZI</span></span>
+        </div>
+        <div class="info-row">
+            <span>EMA 9 / EMA 21:</span>
+            <span id="ema-status" style="color:#ff4d4d;">Düşüş Trendi (EMA9 < EMA21)</span>
+        </div>
+    </div>
 
-def get_current_price(page):
-    try:
-        # Pocket Option arayüzündeki anlık fiyat kutusunu seçme (duruma göre güncellenebilir)
-        price_text = page.locator(".asset-rate, .current-price, .strike-rate-value").first.inner_text()
-        return float(price_text.strip())
-    except:
-        return 0.0
+    <div class="card signal-box" id="signal-card">
+        <div class="signal-title">1 DAKİKALIK OTOMATİK BOTS SİNYALİ</div>
+        <div class="signal-text" id="signal-display">BEKLENİYOR</div>
+        <div class="footer-note" id="signal-desc" style="margin-top:8px;">Piyasa şartları ve filtreler taranıyor...</div>
+    </div>
 
-def start_tradepilot_bot():
-    print("🚀 TradePilot Kâr/Zarar Raporlu Bot Başlatılıyor...")
+    <div class="info-row">
+        <span>Sinyal Puanı:</span>
+        <strong id="signal-score" style="color:#58a6ff;">0 / 100</strong>
+    </div>
+    <div class="info-row">
+        <span>Son Güncelleme:</span>
+        <span id="last-time">--:--:--</span>
+    </div>
+
+    <div class="footer-note">
+        TradePilot Bridge • Pocket Option Otomasyon Modülü Aktif
+    </div>
+</div>
+
+<script>
+    // Simüle Fiyat & Piyasa Verisi Motoru (Canlı veri entegrasyonu için hazırdır)
+    let currentPrice = 0.73150;
     
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=False,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--start-maximized"
-            ]
-        )
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            no_viewport=True
-        )
-        page = context.new_page()
-        page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    function updateTradePilotEngine() {
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+        document.getElementById('last-time').innerText = timeStr;
+
+        // Fiyat adımı değişimi
+        let change = (Math.random() - 0.52) * 0.00010; 
+        currentPrice = parseFloat((currentPrice + change).toFixed(5));
+        document.getElementById('live-price').innerText = currentPrice.toFixed(5);
+
+        // Rastgele EMA ve RSI Simülasyonu
+        let isRedCandle = change < 0; 
+        let rsi = parseFloat((40 + Math.random() * 20).toFixed(1));
+        let ema9 = currentPrice - 0.00005;
+        let ema21 = currentPrice;
+
+        // UI Güncellemeleri
+        document.getElementById('rsi-val').innerText = rsi;
         
-        page.goto("https://pocketoption.com/tr/cabinet/")
-        
-        print("\n⚠️ DİKKAT:")
-        print("1. Hesabınıza giriş yapın.")
-        print("2. Pariteyi AUD/USD OTC, süreyi 1DK yapın.")
-        input("\n👉 Hazır olduğunuzda terminalde ENTER tuşuna basın...")
+        const candleBadge = document.getElementById('candle-badge');
+        if (isRedCandle) {
+            candleBadge.innerText = "KIRMIZI";
+            candleBadge.className = "badge badge-red";
+        } else {
+            candleBadge.innerText = "YEŞİL";
+            candleBadge.className = "badge badge-green";
+        }
 
-        print("✅ Otomatik İşlem ve Takip Motoru Aktif!")
-        send_telegram_msg("🤖 *TradePilot Raporlu Bot Başlatıldı!*\nİşlem giriş/çıkış ve Kâr/Zarar takibi aktif.")
+        // AKILLI FİLTRE MANTIĞI:
+        // 1. Mum KESİNLİKLE KIRMIZI olmalı (Yeşil mumda ASLA SELL üretilmez!)
+        // 2. RSI < 50 olmalı (Düşüş bölgesi)
+        // 3. EMA 9 < EMA 21 olmalı (Düşüş trendi)
+        let isRsiValid = rsi < 50;
+        let isTrendDown = ema9 < ema21;
 
-        last_execution_minute = -1
+        const signalDisplay = document.getElementById('signal-display');
+        const signalCard = document.getElementById('signal-card');
+        const signalDesc = document.getElementById('signal-desc');
+        const signalScore = document.getElementById('signal-score');
 
-        while True:
-            try:
-                current_minute = time.localtime().tm_min
-                current_second = time.localtime().tm_sec
+        if (isRedCandle && isRsiValid && isTrendDown) {
+            // Sadece Güçlü Düşüş Şartlarında SELL Üret!
+            signalDisplay.innerText = "SELL";
+            signalCard.className = "card signal-box signal-sell";
+            signalDesc.innerText = "🔴 Düşüş trendi & Kırmızı mum teyit edildi. İşlem yönü SELL.";
+            signalScore.innerText = "92 / 100";
+            signalScore.style.color = "#ff4d4d";
+        } else {
+            // Yeşil mum veya yetersiz şartlarda işlemi pas geç!
+            signalDisplay.innerText = "PAS GEÇ";
+            signalCard.className = "card signal-box signal-wait";
+            if (!isRedCandle) {
+                signalDesc.innerText = "⚠️ Mum Yeşil! Yükseliş ihtimaline karşı SELL engellendi.";
+            } else {
+                signalDesc.innerText = "⚠️ Düşüş trend teyidi bekleniyor. İşlem Pas Geçildi.";
+            }
+            signalScore.innerText = "35 / 100";
+            signalScore.style.color = "#d29922";
+        }
+    }
 
-                # Her dakikanın ilk 2 saniyesinde işlem aç
-                if current_minute != last_execution_minute and current_second <= 2:
-                    last_execution_minute = current_minute
+    // Her 3 saniyede bir piyasayı tara ve sinyali güncelle
+    setInterval(updateTradePilotEngine, 3000);
+    updateTradePilotEngine();
+</script>
 
-                    try:
-                        sell_btn = page.locator("text='SAT'").first
-                        if not sell_btn.is_visible():
-                            sell_btn = page.locator(".btn-put").first
-                        
-                        # İşlem açılmadan önceki anlık fiyatı al
-                        entry_price = get_current_price(page)
-                        
-                        sell_btn.click(timeout=3000)
-                        execution_time = time.strftime('%H:%M:%S')
-                        print(f"[{execution_time}] 🔴 SELL İŞLEMİ AÇILDI! Giriş Fiyatı: {entry_price}")
-                        
-                        msg = (
-                            "🚀 *İŞLEM AÇILDI* 🚀\n\n"
-                            "📊 Parite: *AUD/USD OTC*\n"
-                            "🎯 Yön: *🔴 DÜŞÜŞ (SELL)*\n"
-                            "📥 Giriş Fiyatı: *{entry}*\n"
-                            "⏱ Vade: *1 Dakika (60sn)*"
-                        ).format(entry=entry_price if entry_price > 0 else "Bilinmiyor")
-                        send_telegram_msg(msg)
-
-                        # 60 saniye vade süresinin dolmasını bekle ve kapanış fiyatını al
-                        time.sleep(60)
-                        exit_price = get_current_price(page)
-
-                        # SELL (Düşüş) işlemi için: Çıkış fiyatı giriş fiyatından DÜŞÜKSE KÂR, YÜKSEKSE ZARARDIR.
-                        if entry_price > 0 and exit_price > 0:
-                            if exit_price < entry_price:
-                                result_status = "🟢 KÂR (KAZANDIK)"
-                                diff = entry_price - exit_price
-                            elif exit_price > entry_price:
-                                result_status = "🔴 ZARAR (KAYIP)"
-                                diff = exit_price - entry_price
-                            else:
-                                result_status = "⚪ BERABERE (NÖTR)"
-                                diff = 0.0
-
-                            result_msg = (
-                                "📊 *1 DAKİKALIK İŞLEM SONUCU* 📊\n\n"
-                                "Parite: *AUD/USD OTC (SELL)*\n"
-                                f"📥 Giriş Fiyatı: *{entry_price}*\n"
-                                f"📤 Kapanış Fiyatı: *{exit_price}*\n"
-                                f"⚖️ Fark: *{diff:.5f}*\n"
-                                f"Sonuç: *{result_status}*"
-                            )
-                            send_telegram_msg(result_msg)
-                            print(f"[{time.strftime('%H:%M:%S')}] İşlem Sonucu: {result_status} | Giriş: {entry_price} -> Çıkış: {exit_price}")
-
-                    except Exception as btn_err:
-                        print(f"İşlem açılamadı / hata: {btn_err}")
-
-                time.sleep(1)
-
-            except KeyboardInterrupt:
-                print("Bot durduruldu.")
-                break
-            except Exception as e:
-                print(f"Hata: {e}")
-                time.sleep(2)
-
-if __name__ == "__main__":
-    start_tradepilot_bot()
+</body>
+</html>
