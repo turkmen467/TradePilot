@@ -306,95 +306,77 @@ function receivePrice(rawPrice, timestamp) {
 */
 function getSignalForIndex(candles, i) {
   if (i < 30 || i >= candles.length) {
-    return {signal:"WAIT", score:0, reason:"Yeterli kapanmış mum yok."};
+    return {signal:"WAIT", score:0, reason:"En az 31 kapanmış mum bekleniyor."};
   }
 
-  // Yalnızca kapanmış mumlar: i ve öncesindeki veriler kullanılır.
+  // Sadece sinyal mumuna kadar olan veriler kullanılır.
   const closes = candles.slice(0, i + 1).map(c => Number(c.close));
-  const e9 = ema(closes, 9);
-  const e21 = ema(closes, 21);
-  const rs = rsi(closes, 14);
-
-  const c = candles[i];
-  const p1 = candles[i - 1], p2 = candles[i - 2], p3 = candles[i - 3];
-  const r = rs[i], prevR = rs[i - 1];
-  if (r == null || prevR == null || !Number.isFinite(r) || !Number.isFinite(prevR)) {
-    return {signal:"WAIT", score:0, reason:"RSI teyidi için veri bekleniyor."};
+  const e9 = ema(closes, 9), e21 = ema(closes, 21), rs = rsi(closes, 14);
+  const c = candles[i], p1 = candles[i-1], p2 = candles[i-2], p3 = candles[i-3];
+  const o = Number(c.open), cl = Number(c.close), h = Number(c.high), l = Number(c.low);
+  const r = rs[i], prevR = rs[i-1];
+  if (![o,cl,h,l,r,prevR].every(Number.isFinite)) {
+    return {signal:"WAIT",score:0,reason:"Gösterge verisi bekleniyor."};
   }
 
-  const open = Number(c.open), close = Number(c.close);
-  const high = Number(c.high), low = Number(c.low);
-  const range = Math.max(high - low, 1e-12);
-  const bodyRatio = Math.abs(close - open) / range;
-  const closePosition = (close - low) / range;
-  const bullish = close > open, bearish = close < open;
+  const range = Math.max(h-l, 1e-12);
+  const bodyRatio = Math.abs(cl-o)/range;
+  const closePos = (cl-l)/range;
+  const bull = cl > o, bear = cl < o;
+  const up = e9[i] > e21[i] && e21[i] > e21[i-3];
+  const down = e9[i] < e21[i] && e21[i] < e21[i-3];
+  const e9Up = e9[i] > e9[i-2], e9Down = e9[i] < e9[i-2];
+  const buyPullback = [p1,p2,p3].some(p => Number(p.close) < Number(p.open));
+  const sellPullback = [p1,p2,p3].some(p => Number(p.close) > Number(p.open));
 
-  const emaUp = e9[i] > e21[i] && e21[i] >= e21[i - 3];
-  const emaDown = e9[i] < e21[i] && e21[i] <= e21[i - 3];
-  const ema9Rising = e9[i] > e9[i - 2];
-  const ema9Falling = e9[i] < e9[i - 2];
+  const avgRange = [p1,p2,p3].reduce((sum,p) =>
+    sum + Math.max(Number(p.high)-Number(p.low),0), 0) / 3;
+  const notChasingUp = cl-e9[i] <= Math.max(avgRange*1.8, 1e-8);
+  const notChasingDown = e9[i]-cl <= Math.max(avgRange*1.8, 1e-8);
 
-  // Son birkaç mumda ana yönün tersine bir hareket görülmüş mü?
-  const prior = [p1, p2, p3];
-  const buyPullback = prior.some(p => Number(p.close) < Number(p.open));
-  const sellPullback = prior.some(p => Number(p.close) > Number(p.open));
+  // Reversal setup: pullback, a closed confirmation candle, and RSI turning with price.
+  const buyReversal = bull && buyPullback &&
+    cl > Number(p1.close) && closePos >= 0.60 &&
+    bodyRatio >= 0.25 && r >= 49 && r <= 69 && r > prevR &&
+    (up || (e9Up && cl > e9[i])) && notChasingUp;
 
-  // Daha erken dönüş teyidi: önceki mumun tamamını kırmak şart değil.
-  const buyReversal =
-    bullish &&
-    close > Number(p1.close) &&
-    close >= (Number(p1.open) + Number(p1.close)) / 2 &&
-    closePosition >= 0.58 &&
-    bodyRatio >= 0.22 &&
-    r >= 48 && r <= 70 &&
-    r > prevR;
+  const sellReversal = bear && sellPullback &&
+    cl < Number(p1.close) && closePos <= 0.40 &&
+    bodyRatio >= 0.25 && r <= 51 && r >= 31 && r < prevR &&
+    (down || (e9Down && cl < e9[i])) && notChasingDown;
 
-  const sellReversal =
-    bearish &&
-    close < Number(p1.close) &&
-    close <= (Number(p1.open) + Number(p1.close)) / 2 &&
-    closePosition <= 0.42 &&
-    bodyRatio >= 0.22 &&
-    r <= 52 && r >= 30 &&
-    r < prevR;
+  // Trend-continuation setup helps avoid waiting for a counter-colour candle
+  // after a strong move has already resumed. RSI extremes and extended moves are filtered.
+  const buyContinuation = bull && (up || (e9Up && cl > e21[i])) &&
+    cl > Number(p1.close) && closePos >= 0.72 &&
+    bodyRatio >= 0.42 && r >= 52 && r <= 67 && r >= prevR &&
+    notChasingUp;
 
-  // Aşırı uzamış mumun sonunda giriş kovalamayı azalt.
-  const recentRanges = [p1, p2, p3, c].map(x =>
-    Math.max(Number(x.high) - Number(x.low), 0)
-  );
-  const avgRange = recentRanges.reduce((a, b) => a + b, 0) / recentRanges.length;
-  const buyNotExtended = close - e9[i] <= Math.max(avgRange * 2.2, 1e-8);
-  const sellNotExtended = e9[i] - close <= Math.max(avgRange * 2.2, 1e-8);
+  const sellContinuation = bear && (down || (e9Down && cl < e21[i])) &&
+    cl < Number(p1.close) && closePos <= 0.28 &&
+    bodyRatio >= 0.42 && r <= 48 && r >= 33 && r <= prevR &&
+    notChasingDown;
 
-  // Ana trend güçlü ise onu izle; dönüş başlangıcında EMA9 eğimi + fiyat konumu yeterli olabilir.
-  const buyTrendConfirmed =
-    (emaUp || (ema9Rising && close > e9[i] && e9[i] >= e9[i - 1])) && r >= 48;
-  const sellTrendConfirmed =
-    (emaDown || (ema9Falling && close < e9[i] && e9[i] <= e9[i - 1])) && r <= 52;
-
-  if (buyPullback && buyReversal && buyTrendConfirmed && buyNotExtended) {
-    return {
-      signal:"BUY",
-      score:70,
-      reason:"Kapanmış mumda geri çekilme sonrası yukarı dönüşün erken teyidi var. Sinyal demo amaçlıdır."
-    };
+  if (buyReversal || buyContinuation) {
+    return {signal:"BUY",score:buyReversal ? 72 : 68,
+      reason:buyReversal
+        ? "Kapanmış mumda geri çekilme sonrası yukarı dönüş teyidi var."
+        : "Kapanmış mumda yukarı trend devamı teyit edildi; aşırı uzamış giriş filtrelendi."};
+  }
+  if (sellReversal || sellContinuation) {
+    return {signal:"SELL",score:sellReversal ? 72 : 68,
+      reason:sellReversal
+        ? "Kapanmış mumda yukarı tepki sonrası aşağı dönüş teyidi var."
+        : "Kapanmış mumda aşağı trend devamı teyit edildi; aşırı uzamış giriş filtrelendi."};
   }
 
-  if (sellPullback && sellReversal && sellTrendConfirmed && sellNotExtended) {
-    return {
-      signal:"SELL",
-      score:70,
-      reason:"Kapanmış mumda yukarı tepki sonrası aşağı dönüşün erken teyidi var. Sinyal demo amaçlıdır."
-    };
+  if (up || (e9Up && cl > e9[i])) {
+    return {signal:"WAIT",score:0,reason:"Yukarı yön var; kapanmış mumda giriş için dönüş/devam teyidi yeterli değil."};
   }
-
-  if (emaUp || (ema9Rising && close > e9[i])) {
-    return {signal:"WAIT", score:0, reason:"Yukarı yön var; kapanmış mumda geri çekilme sonrası dönüş teyidi henüz yeterli değil."};
+  if (down || (e9Down && cl < e9[i])) {
+    return {signal:"WAIT",score:0,reason:"Aşağı yön var; kapanmış mumda giriş için dönüş/devam teyidi yeterli değil."};
   }
-  if (emaDown || (ema9Falling && close < e9[i])) {
-    return {signal:"WAIT", score:0, reason:"Aşağı yön var; kapanmış mumda yukarı tepki sonrası dönüş teyidi henüz yeterli değil."};
-  }
-  return {signal:"WAIT", score:0, reason:"Yön net değil. Yeni kapanmış mumla teyit bekleniyor."};
+  return {signal:"WAIT",score:0,reason:"Trend kararsız; teyitsiz işlemden kaçınılıyor."};
 }
 function backtestClosedCandles(candles) {
   const expiryMs = 60 * 1000; // Kullanıcının işlem süresi: 1 dakika
@@ -420,6 +402,8 @@ function backtestClosedCandles(candles) {
 
   const interval = state.timeframe * 1000;
   // Only candles whose close is followed by enough real recorded data can be tested.
+  // Do not open overlapping hypothetical 60-second trades in this backtest.
+  let nextAllowedEntryTime = -Infinity;
   for (let i = 30; i < candles.length - 1; i++) {
     const result = getSignalForIndex(candles, i);
     if (result.signal !== "BUY" && result.signal !== "SELL") continue;
@@ -429,11 +413,13 @@ function backtestClosedCandles(candles) {
     if (entryIdx < 0) { skipped++; continue; }
 
     const entryTime = Number(ticks[entryIdx].time);
+    if (entryTime < nextAllowedEntryTime) { skipped++; continue; }
     const exitIdx = firstTickAtOrAfter(entryTime + expiryMs, entryIdx);
     if (exitIdx < 0) { skipped++; continue; }
 
     const entry = Number(ticks[entryIdx].price);
     const exit = Number(ticks[exitIdx].price);
+    nextAllowedEntryTime = entryTime + expiryMs;
     if (!Number.isFinite(entry) || !Number.isFinite(exit)) { skipped++; continue; }
 
     // Equal entry/expiry prices are ties, not wins or losses.
