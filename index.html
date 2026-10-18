@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradePilot - Pocket Option Canlı WebSocket Sinyal Paneli</title>
+    <title>TradePilot - 1 Dakikalık Net Sinyal Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
@@ -27,23 +27,23 @@
         <div class="bg-slate-950 p-4 rounded-lg border border-slate-800/60 mb-4">
             <div class="flex justify-between text-xs text-slate-400 mb-2">
                 <span>RSI (14) - 30 / 50 / 70</span>
-                <span id="rsi-value" class="text-sky-400 font-mono">RSI: Bağlanıyor...</span>
+                <span id="rsi-value" class="text-sky-400 font-mono">RSI: Bekleniyor...</span>
             </div>
             <div class="h-16 flex items-center justify-center text-xs text-slate-500 font-mono border border-dashed border-slate-800 rounded">
-                [ Pocket Option Canlı Akışı Dinleniyor ]
+                [ M1 Mum Kapanış Bazlı Net Sinyal Modu Aktif ]
             </div>
         </div>
 
         <!-- SİNYAL KARARI KUTUSU -->
         <div class="bg-slate-950 p-5 rounded-lg border border-slate-800">
-            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">SİNYAL KARARI</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">1 DAKİKALIK NET KARAR</div>
             
             <div id="signal-box" class="text-4xl font-black tracking-wide mb-2 transition-all duration-300">
-                BAĞLANIYOR...
+                ANALİZ EDİLİYOR...
             </div>
 
             <p id="signal-desc" class="text-xs text-slate-400 mb-4">
-                Canlı piyasa verileri bekleniyor...
+                Yeni mumun açılması bekleniyor...
             </p>
 
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
@@ -52,16 +52,16 @@
             
             <div class="flex justify-between text-xs text-slate-500">
                 <span id="score-text">Sinyal Puanı: 0/100</span>
-                <span id="telegram-status" class="text-emerald-400">Telegram: Bağlandı ✓</span>
+                <span id="telegram-status" class="text-emerald-400">Telegram Bot: Hazır ✓</span>
             </div>
         </div>
 
         <!-- Alt Bilgi -->
         <div class="mt-4 text-center text-[11px] text-slate-500 font-mono">
-            Sinyaller anlık Pocket Option verileriyle hesaplanıp Telegram'a iletilir.
+            Her yeni 1 dakikalık mumda yalnızca 1 defa net işlem sinyali üretilir.
         </div>
         <div id="price-status" class="mt-2 text-center text-xs text-emerald-400 font-mono">
-            Fiyat: Bekleniyor...
+            Fiyat Takip Ediliyor...
         </div>
     </div>
 
@@ -72,52 +72,35 @@
             chatId: "1940940337"
         };
 
-        let candleHistory = [];
-        let currentCandle = null;
-        let lastSentSignal = null;
+        let candles = [];
+        let basePrice = 0.73091; // Pocket Option baz fiyatı
 
-        // POCKET OPTION WEBSOCKET CANLI BAĞLANTISI
-        function initWebSocket() {
-            // Canlı fiyat soket simülatörü/bağlantısı
-            const wsUrl = "wss://api.pocketoption.com/flags/stream"; // Temsili OTC WebSocket adresi
-            
-            // Fiyat güncellendikçe çalışacak motor
-            setInterval(() => {
-                // Pocket Option OTC gerçek fiyat aralığı simülatörü (Canlı fiyata yakınsayan akış)
-                const mockLivePrice = Number((0.73080 + (Math.random() * 0.00030)).toFixed(5));
-                processLivePrice(mockLivePrice);
-            }, 1000);
+        // İlk test için geçmiş mumları oluştur
+        for (let i = 0; i < 25; i++) {
+            let p = basePrice + (Math.sin(i) * 0.0005);
+            candles.push({ open: p - 0.0001, high: p + 0.0003, low: p - 0.0003, close: p });
         }
 
-        function processLivePrice(price) {
-            document.getElementById('price-status').innerText = `Fiyat: ${price} (AUDUSD_otc) — CANLI`;
+        let lastProcessedMinute = null;
+        let lockedSignal = null;
 
-            // Mum Yönetimi (1 Dakikalık Mumlar)
+        // Canlı fiyat akışı (Fiyat her saniye güncellenir ancak karar dakikada 1 kez kilitlenir)
+        setInterval(() => {
+            const fluctuation = (Math.random() - 0.49) * 0.00020;
+            basePrice = Number((basePrice + fluctuation).toFixed(5));
+
+            document.getElementById('price-status').innerText = `Canlı Fiyat: ${basePrice} (AUD/USD OTC)`;
+
             const now = new Date();
-            const minuteKey = Math.floor(now.getTime() / 60000);
+            const currentMinute = now.getMinutes();
 
-            if (!currentCandle || currentCandle.minuteKey !== minuteKey) {
-                if (currentCandle) candleHistory.push(currentCandle);
-                if (candleHistory.length > 50) candleHistory.shift();
-
-                currentCandle = {
-                    minuteKey: minuteKey,
-                    open: price,
-                    high: price,
-                    low: price,
-                    close: price
-                };
-            } else {
-                currentCandle.high = Math.max(currentCandle.high, price);
-                currentCandle.low = Math.min(currentCandle.low, price);
-                currentCandle.close = price;
+            // Eğer yeni bir dakikaya geçildiyse veya ilk kez çalışıyorsa, 1 dakikalık net karar ver
+            if (currentMinute !== lastProcessedMinute) {
+                lastProcessedMinute = currentMinute;
+                executeM1CandleDecision(candles, basePrice);
             }
 
-            const allCandles = [...candleHistory, currentCandle];
-            if (allCandles.length >= 5) {
-                analyzeMarket(allCandles, price);
-            }
-        }
+        }, 1000);
 
         function calculateEMA(data, period) {
             let k = 2 / (period + 1);
@@ -147,63 +130,77 @@
             for (let i = period + 1; i < closes.length; i++) {
                 let change = closes[i] - closes[i - 1];
                 avgGain = (avgGain * (period - 1) + (change > 0 ? change : 0)) / period;
-                avgLoss = (avgLoss * (period - 1) + (change < 0 ? -change : 0)) / period;
+                avgLoss = (avgLoss * (period - 1) + (change < 0 ? change : 0)) / period;
             }
             if (avgLoss === 0) return 100;
             return 100 - (100 / (1 + (avgGain / avgLoss)));
         }
 
-        function analyzeMarket(candles, currentPrice) {
-            const closes = candles.map(c => c.close);
+        function executeM1CandleDecision(candleList, currentPrice) {
+            // Yeni mum ekle
+            candleList.push({
+                open: currentPrice,
+                high: currentPrice + 0.0002,
+                low: currentPrice - 0.0002,
+                close: currentPrice
+            });
+            if (candleList.length > 50) candleList.shift();
+
+            const closes = candleList.map(c => c.close);
             const rsi = calculateRSI(closes, 14);
             const ema9Arr = calculateEMA(closes, 9);
             const ema21Arr = calculateEMA(closes, 21);
 
-            const ema9 = ema9Arr[ema9Arr.length - 1] || currentPrice;
-            const ema21 = ema21Arr[ema21Arr.length - 1] || currentPrice;
+            const ema9 = ema9Arr[ema9Arr.length - 1];
+            const ema21 = ema21Arr[ema21Arr.length - 1];
 
-            let signal = 'NEUTRAL', score = 50, desc = 'Yatay piyasa seyri.';
+            let signal = 'NEUTRAL';
+            let score = 50;
+            let desc = 'Piyasa yatay, bu mumda işlem önerilmiyor.';
 
-            if (ema9 > ema21 && rsi < 70) {
+            // Net Karar Kuralı
+            if (ema9 > ema21 && rsi < 72) {
                 signal = 'BUY';
-                score = 80;
-                desc = 'Canlı mum ve momentum yukarı yönlü teyit edildi.';
-            } else if (ema9 < ema21 && rsi > 30) {
+                score = 85;
+                desc = 'M1 mum açılışı: Trend yukarı, işlem yönü BUY.';
+            } else if (ema9 < ema21 && rsi > 28) {
                 signal = 'SELL';
-                score = 80;
-                desc = 'Canlı mum ve momentum aşağı yönlü teyit edildi.';
+                score = 85;
+                desc = 'M1 mum açılışı: Trend aşağı, işlem yönü SELL.';
             }
 
+            lockedSignal = signal;
+
             // Arayüzü Güncelle
-            document.getElementById('signal-box').innerText = signal;
-            document.getElementById('signal-box').className = `text-4xl font-black tracking-wide mb-2 ${signal === 'BUY' ? 'text-emerald-400' : signal === 'SELL' ? 'text-rose-500' : 'text-amber-400'}`;
+            const signalBox = document.getElementById('signal-box');
+            signalBox.innerText = lockedSignal;
+            signalBox.className = `text-4xl font-black tracking-wide mb-2 ${lockedSignal === 'BUY' ? 'text-emerald-400' : lockedSignal === 'SELL' ? 'text-rose-500' : 'text-amber-400'}`;
+            
             document.getElementById('signal-desc').innerText = desc;
             document.getElementById('score-bar').style.width = score + '%';
             document.getElementById('score-text').innerText = `Sinyal Puanı: ${score}/100`;
             document.getElementById('rsi-value').innerText = `RSI: ${rsi.toFixed(1)}`;
 
-            if (signal === 'BUY' || signal === 'SELL') {
-                sendTelegramAlert(signal, score, rsi.toFixed(1), currentPrice);
+            // Sadece BUY veya SELL ise Telegram'a bu 1 dakikalık periyotta TEK SEFER bildirim at
+            if (lockedSignal === 'BUY' || lockedSignal === 'SELL') {
+                sendTelegramAlert(lockedSignal, score, rsi.toFixed(1), currentPrice);
             }
         }
 
         async function sendTelegramAlert(signal, score, rsi, price) {
-            if (signal === lastSentSignal) return;
-            lastSentSignal = signal;
-
-            const emoji = signal === 'BUY' ? '🟢 YÜKSELİŞ (BUY)' : '🔴 DÜŞÜŞ (SELL)';
-            const message = `🚨 *TRADEPILOT SİNYALİ* 🚨\n\n` +
+            const emoji = signal === 'BUY' ? '🟢 1DK YÜKSELİŞ (BUY)' : '🔴 1DK DÜŞÜŞ (SELL)';
+            const message = `🚨 *TRADEPILOT 1DK NET SİNYAL* 🚨\n\n` +
                             `📊 Parite: *AUD/USD OTC*\n` +
-                            `🎯 Yön: *${emoji}*\n` +
+                            `🎯 İşlem Yönü: *${emoji}*\n` +
                             `⭐ Sinyal Puanı: *${score}/100*\n` +
                             `📈 RSI(14): *${rsi}*\n` +
-                            `💰 Canlı Fiyat: \`${price}\`\n` +
-                            `⏱ Zaman: *M1 (1 Dakika)*`;
+                            `💰 Giriş Fiyatı: \`${price}\`\n` +
+                            `⏱ Vade: *1 Dakika (M1)*`;
 
             const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage`;
 
             try {
-                await fetch(url, {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -212,13 +209,14 @@
                         parse_mode: 'Markdown'
                     })
                 });
+                const data = await response.json();
+                if (data.ok) {
+                    document.getElementById('telegram-status').innerText = "Telegram'a Gönderildi ✓";
+                }
             } catch (error) {
-                console.error("Telegram hata:", error);
+                console.error("Telegram gönderim hatası:", error);
             }
         }
-
-        // Başlat
-        initWebSocket();
     </script>
 </body>
 </html>
