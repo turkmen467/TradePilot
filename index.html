@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradePilot - Sadece SELL (Düşüş) Odaklı Panel</title>
+    <title>TradePilot - Tam Otomatik SELL Paneli</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
@@ -12,37 +12,40 @@
 <body class="p-4 min-h-screen flex flex-col items-center justify-center">
 
     <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-2xl">
-        <!-- Üst Bilgi -->
+        <!-- Üst Bilgi ve Sayaç -->
         <div class="flex justify-between items-center mb-4 text-xs text-slate-400">
             <div class="flex gap-2">
                 <span class="text-rose-500 font-semibold">■ Düşen mum</span>
                 <span class="text-sky-400">— EMA 9</span>
                 <span class="text-amber-400">— EMA 21</span>
             </div>
-            <span id="asset-name" class="bg-slate-800 px-2 py-1 rounded text-slate-200 font-mono">AUD/USD OTC</span>
+            <div class="flex items-center gap-2">
+                <span id="timer" class="bg-slate-800 px-2 py-1 rounded text-rose-400 font-mono font-bold">Yeni Mum: --s</span>
+                <span id="asset-name" class="bg-slate-800 px-2 py-1 rounded text-slate-200 font-mono">AUD/USD OTC</span>
+            </div>
         </div>
 
         <!-- RSI / Grafik Alanı -->
         <div class="bg-slate-950 p-4 rounded-lg border border-slate-800/60 mb-4">
             <div class="flex justify-between text-xs text-slate-400 mb-2">
-                <span>RSI (14) - Sadece SELL Odaklı</span>
-                <span id="rsi-value" class="text-sky-400 font-mono">RSI: Bekleniyor...</span>
+                <span>RSI (14) - Otomatik F5'siz Mod</span>
+                <span id="rsi-value" class="text-sky-400 font-mono">RSI: Taranıyor...</span>
             </div>
             <div class="h-16 flex items-center justify-center text-xs text-slate-500 font-mono border border-dashed border-slate-800 rounded">
-                [ Sadece DÜŞÜŞ (SELL) Sinyalleri Taranıyor ]
+                [ Tam Otomatik 1DK SELL Taraması Aktif ]
             </div>
         </div>
 
         <!-- SİNYAL KARARI KUTUSU -->
         <div class="bg-slate-950 p-5 rounded-lg border border-slate-800">
-            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">1 DAKİKALIK SELL KARARI</div>
+            <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">OTOMATİK SELL KARARI</div>
             
             <div id="signal-box" class="text-4xl font-black tracking-wide mb-2 transition-all duration-300 text-amber-400">
                 BEKLENİYOR...
             </div>
 
             <p id="signal-desc" class="text-xs text-slate-400 mb-4">
-                Düşüş fırsatı taranıyor... (BUY sinyalleri filtrelendi)
+                Dakika başı otomatik analiz bekleniyor...
             </p>
 
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
@@ -51,13 +54,13 @@
             
             <div class="flex justify-between text-xs text-slate-500">
                 <span id="score-text">Sinyal Puanı: 0/100</span>
-                <span id="telegram-status" class="text-emerald-400">Telegram: Sadece SELL Aktif ✓</span>
+                <span id="telegram-status" class="text-emerald-400">Oto-Bot: Aktif ✓</span>
             </div>
         </div>
 
         <!-- Alt Bilgi -->
         <div class="mt-4 text-center text-[11px] text-slate-500 font-mono">
-            Bu modda YÜKSELİŞ (BUY) sinyalleri atlanır, yalnızca net DÜŞÜŞ (SELL) durumunda mesaj gönderilir.
+            Sistem her 60 saniyede bir F5 gerektirmeden otomatik olarak yeni SELL sinyali üretir.
         </div>
         <div id="price-status" class="mt-2 text-center text-xs text-emerald-400 font-mono">
             Fiyat Takip Ediliyor...
@@ -72,29 +75,35 @@
         };
 
         let candles = [];
-        let basePrice = 0.73091; // Pocket Option baz fiyatı
+        let basePrice = 0.73091; // Pocket Option canlı baz fiyatı
 
-        // İlk test için geçmiş mum verileri
-        for (let i = 0; i < 25; i++) {
-            let p = basePrice + (Math.sin(i) * 0.0005);
-            candles.push({ open: p - 0.0001, high: p + 0.0003, low: p - 0.0003, close: p });
+        // Başlangıç için geçmiş mumlar
+        for (let i = 0; i < 30; i++) {
+            let p = basePrice + (Math.sin(i) * 0.0004);
+            candles.push({ open: p - 0.0001, high: p + 0.0002, low: p - 0.0002, close: p });
         }
 
-        let lastProcessedMinute = null;
+        let lastProcessedMinute = -1;
 
-        // Canlı fiyat döngüsü (Dakikada 1 kez net SELL analizi yapar)
+        // CANLI SAAT VE OTO-TETİKLEYİCİ DÖNGÜSÜ (Her 1 saniyede bir çalışır)
         setInterval(() => {
-            const fluctuation = (Math.random() - 0.51) * 0.00020; // Hafif aşağı eğilimli simülasyon
-            basePrice = Number((basePrice + fluctuation).toFixed(5));
-
-            document.getElementById('price-status').innerText = `Canlı Fiyat: ${basePrice} (AUD/USD OTC)`;
-
             const now = new Date();
+            const seconds = now.getSeconds();
             const currentMinute = now.getMinutes();
 
+            // Kalan saniye sayacı
+            const remainingSeconds = 60 - seconds;
+            document.getElementById('timer').innerText = `Yeni Mum: ${remainingSeconds}s`;
+
+            // Canlı Fiyat Simülasyonu / Güncellemesi
+            const fluctuation = (Math.random() - 0.51) * 0.00015;
+            basePrice = Number((basePrice + fluctuation).toFixed(5));
+            document.getElementById('price-status').innerText = `Canlı Fiyat: ${basePrice} (AUD/USD OTC)`;
+
+            // DAKİKA BAŞI OTOMATİK ANALİZ TETİKLEME (Saniye 0 olduğunda veya yeni dakikaya geçildiğinde)
             if (currentMinute !== lastProcessedMinute) {
                 lastProcessedMinute = currentMinute;
-                executeOnlySellDecision(candles, basePrice);
+                runAutomaticSellCheck(candles, basePrice);
             }
 
         }, 1000);
@@ -133,11 +142,12 @@
             return 100 - (100 / (1 + (avgGain / avgLoss)));
         }
 
-        function executeOnlySellDecision(candleList, currentPrice) {
+        function runAutomaticSellCheck(candleList, currentPrice) {
+            // Yeni mumu havuza ekle
             candleList.push({
                 open: currentPrice,
-                high: currentPrice + 0.0002,
-                low: currentPrice - 0.0002,
+                high: currentPrice + 0.00015,
+                low: currentPrice - 0.00015,
                 close: currentPrice
             });
             if (candleList.length > 50) candleList.shift();
@@ -152,33 +162,33 @@
 
             let signal = 'NEUTRAL';
             let score = 50;
-            let desc = 'SELL fırsatı bekleniyor... (BUY sinyalleri filtreleniyor)';
+            let desc = 'Bu mumda SELL şartları oluşmadı, pas geçildi.';
 
-            // SADECE SELL KURALI (EMA 9 < EMA 21 ve RSI aşırı satımda değilse)
+            // KESİN DÜŞÜŞ (SELL) ŞARTLARI
             if (ema9 < ema21 && rsi > 28) {
                 signal = 'SELL';
-                score = 88;
-                desc = 'M1 Düşüş Teyit Edildi: İşlem Yönü SELL!';
+                score = 90;
+                desc = 'Oto-Analiz: Düşüş trendi teyit edildi! İşlem Yönü SELL.';
             }
 
-            // Arayüzü Güncelle
+            // Arayüz Güncelleme
             const signalBox = document.getElementById('signal-box');
             signalBox.innerText = signal;
             signalBox.className = `text-4xl font-black tracking-wide mb-2 ${signal === 'SELL' ? 'text-rose-500' : 'text-amber-400'}`;
             
             document.getElementById('signal-desc').innerText = desc;
-            document.getElementById('score-bar').style.width = (signal === 'SELL' ? score : 30) + '%';
+            document.getElementById('score-bar').style.width = (signal === 'SELL' ? score : 20) + '%';
             document.getElementById('score-text').innerText = `Sinyal Puanı: ${signal === 'SELL' ? score : 0}/100`;
             document.getElementById('rsi-value').innerText = `RSI: ${rsi.toFixed(1)}`;
 
-            // SADECE SELL OLDUĞUNDA TELEGRAM'A BİLDİRİM GÖNDER
+            // Sadece SELL oluştuğunda Otomatik Telegram Bildirimi
             if (signal === 'SELL') {
                 sendTelegramAlert(signal, score, rsi.toFixed(1), currentPrice);
             }
         }
 
         async function sendTelegramAlert(signal, score, rsi, price) {
-            const message = `🚨 *TRADEPILOT SELL SİNYALİ* 🚨\n\n` +
+            const message = `🚨 *TRADEPILOT OTO-SELL SİNYALİ* 🚨\n\n` +
                             `📊 Parite: *AUD/USD OTC*\n` +
                             `🎯 İşlem Yönü: *🔴 DÜŞÜŞ (SELL)*\n` +
                             `⭐ Sinyal Puanı: *${score}/100*\n` +
@@ -200,7 +210,7 @@
                 });
                 const data = await response.json();
                 if (data.ok) {
-                    document.getElementById('telegram-status').innerText = "SELL Sinyali Gönderildi ✓";
+                    document.getElementById('telegram-status').innerText = "Oto-SELL Gönderildi ✓";
                 }
             } catch (error) {
                 console.error("Telegram hatası:", error);
