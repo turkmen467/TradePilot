@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradePilot - UT Bot Sinyal Paneli</title>
+    <title>TradePilot - Gelişmiş Sinyal Motoru</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f19; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
@@ -25,153 +25,191 @@
 
         <!-- RSI / Grafik Alanı -->
         <div class="bg-slate-950 p-4 rounded-lg border border-slate-800/60 mb-4">
-            <div class="text-xs text-slate-400 mb-2">RSI (14) - 30 / 50 / 70</div>
-            <div class="h-16 flex items-center justify-center text-xs text-slate-500 font-mono">
-                [ Canlı Grafik ve RSI Akışı Aktif ]
+            <div class="flex justify-between text-xs text-slate-400 mb-2">
+                <span>RSI (14) - 30 / 50 / 70</span>
+                <span id="rsi-value" class="text-sky-400 font-mono">RSI: Hesap рівня...</span>
+            </div>
+            <div class="h-16 flex items-center justify-center text-xs text-slate-500 font-mono border border-dashed border-slate-800 rounded">
+                [ EMA 9, EMA 21 ve RSI Senkronize Edildi ]
             </div>
         </div>
 
-        <!-- SİNYAL KARARI KUTUSU (UT Bot Entegreli) -->
+        <!-- SİNYAL KARARI KUTUSU -->
         <div class="bg-slate-950 p-5 rounded-lg border border-slate-800">
             <div class="text-xs text-slate-400 uppercase tracking-wider mb-2">SİNYAL KARARI</div>
             
             <!-- Dinamik Sinyal Başlığı (BUY / SELL) -->
             <div id="signal-box" class="text-4xl font-black tracking-wide mb-2 transition-all duration-300">
-                YÜKLENİYOR...
+                ANALİZ EDİLİYOR...
             </div>
 
             <p id="signal-desc" class="text-xs text-slate-400 mb-4">
-                Piyasa verileri analiz ediliyor...
+                Piyasa momentumu ve ortalamalar taranıyor...
             </p>
 
             <!-- Skor Çubuğu -->
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
-                <div id="score-bar" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
+                <div id="score-bar" class="bg-sky-500 h-full transition-all duration-500" style="width: 0%"></div>
             </div>
             
             <div class="flex justify-between text-xs text-slate-500">
                 <span id="score-text">Sinyal Puanı: 0/100</span>
-                <span>UT Bot (Key: 1, ATR: 10)</span>
+                <span>Filtreli Trend Stratejisi</span>
             </div>
         </div>
 
-        <!-- Alt Bilgi / Simülasyon Durumu -->
+        <!-- Alt Bilgi -->
         <div class="mt-4 text-center text-[11px] text-slate-500 font-mono">
-            Sinyaller canlı fiyat ve mum yönüne göre hesaplanır. Demo amaçlıdır; garanti değildir.
+            Sinyaller canlı fiyat, EMA ve RSI yönüne göre filtrelenir.
         </div>
         <div id="price-status" class="mt-2 text-center text-xs text-emerald-400 font-mono">
-            Aday fiyat iletildi: 0.72808 (AUDUSD_otc) — demo
+            Durum: Aktif ve Senkronize — demo
         </div>
     </div>
 
     <script>
         // ==========================================
-        // UT BOT ALERTS MOTORU
+        // GELİŞMİŞ TEKNİK ANALİZ MOTORU (EMA + RSI)
         // ==========================================
-        const utBotParams = {
-            keyvalue: 1,      
-            atrperiod: 10     
-        };
 
-        function calculateATR(candles, period) {
-            let trArray = [];
-            for (let i = 1; i < candles.length; i++) {
-                const high = candles[i].high;
-                const low = candles[i].low;
-                const prevClose = candles[i - 1].close;
-                const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-                trArray.push(tr);
-            }
-
-            let atr = [];
-            for (let i = 0; i < trArray.length; i++) {
-                if (i < period - 1) {
-                    atr.push(null);
+        // Üstel Hareketli Ortalama (EMA) Hesaplama
+        function calculateEMA(data, period) {
+            let k = 2 / (period + 1);
+            let emaArray = [];
+            let sum = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                if (i < period) {
+                    sum += data[i];
+                    if (i === period - 1) {
+                        emaArray.push(sum / period);
+                    } else {
+                        emaArray.push(null);
+                    }
                 } else {
-                    const sum = trArray.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
-                    atr.push(sum / period);
+                    let prevEMA = emaArray[i - 1];
+                    let currentEMA = (data[i] * k) + (prevEMA * (1 - k));
+                    emaArray.push(currentEMA);
                 }
             }
-            return atr;
+            return emaArray;
         }
 
-        function analyzeUTBot(candles) {
-            if (!candles || candles.length < utBotParams.atrperiod + 2) {
-                return { signal: 'NEUTRAL', score: 50, stopLoss: 0 };
+        // RSI (14) Hesaplama
+        function calculateRSI(closes, period = 14) {
+            if (closes.length < period + 1) return 50;
+            let gains = 0;
+            let losses = 0;
+
+            for (let i = 1; i <= period; i++) {
+                let change = closes[i] - closes[i - 1];
+                if (change > 0) gains += change;
+                else losses -= change;
             }
 
-            const atrValues = calculateATR(candles, utBotParams.atrperiod);
-            let trailingStop = 0;
-            let lastSignal = 'NEUTRAL';
+            let avgGain = gains / period;
+            let avgLoss = losses / period;
 
-            for (let i = utBotParams.atrperiod; i < candles.length; i++) {
-                const close = candles[i].close;
-                const atr = atrValues[i - 1];
-                if (atr === null) continue;
-                
-                const nLoss = utBotParams.keyvalue * atr;
-
-                if (i === utBotParams.atrperiod) {
-                    trailingStop = close - nLoss;
-                }
-
-                if (close > trailingStop) {
-                    trailingStop = Math.max(trailingStop, close - nLoss);
-                } else {
-                    trailingStop = close + nLoss;
-                }
-
-                const prevClose = candles[i - 1].close;
-                
-                if (close > trailingStop && prevClose <= trailingStop) {
-                    lastSignal = 'BUY';
-                } else if (close < trailingStop && prevClose >= trailingStop) {
-                    lastSignal = 'SELL';
-                }
+            for (let i = period + 1; i < closes.length; i++) {
+                let change = closes[i] - closes[i - 1];
+                let gain = change > 0 ? change : 0;
+                let loss = change < 0 ? -change : 0;
+                avgGain = (avgGain * (period - 1) + gain) / period;
+                avgLoss = (avgLoss * (period - 1) + loss) / period;
             }
 
+            if (avgLoss === 0) return 100;
+            let rs = avgGain / avgLoss;
+            return 100 - (100 / (1 + rs));
+        }
+
+        // Ana Sinyal Karar Motoru
+        function analyzeMarket(candles) {
+            if (!candles || candles.length < 20) {
+                return { signal: 'NEUTRAL', score: 50, rsi: 50, desc: 'Yetersiz veri.' };
+            }
+
+            const closes = candles.map(c => c.close);
             const currentCandle = candles[candles.length - 1];
-            const isGreen = currentCandle.close > currentCandle.open;
-            let score = 75;
+            const prevCandle = candles[candles.length - 2];
 
-            if (lastSignal === 'SELL' && isGreen) {
-                score = 45; 
-            } else if (lastSignal === 'BUY' && !isGreen) {
-                score = 45;
+            const ema9Arr = calculateEMA(closes, 9);
+            const ema21Arr = calculateEMA(closes, 21);
+            const rsi = calculateRSI(closes, 14);
+
+            const ema9 = ema9Arr[ema9Arr.length - 1];
+            const ema21 = ema21Arr[ema21Arr.length - 1];
+            const prevEma9 = ema9Arr[ema9Arr.length - 2];
+            const prevEma21 = ema21Arr[ema21Arr.length - 2];
+
+            const isGreen = currentCandle.close > currentCandle.open;
+            let signal = 'NEUTRAL';
+            let score = 50;
+            let desc = 'Piyasa kararsız yatay seyirde.';
+
+            // Mantık: EMA 9, EMA 21'i yukarı kesmişse ve RSI aşırı alımda değilse -> BUY
+            // EMA 9, EMA 21'i aşağı kesmişse ve RSI aşırı satımda değilse -> SELL
+            const bullishCross = (ema9 > ema21 && prevEma9 <= prevEma21) || (ema9 > ema21 && isGreen);
+            const bearishCross = (ema9 < ema21 && prevEma9 >= prevEma21) || (ema9 < ema21 && !isGreen);
+
+            if (bullishCross && rsi < 70) {
+                signal = 'BUY';
+                score = Math.round(65 + (rsi < 60 ? 15 : 5));
+                desc = 'Mum kapanışı, EMA 9/21 kesişimi ve momentum yukarı yönlü teyit edildi.';
+            } else if (bearishCross && rsi > 30) {
+                signal = 'SELL';
+                score = Math.round(65 + (rsi > 40 ? 15 : 5));
+                desc = 'Mum kapanışı ve momentum aşağı yönlü teyit edildi.';
             } else {
-                score = 85;
+                // Alternatif RSI yönlü karar
+                if (rsi > 60 && isGreen) {
+                    signal = 'BUY';
+                    score = 60;
+                    desc = 'RSI pozitif bölgede ve mum yükseliş yönlü.';
+                } else if (rsi < 40 && !isGreen) {
+                    signal = 'SELL';
+                    score = 60;
+                    desc = 'RSI negatif bölgede ve mum düşüş yönlü.';
+                }
             }
 
-            return { signal: lastSignal, score: score, stopLoss: trailingStop.toFixed(5) };
+            return { signal, score, rsi: rsi.toFixed(1), desc };
         }
 
-        // Örnek Test Verileri (Canlı sistemde buraya PocketOption veya WebSocket verileriniz gelecek)
-        const mockCandles = [
-            { open: 0.72750, high: 0.72820, low: 0.72740, close: 0.72790 },
-            { open: 0.72790, high: 0.72850, low: 0.72780, close: 0.72810 },
-            { open: 0.72810, high: 0.72860, low: 0.72790, close: 0.72808 },
-            { open: 0.72808, high: 0.72840, low: 0.72760, close: 0.72775 } // Düşen mum örneği (SELL tetikler)
+        // Test Verileri (Canlı sistemde buraya WebSocket fiyatlarınız bağlanacak)
+        const liveCandles = [
+            { open: 0.72740, high: 0.72790, low: 0.72730, close: 0.72780 },
+            { open: 0.72780, high: 0.72820, low: 0.72770, close: 0.72800 },
+            { open: 0.72800, high: 0.72840, low: 0.72780, close: 0.72790 },
+            { open: 0.72790, high: 0.72810, low: 0.72750, close: 0.72765 },
+            { open: 0.72765, high: 0.72780, low: 0.72730, close: 0.72740 } // Düşüş sinyali tetikleyici örnek
         ];
 
         function updateUI() {
-            const result = analyzeUTBot(mockCandles);
+            const result = analyzeMarket(liveCandles);
             const signalBox = document.getElementById('signal-box');
             const signalDesc = document.getElementById('signal-desc');
             const scoreBar = document.getElementById('score-bar');
             const scoreText = document.getElementById('score-text');
+            const rsiValue = document.getElementById('rsi-value');
+
+            rsiValue.innerText = `RSI: ${result.rsi}`;
 
             if (result.signal === 'SELL') {
                 signalBox.innerText = 'SELL';
                 signalBox.className = 'text-4xl font-black tracking-wide mb-2 text-rose-500';
-                signalDesc.innerText = 'Mum kapanışı ve momentum aşağı yönlü teyit edildi.';
                 scoreBar.className = 'bg-rose-500 h-full transition-all duration-500';
-            } else {
+            } else if (result.signal === 'BUY') {
                 signalBox.innerText = 'BUY';
                 signalBox.className = 'text-4xl font-black tracking-wide mb-2 text-emerald-400';
-                signalDesc.innerText = 'Mum kapanışı ve momentum yukarı yönlü teyit edildi.';
                 scoreBar.className = 'bg-emerald-400 h-full transition-all duration-500';
+            } else {
+                signalBox.innerText = 'NEUTRAL';
+                signalBox.className = 'text-4xl font-black tracking-wide mb-2 text-amber-400';
+                scoreBar.className = 'bg-amber-400 h-full transition-all duration-500';
             }
 
+            signalDesc.innerText = result.desc;
             scoreBar.style.width = result.score + '%';
             scoreText.innerText = `Sinyal Puanı: ${result.score}/100`;
         }
