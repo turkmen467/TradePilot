@@ -123,7 +123,8 @@ const state = {
   maxCandles:180,
   maxStoredTicks:12000,
   lastSavedAt:0,
-  lastSignal:"WAIT"
+  lastSignal:"WAIT",
+  lastBacktestKey:""
 };
 
 const fmt = n => Number.isFinite(n) ? n.toFixed(5) : "—";
@@ -396,20 +397,57 @@ function getSignalForIndex(candles, i) {
   return {signal:"WAIT", score:0, reason:"Yön net değil. Yeni kapanmış mumla teyit bekleniyor."};
 }
 function backtestClosedCandles(candles) {
-  let trades = 0, wins = 0, losses = 0;
-  // Sinyal mumunun kapanışından sonraki mumun kapanışına kadar basit yön testi.
-  // Bu, 5 saniyelik emir zamanlamasını, payout/spread veya gerçek Pocket Option sonucunu taklit etmez.
+  const expiryMs = 60 * 1000; // Kullanıcının işlem süresi: 1 dakika
+  const ticks = [...state.priceHistory]
+    .filter(t => Number.isFinite(Number(t.time)) && Number.isFinite(Number(t.price)) && Number(t.price) > 0)
+    .sort((a, b) => Number(a.time) - Number(b.time));
+
+  let trades = 0, wins = 0, losses = 0, ties = 0, skipped = 0;
+  if (ticks.length < 2 || candles.length < 32) {
+    return {trades,wins,losses,ties,skipped,rate:0,ready:false,expiryMs};
+  }
+
+  // Binary search: first recorded quote at/after requested time.
+  function firstTickAtOrAfter(time, fromIndex = 0) {
+    let lo = fromIndex, hi = ticks.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (Number(ticks[mid].time) < time) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo < ticks.length ? lo : -1;
+  }
+
+  const interval = state.timeframe * 1000;
+  // Only candles whose close is followed by enough real recorded data can be tested.
   for (let i = 30; i < candles.length - 1; i++) {
     const result = getSignalForIndex(candles, i);
     if (result.signal !== "BUY" && result.signal !== "SELL") continue;
-    const entry = Number(candles[i].close);
-    const exit = Number(candles[i+1].close);
-    if (!Number.isFinite(entry) || !Number.isFinite(exit) || entry === exit) continue;
+
+    const signalCloseTime = Number(candles[i].time) + interval;
+    const entryIdx = firstTickAtOrAfter(signalCloseTime);
+    if (entryIdx < 0) { skipped++; continue; }
+
+    const entryTime = Number(ticks[entryIdx].time);
+    const exitIdx = firstTickAtOrAfter(entryTime + expiryMs, entryIdx);
+    if (exitIdx < 0) { skipped++; continue; }
+
+    const entry = Number(ticks[entryIdx].price);
+    const exit = Number(ticks[exitIdx].price);
+    if (!Number.isFinite(entry) || !Number.isFinite(exit)) { skipped++; continue; }
+
+    // Equal entry/expiry prices are ties, not wins or losses.
+    if (exit === entry) { ties++; continue; }
     trades++;
     const won = result.signal === "BUY" ? exit > entry : exit < entry;
     if (won) wins++; else losses++;
   }
-  return {trades,wins,losses,rate:trades ? wins/trades*100 : 0};
+
+  return {
+    trades, wins, losses, ties, skipped,
+    rate: trades ? wins / trades * 100 : 0,
+    ready: true, expiryMs
+  };
 }
 
 function updateIndicators() {
@@ -444,12 +482,23 @@ function updateIndicators() {
   $("candle-range").textContent = fmt(c.low) + " – " + fmt(c.high);
   setSignal(result.signal, result.score, result.reason + " Sinyal demo amaçlıdır; başarı garantisi değildir.");
 
-  const bt = backtestClosedCandles(candles);
+  const lastCandleKey = candles.length ? String(candles[candles.length - 1].time) : "";
+  if (state.lastBacktestKey !== lastCandleKey) {
+    state.cachedBacktest = backtestClosedCandles(candles);
+    state.lastBacktestKey = lastCandleKey;
+  }
+  const bt = state.cachedBacktest || backtestClosedCandles(candles);
   $("history-status").textContent =
     timeframeLabel(state.timeframe) + " mumları · Kayıtlı fiyat: " +
     state.priceHistory.length.toLocaleString("tr-TR") +
-    " · Geçmiş test: " + bt.trades + " sinyal, " + bt.wins + " olumlu / " +
-    bt.losses + " olumsuz · " + (bt.trades ? bt.rate.toFixed(1) + "% yön isabeti" : "test için yeterli sinyal yok");
+    " · 60 sn geçmiş yön testi: " +
+    (bt.ready
+      ? bt.trades + " işlem, " + bt.wins + " olumlu / " + bt.losses + " olumsuz" +
+        (bt.ties ? " / " + bt.ties + " eşit" : "") +
+        " · " + (bt.trades ? bt.rate.toFixed(1) + "% yön isabeti" : "henüz sonuçlanmış sinyal yok")
+      : "yeterli kayıt yok") +
+    (bt.skipped ? " · sonuç verisi yetmeyen: " + bt.skipped : "") +
+    " · Bu, gerçek payout/kazanç hesabı değildir.";
 }
 function setSignal(signal,score,description) {
   const el = $("signal");
@@ -637,6 +686,8 @@ function drawRsi() {
 }
 
 function rebuildCandles() {
+  state.lastBacktestKey = "";
+  state.cachedBacktest = null;
   buildCandlesFromHistory();
   updateIndicators();
   drawCharts();
