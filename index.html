@@ -52,7 +52,7 @@
             
             <div class="flex justify-between text-xs text-slate-500">
                 <span id="score-text">Sinyal Puanı: 0/100</span>
-                <span id="telegram-status" class="text-emerald-400">Telegram Bot: Hazır</span>
+                <span id="telegram-status" class="text-emerald-400">Telegram Bot: Bağlandı ✓</span>
             </div>
         </div>
 
@@ -71,19 +71,12 @@
         // ==========================================
         const TELEGRAM_CONFIG = {
             botToken: "8945996453:AAFdo3pTmZlqLzOmOZQnnEsZBfYaIPcwGHQ",
-            chatId: "BURAYA_KENDI_CHAT_ID_NUMARANIZI_YAZIN" // Örn: 123456789 (@userinfobot'tan öğrenebilirsiniz)
+            chatId: "1940940337" // Chat ID'niz eklendi
         };
 
         let lastSentSignal = null;
 
         async function sendTelegramAlert(signal, score, rsi, price) {
-            if (!TELEGRAM_CONFIG.chatId || TELEGRAM_CONFIG.chatId.includes("BURAYA")) {
-                console.log("Lütfen TELEGRAM_CONFIG içerisine kendi Chat ID'nizi yazın!");
-                document.getElementById('telegram-status').innerText = "Chat ID Eksik!";
-                document.getElementById('telegram-status').className = "text-amber-400";
-                return;
-            }
-
             if (signal === lastSentSignal) return; // Aynı sinyali tekrar spam yapmasın
             lastSentSignal = signal;
 
@@ -164,7 +157,6 @@
 
             const ema9 = ema9Arr[ema9Arr.length - 1];
             const ema21 = ema21Arr[ema21Arr.length - 1];
-            const isGreen = currentCandle.close > currentCandle.open;
 
             let signal = 'NEUTRAL', score = 50, desc = 'Piyasa yatay seyirde.';
 
@@ -195,7 +187,7 @@
             document.getElementById('signal-box').innerText = result.signal;
             document.getElementById('signal-box').className = `text-4xl font-black tracking-wide mb-2 ${result.signal === 'BUY' ? 'text-emerald-400' : result.signal === 'SELL' ? 'text-rose-500' : 'text-amber-400'}`;
             document.getElementById('signal-desc').innerText = result.desc;
-            document.getElementById('score-bar').style.width = result.result + '%';
+            document.getElementById('score-bar').style.width = result.score + '%';
             document.getElementById('score-text').innerText = `Sinyal Puanı: ${result.score}/100`;
             document.getElementById('rsi-value').innerText = `RSI: ${result.rsi}`;
 
