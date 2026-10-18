@@ -71,13 +71,13 @@
         // ==========================================
         const TELEGRAM_CONFIG = {
             botToken: "8945996453:AAFdo3pTmZlqLzOmOZQnnEsZBfYaIPcwGHQ",
-            chatId: "1940940337" // Chat ID'niz eklendi
+            chatId: "1940940337"
         };
 
         let lastSentSignal = null;
 
         async function sendTelegramAlert(signal, score, rsi, price) {
-            if (signal === lastSentSignal) return; // Aynı sinyali tekrar spam yapmasın
+            if (signal === lastSentSignal) return; 
             lastSentSignal = signal;
 
             const emoji = signal === 'BUY' ? '🟢 YÜKSELİŞ (BUY)' : '🔴 DÜŞÜŞ (SELL)';
@@ -141,7 +141,7 @@
             for (let i = period + 1; i < closes.length; i++) {
                 let change = closes[i] - closes[i - 1];
                 avgGain = (avgGain * (period - 1) + (change > 0 ? change : 0)) / period;
-                avgLoss = (avgLoss * (period - 1) + (change < 0 ? -change : 0)) / period;
+                avgLoss = (avgLoss * (period - 1) + (change < 0 ? change : 0)) / period;
             }
             if (avgLoss === 0) return 100;
             return 100 - (100 / (1 + (avgGain / avgLoss)));
@@ -173,11 +173,29 @@
             return { signal, score, rsi: rsi.toFixed(1), desc };
         }
 
+        // 20+ adet yeterli mum verisi (Test için SELL üretecek şekilde ayarlandı)
         const liveCandles = [
-            { open: 0.72740, high: 0.72790, low: 0.72730, close: 0.72780 },
-            { open: 0.72780, high: 0.72820, low: 0.72770, close: 0.72800 },
-            { open: 0.72800, high: 0.72840, low: 0.72780, close: 0.72790 },
-            { open: 0.72790, high: 0.72810, low: 0.72750, close: 0.72740 }
+            { open: 0.72900, high: 0.72950, low: 0.72890, close: 0.72940 },
+            { open: 0.72940, high: 0.72980, low: 0.72920, close: 0.72970 },
+            { open: 0.72970, high: 0.73010, low: 0.72950, close: 0.73000 },
+            { open: 0.73000, high: 0.73040, low: 0.72980, close: 0.73020 },
+            { open: 0.73020, high: 0.73050, low: 0.72990, close: 0.73010 },
+            { open: 0.73010, high: 0.73030, low: 0.72960, close: 0.72980 },
+            { open: 0.72980, high: 0.73000, low: 0.72930, close: 0.72950 },
+            { open: 0.72950, high: 0.72970, low: 0.72900, close: 0.72920 },
+            { open: 0.72920, high: 0.72950, low: 0.72880, close: 0.72890 },
+            { open: 0.72890, high: 0.72920, low: 0.72850, close: 0.72860 },
+            { open: 0.72860, high: 0.72890, low: 0.72820, close: 0.72830 },
+            { open: 0.72830, high: 0.72860, low: 0.72790, close: 0.72800 },
+            { open: 0.72800, high: 0.72830, low: 0.72760, close: 0.72770 },
+            { open: 0.72770, high: 0.72800, low: 0.72730, close: 0.72740 },
+            { open: 0.72740, high: 0.72770, low: 0.72700, close: 0.72710 },
+            { open: 0.72710, high: 0.72740, low: 0.72670, close: 0.72680 },
+            { open: 0.72680, high: 0.72710, low: 0.72640, close: 0.72650 },
+            { open: 0.72650, high: 0.72680, low: 0.72610, close: 0.72620 },
+            { open: 0.72620, high: 0.72650, low: 0.72580, close: 0.72590 },
+            { open: 0.72590, high: 0.72620, low: 0.72550, close: 0.72560 },
+            { open: 0.72560, high: 0.72590, low: 0.72520, close: 0.72530 }
         ];
 
         function updateUI() {
